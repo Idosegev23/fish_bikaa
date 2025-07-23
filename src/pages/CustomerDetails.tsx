@@ -75,15 +75,15 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
 
   const onSubmit = async (data: FormData) => {
     if (cart.length === 0) {
-      // הודעה מודרנית במקום alert
+      // הודעה מקצועית
       const notification = document.createElement('div')
-      notification.className = 'fixed top-4 right-4 bg-accent-500 text-white px-6 py-3 rounded-2xl shadow-depth z-50 animate-slide-up'
+      notification.className = 'fixed top-4 right-4 bg-coral-500 text-white px-6 py-3 rounded-xl shadow-ocean-lg z-50 animate-slide-up'
       notification.innerHTML = `
         <div class="flex items-center gap-3">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.36 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
           </svg>
-          <span>הסל ריק! נא להוסיף פריטים לסל הקניות</span>
+          <span>הסל ריק! נא להוסיף פריטים</span>
         </div>
       `
       document.body.appendChild(notification)
@@ -99,12 +99,12 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
     navigate('/order-summary')
   }
 
-  const getWaterTypeIcon = (waterType: string) => {
+  const getWaterTypeClass = (waterType: string) => {
     switch(waterType) {
-      case 'saltwater': return '🌊'
-      case 'freshwater': return '💧'
-      case 'other': return '⭐'
-      default: return '🐟'
+      case 'saltwater': return 'bg-ocean-100 text-ocean-800 border-ocean-200'
+      case 'freshwater': return 'bg-wave-100 text-wave-800 border-wave-200'
+      case 'other': return 'bg-sand-100 text-sand-800 border-sand-200'
+      default: return 'bg-deep-100 text-deep-800 border-deep-200'
     }
   }
 
@@ -119,39 +119,31 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
 
   if (cart.length === 0) {
     return (
-      <div className="container max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="text-center card-glass relative overflow-hidden">
-          <div className="absolute inset-0 wave-animation opacity-5"></div>
-          <div className="relative z-10 py-20">
-            <div className="w-32 h-32 bg-gradient-to-br from-primary-500 to-ocean-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl">
-              <ShoppingCart className="w-16 h-16 text-white float-animation" />
-            </div>
-            <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-800 via-ocean-600 to-primary-800 bg-clip-text text-transparent mb-6">
-              🛒 הסל ריק
-            </h2>
-            <p className="text-2xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              עדיין לא הוספתם דגים טריים לסל הקניות שלכם
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <button 
-                onClick={() => navigate('/catalog')}
-                className="btn-primary text-2xl py-6 px-12 shadow-2xl hover:shadow-3xl"
-              >
-                <div className="flex items-center gap-4">
-                  <Package className="w-8 h-8" />
-                  <span>🐟 בואו נתחיל לקנות!</span>
-                </div>
-              </button>
-              <button 
-                onClick={() => navigate('/')}
-                className="btn-secondary text-xl py-5 px-10"
-              >
-                <div className="flex items-center gap-3">
-                  <span>🏠</span>
-                  <span>חזרה לעמוד הבית</span>
-                </div>
-              </button>
-            </div>
+      <div className="container max-w-4xl mx-auto py-20">
+        <div className="text-center card-glass p-16">
+          <div className="w-24 h-24 ocean-gradient rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-ocean">
+            <ShoppingCart className="w-12 h-12 text-white" />
+          </div>
+          <h2 className="text-4xl font-bold text-deep-900 mb-6">
+            הסל ריק
+          </h2>
+          <p className="text-xl text-deep-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+            עדיין לא הוספתם דגים טריים לסל הקניות שלכם
+          </p>
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <button 
+              onClick={() => navigate('/catalog')}
+              className="btn-primary text-xl px-10 py-4"
+            >
+              <Package className="w-6 h-6" />
+              התחילו לקנות
+            </button>
+            <button 
+              onClick={() => navigate('/')}
+              className="btn-secondary text-xl px-10 py-4"
+            >
+              חזרה לעמוד הבית
+            </button>
           </div>
         </div>
       </div>
@@ -159,34 +151,30 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
   }
 
   return (
-    <div className="container max-w-7xl mx-auto space-y-10 fade-in px-4 sm:px-6 lg:px-8">
-      {/* Stunning Header */}
-      <div className="text-center card-glass relative overflow-hidden">
-        <div className="absolute inset-0 wave-animation opacity-10"></div>
-        <div className="relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-ocean-500 rounded-full mb-6 shadow-2xl">
-            <ShoppingCart className="w-10 h-10 text-white float-animation" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary-800 via-ocean-600 to-primary-800 bg-clip-text text-transparent mb-6">פרטי הזמנה</h1>
-          <p className="text-xl sm:text-2xl text-slate-600 px-4 sm:px-8 leading-relaxed">מלאו את הפרטים שלכם להשלמת ההזמנה 🐟</p>
+    <div className="container max-w-7xl mx-auto space-y-10 animate-fade-in">
+      {/* Professional Header */}
+      <div className="text-center card-glass p-12">
+        <div className="w-20 h-20 ocean-gradient rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-ocean">
+          <ShoppingCart className="w-10 h-10 text-white" />
         </div>
+        <h1 className="heading-responsive font-bold text-deep-900 mb-6">פרטי הזמנה</h1>
+        <p className="text-xl text-deep-600 leading-relaxed">מלאו את הפרטים שלכם להשלמת ההזמנה</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-10">
         {/* Enhanced Cart Summary - מחזיק 3 columns */}
         <div className="xl:col-span-3 space-y-8">
-          <div className="card-gradient relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-500 via-ocean-400 to-accent-500 rounded-t-3xl"></div>
-            <div className="form-header">
-              <div className="form-icon-container">
+          <div className="card p-8">
+            <div className="flex items-center gap-4 pb-6 border-b border-deep-200">
+              <div className="ocean-gradient p-3 rounded-xl">
                 <ShoppingCart className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-800 to-ocean-700 bg-clip-text text-transparent">סיכום הזמנה</h2>
-                <p className="text-slate-600 mt-1">הדגים הטריים שבחרתם</p>
+                <h2 className="text-3xl font-bold text-deep-900">סיכום הזמנה</h2>
+                <p className="text-deep-600 mt-1">הדגים הטריים שבחרתם</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="badge px-6 py-3 text-lg font-bold">
+                <span className="badge text-ocean-700 bg-ocean-100 border-ocean-200 px-4 py-2 text-lg font-bold">
                   {cart.length} פריט{cart.length > 1 ? 'ים' : ''}
                 </span>
               </div>
@@ -231,9 +219,8 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                       {/* Enhanced Fish Details */}
                       <div className="flex-1 min-w-0 space-y-4">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                          <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary-800 to-ocean-700 bg-clip-text text-transparent">{item.fishName}</h3>
-                          <span className="badge-ocean text-sm font-bold shadow-lg">
-                            <span className="text-lg">{getWaterTypeIcon(item.waterType)}</span>
+                          <h3 className="text-2xl font-bold text-deep-900">{item.fishName}</h3>
+                          <span className={`badge ${getWaterTypeClass(item.waterType)} text-sm font-bold`}>
                             {getWaterTypeLabel(item.waterType)}
                           </span>
                         </div>
