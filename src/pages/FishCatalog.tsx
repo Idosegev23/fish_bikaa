@@ -83,15 +83,15 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
     // רענון נתוני הדגים אחרי הוספה לסל
     fetchFishAndCuts()
     
-    // הודעה מודרנית עם סטיילינג
+    // הודעה מקצועית
     const notification = document.createElement('div')
-    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-2xl shadow-depth z-50 animate-slide-up'
+    notification.className = 'fixed top-4 right-4 bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-ocean-lg z-50 animate-slide-up'
     notification.innerHTML = `
       <div class="flex items-center gap-3">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
         </svg>
-        <span>${fishItem.name} (${cutType.cut_name}) נוסף לסל הקניות!</span>
+        <span>${fishItem.name} (${cutType.cut_name}) נוסף לסל</span>
       </div>
     `
     document.body.appendChild(notification)
@@ -101,43 +101,38 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-96">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Fish className="w-6 h-6 text-primary-600 animate-pulse" />
-          </div>
-        </div>
+        <div className="ocean-loading"></div>
       </div>
     )
   }
 
   return (
     <div className="space-y-12 fade-in">
-      {/* Header מודרני */}
-      <div className="text-center card-glass">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold heading-gradient mb-6">קטלוג דגים</h1>
-        <p className="text-lg sm:text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
-          בחרו את הדג שתרצו, סוג החיתוך והכמות. המחירים מעודכנים בזמן אמת והמלאי מתעדכן באופן מיידי.
+      {/* Professional Header */}
+      <div className="text-center card-glass p-12">
+        <h1 className="heading-responsive font-bold text-deep-900 mb-6">קטלוג דגים</h1>
+        <p className="text-lg text-deep-600 max-w-4xl mx-auto leading-relaxed">
+          בחרו את הדג המועדף עליכם, סוג החיתוך והכמות. כל המחירים מעודכנים בזמן אמת.
         </p>
       </div>
 
-      {/* Filter מעוצב */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 card-glass">
+      {/* Professional Filter */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-6 card p-6">
         <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-2 rounded-xl">
+          <div className="ocean-gradient p-3 rounded-xl">
             <Filter className="w-5 h-5 text-white" />
           </div>
-          <span className="text-neutral-700 font-semibold text-base sm:text-lg">סינון לפי סוג מים:</span>
+          <span className="text-deep-700 font-semibold text-lg">סינון לפי סוג מים:</span>
         </div>
         <select
           value={selectedWaterType}
           onChange={(e) => setSelectedWaterType(e.target.value)}
-          className="input-field w-full sm:w-auto text-base sm:text-lg font-medium bg-white/80 backdrop-blur-sm"
+          className="input-field w-full sm:w-auto text-lg font-medium"
         >
-          <option value="all">🐟 כל הדגים</option>
-          <option value="saltwater">🌊 מים מלוחים</option>
-          <option value="freshwater">💧 מים מתוקים</option>
-          <option value="other">⭐ מיוחדים</option>
+          <option value="all">כל הדגים</option>
+          <option value="saltwater">מים מלוחים</option>
+          <option value="freshwater">מים מתוקים</option>
+          <option value="other">מיוחדים</option>
         </select>
       </div>
 
@@ -155,12 +150,12 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
       </div>
 
       {filteredFish.length === 0 && (
-        <div className="text-center py-20 card-glass">
-          <div className="w-20 h-20 bg-neutral-200 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Fish className="w-10 h-10 text-neutral-400" />
+        <div className="text-center py-20 card">
+          <div className="w-20 h-20 bg-deep-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Fish className="w-10 h-10 text-deep-400" />
           </div>
-          <p className="text-neutral-500 text-xl font-medium">לא נמצאו דגים בקטגוריה זו</p>
-          <p className="text-neutral-400 mt-2">נסו לבחור קטגוריה אחרת או לחזור מאוחר יותר</p>
+          <p className="text-deep-600 text-xl font-medium">לא נמצאו דגים בקטגוריה זו</p>
+          <p className="text-deep-500 mt-2">נסו לבחור קטגוריה אחרת</p>
         </div>
       )}
     </div>
@@ -207,12 +202,12 @@ function FishCard({ fish, cutTypes, onAddToCart }: FishCardProps) {
     }
   }
 
-  const getWaterTypeIcon = (waterType: string) => {
+  const getWaterTypeClass = (waterType: string) => {
     switch(waterType) {
-      case 'saltwater': return '🌊'
-      case 'freshwater': return '💧'
-      case 'other': return '⭐'
-      default: return '🐟'
+      case 'saltwater': return 'bg-ocean-100 text-ocean-800 border-ocean-200'
+      case 'freshwater': return 'bg-wave-100 text-wave-800 border-wave-200'
+      case 'other': return 'bg-sand-100 text-sand-800 border-sand-200'
+      default: return 'bg-deep-100 text-deep-800 border-deep-200'
     }
   }
 
@@ -226,24 +221,24 @@ function FishCard({ fish, cutTypes, onAddToCart }: FishCardProps) {
   }
 
   return (
-    <div className="card-glass hover-lift group">
-      {/* Fish Image מעוצבת */}
-      <div className="relative w-full h-52 bg-gradient-to-br from-ocean-100 to-ocean-200 rounded-3xl mb-6 overflow-hidden">
-        {/* תג מצב מלאי */}
+    <div className="professional-card group">
+      {/* Professional Fish Image */}
+      <div className="relative w-full h-52 fish-image-container mb-6">
+        {/* Stock Status */}
         <div className="absolute top-4 left-4 z-10">
           {isOutOfStock ? (
-            <span className="status-error text-sm font-medium">אזל המלאי</span>
+            <span className="badge-coral text-sm font-medium">אזל המלאי</span>
           ) : isLowStock ? (
-            <span className="status-warning text-sm font-medium">מלאי נמוך</span>
+            <span className="badge-warning text-sm font-medium">מלאי נמוך</span>
           ) : (
-            <span className="status-success text-sm font-medium">זמין במלאי</span>
+            <span className="badge-success text-sm font-medium">זמין במלאי</span>
           )}
         </div>
 
-        {/* תג סוג מים */}
+        {/* Water Type Badge */}
         <div className="absolute top-4 right-4 z-10">
-          <span className="badge-ocean">
-            {getWaterTypeIcon(fish.water_type)} {getWaterTypeLabel(fish.water_type)}
+          <span className={`badge ${getWaterTypeClass(fish.water_type)}`}>
+            {getWaterTypeLabel(fish.water_type)}
           </span>
         </div>
 
@@ -255,19 +250,18 @@ function FishCard({ fish, cutTypes, onAddToCart }: FishCardProps) {
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-ocean-400 group-hover:scale-105 transition-transform duration-500">
-            <ImageIcon className="w-16 h-16 mb-3 opacity-50" />
-            <span className="text-6xl opacity-70">{getWaterTypeIcon(fish.water_type)}</span>
+          <div className="flex items-center justify-center h-full text-deep-400 group-hover:scale-105 transition-transform duration-500">
+            <ImageIcon className="w-16 h-16 opacity-50" />
           </div>
         )}
       </div>
 
-      {/* Fish Info מעוצבת */}
-      <div className="space-y-6">
+      {/* Professional Fish Info */}
+      <div className="space-y-6 p-6">
         <div>
-          <h3 className="text-xl sm:text-2xl font-bold text-primary-900 mb-2 text-wrap">{fish.name}</h3>
+          <h3 className="text-2xl font-bold text-deep-900 mb-2">{fish.name}</h3>
           {fish.description && (
-            <p className="text-neutral-600 leading-relaxed text-sm sm:text-base text-wrap">{fish.description}</p>
+            <p className="text-deep-600 leading-relaxed">{fish.description}</p>
           )}
         </div>
 
@@ -313,15 +307,15 @@ function FishCard({ fish, cutTypes, onAddToCart }: FishCardProps) {
             </p>
           </div>
 
-          {/* Price Display מעוצבת */}
-          <div className="bg-gradient-to-br from-primary-50 to-primary-100/50 backdrop-blur-sm p-6 rounded-3xl border border-primary-200/50">
-            <div className="flex justify-between items-center text-lg text-primary-700 mb-2">
+          {/* Professional Price Display */}
+          <div className="surface-glass p-6 rounded-2xl">
+            <div className="flex justify-between items-center text-lg text-deep-700 mb-2">
               <span>מחיר לק"ג:</span>
               <span className="font-semibold">₪{finalPrice}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-xl font-bold text-primary-900">סה"כ:</span>
-              <span className="text-2xl font-bold text-accent-600">₪{(finalPrice * quantity).toFixed(2)}</span>
+              <span className="text-xl font-bold text-deep-900">סה"כ:</span>
+              <span className="text-2xl font-bold text-ocean-600">₪{(finalPrice * quantity).toFixed(2)}</span>
             </div>
           </div>
 

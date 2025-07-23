@@ -4,7 +4,8 @@
       "WebFetch(domain:nodemailer.com)",
       "Bash(npm install:*)",
       "Bash(npm run dev:email:*)",
-      "Bash(npm run dev:all:*)"
+      "Bash(npm run dev:all:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": []
   }

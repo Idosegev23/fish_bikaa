@@ -1,226 +1,331 @@
-#root {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0;
-  text-align: right;
-  background: transparent;
+/* Professional Ocean-themed App Styles */
+
+.App {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* לוגו מודרני עם אנימציות */
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: all 300ms ease-in-out;
-  border-radius: 1.5rem;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-  backdrop-filter: blur(10px);
+/* Ocean-themed Background */
+.App::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(14, 165, 233, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(34, 211, 238, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
 }
 
-.logo:hover {
-  filter: drop-shadow(0 0 2em rgba(145, 187, 242, 0.6));
-  transform: translateY(-5px) scale(1.05);
+/* Professional layout animations */
+.main-content {
+  position: relative;
+  z-index: 1;
+  animation: fadeIn 0.6s ease-out;
 }
 
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em rgba(97, 218, 251, 0.6));
-}
-
-/* אנימציות חלקות ומודרניות */
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes float-gentle {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes glow-pulse {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(145, 187, 242, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(145, 187, 242, 0.5);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-  
-  .floating-element {
-    animation: float-gentle 3s ease-in-out infinite;
-  }
-  
-  .glow-effect {
-    animation: glow-pulse 2s ease-in-out infinite;
-  }
-}
-
-/* כרטיסיות מודרניות */
-.card {
-  padding: 2.5em;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  border-radius: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-  transition: all 0.3s ease-in-out;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 50px rgba(31, 38, 135, 0.5);
-  background: rgba(255, 255, 255, 0.9);
-}
-
-/* טקסט מודרני */
-.read-the-docs {
-  color: #737373;
-  font-weight: 400;
-  letter-spacing: 0.5px;
-  transition: color 0.3s ease;
-}
-
-.read-the-docs:hover {
-  color: #010B40;
-}
-
-/* אפקטים ויזואליים */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
-  border-radius: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, #010B40 0%, #91BBF2 50%, #F26B5E 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 700;
-}
-
-.ocean-gradient {
-  background: linear-gradient(135deg, #91BBF2 0%, #010B40 100%);
-}
-
-.warm-gradient {
-  background: linear-gradient(135deg, #F26B5E 0%, #A61103 100%);
-}
-
-.neutral-gradient {
-  background: linear-gradient(135deg, #F2ECE4 0%, #fafafa 100%);
-}
-
-/* אינטראקטיביות מתקדמת */
-.interactive-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-}
-
-.interactive-card:hover {
-  transform: translateY(-8px) rotateX(5deg);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-.interactive-card:active {
-  transform: translateY(-2px) rotateX(2deg);
-}
-
-/* מסכי responsive מודרניים */
-@media (max-width: 768px) {
-  #root {
-    padding: 1rem;
-  }
-  
-  .card {
-    padding: 1.5rem;
-    border-radius: 1.5rem;
-  }
-  
-  .logo {
-    height: 4em;
-    padding: 1em;
-  }
-}
-
-@media (max-width: 480px) {
-  .card {
-    padding: 1rem;
-    border-radius: 1rem;
-  }
-}
-
-/* אפקטים מיוחדים לשנת 2025 */
-.shimmer-effect {
+/* Ocean wave effect for headers */
+.ocean-header {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #075985 100%);
   position: relative;
   overflow: hidden;
 }
 
-.shimmer-effect::before {
+.ocean-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.3) 25%, 
+    rgba(255, 255, 255, 0.5) 50%, 
+    rgba(255, 255, 255, 0.3) 75%, 
+    transparent
+  );
+  animation: wave-flow 3s ease-in-out infinite;
+}
+
+/* Deep water gradient for sections */
+.deep-section {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+  color: white;
+  position: relative;
+}
+
+.deep-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Professional card hover effects */
+.professional-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 1.5rem;
+  transition: all 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.professional-card::before {
   content: '';
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.4),
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(14, 165, 233, 0.1), 
     transparent
   );
-  animation: shimmer 2s infinite;
+  transition: left 0.5s ease-out;
 }
 
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
+.professional-card:hover::before {
+  left: 100%;
 }
 
-/* חיווי מצב מתקדם */
-.status-indicator {
-  position: relative;
+.professional-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 20px 40px rgba(15, 23, 42, 0.12),
+    0 8px 16px rgba(14, 165, 233, 0.1);
+}
+
+/* Ocean loading animation */
+.ocean-loading {
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(14, 165, 233, 0.2);
   border-radius: 50%;
-  margin-left: 8px;
+  border-top-color: #0ea5e9;
+  animation: ocean-spin 1s ease-in-out infinite;
 }
 
-.status-indicator.online {
-  background: #22c55e;
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
-  animation: pulse-green 2s infinite;
+/* Professional keyframes */
+@keyframes wave-flow {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
 }
 
-.status-indicator.offline {
-  background: #ef4444;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+@keyframes ocean-spin {
+  to { transform: rotate(360deg); }
 }
 
-@keyframes pulse-green {
-  0%, 100% {
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
   }
-  50% {
-    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* Professional button effects */
+.btn-ocean {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ocean::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent
+  );
+  transition: left 0.5s ease-out;
+}
+
+.btn-ocean:hover::before {
+  left: 100%;
+}
+
+.btn-ocean:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.3);
+}
+
+.btn-ocean:active {
+  transform: translateY(0);
+}
+
+/* Professional form styles */
+.ocean-form {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 2rem;
+  padding: 2rem;
+  box-shadow: 
+    0 20px 40px rgba(15, 23, 42, 0.08),
+    0 8px 16px rgba(14, 165, 233, 0.05);
+}
+
+.ocean-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: 2px solid rgba(203, 213, 225, 0.5);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  transition: all 0.3s ease-out;
+  backdrop-filter: blur(8px);
+}
+
+.ocean-input:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+/* Professional notification styles */
+.notification {
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid transparent;
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+}
+
+.notification-success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #065f46;
+}
+
+.notification-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #92400e;
+}
+
+.notification-error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #991b1b;
+}
+
+/* Ocean navigation styles */
+.ocean-nav {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.ocean-nav-link {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  color: #475569;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease-out;
+}
+
+.ocean-nav-link:hover {
+  color: #0ea5e9;
+  background: rgba(14, 165, 233, 0.1);
+}
+
+.ocean-nav-link.active {
+  color: #0ea5e9;
+  background: rgba(14, 165, 233, 0.15);
+}
+
+/* Professional responsive behavior */
+@media (max-width: 768px) {
+  .App {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  
+  .professional-card {
+    border-radius: 1rem;
+    padding: 1rem;
+  }
+  
+  .ocean-form {
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+  }
+  
+  .btn-ocean {
+    padding: 0.875rem 1.5rem;
+    border-radius: 0.875rem;
+  }
+}
+
+/* High-end visual effects */
+.glass-morphism {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.25) 0%, 
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.depth-shadow {
+  box-shadow: 
+    0 20px 60px rgba(15, 23, 42, 0.15),
+    0 8px 24px rgba(15, 23, 42, 0.1),
+    0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+/* Ocean color utilities */
+.text-ocean { color: #0ea5e9; }
+.text-deep { color: #334155; }
+.text-wave { color: #06b6d4; }
+.bg-ocean { background-color: #0ea5e9; }
+.bg-deep { background-color: #334155; }
+.bg-wave { background-color: #06b6d4; }
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
