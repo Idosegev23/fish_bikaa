@@ -484,7 +484,7 @@ export default function AdminDashboard() {
                     fill="#8884d8"
                     dataKey="count"
                   >
-                    {cutTypeStats.map((entry, index) => (
+                    {cutTypeStats.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>

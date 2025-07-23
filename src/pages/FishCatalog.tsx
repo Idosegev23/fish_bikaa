@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { FishType, CutType } from '../lib/supabase'
 import type { CartItem } from '../App'
-import { Plus, Filter, Image as ImageIcon, CheckCircle, AlertCircle, Star, Fish } from 'lucide-react'
+import { Plus, Filter, Image as ImageIcon, CheckCircle, AlertCircle, Fish } from 'lucide-react'
 
 interface FishCatalogProps {
   onAddToCart: (item: CartItem) => void

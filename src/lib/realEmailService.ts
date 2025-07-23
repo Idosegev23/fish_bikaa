@@ -1,5 +1,5 @@
 // Real email service using Nodemailer (for backend implementation)
-import type { EmailTemplate, OrderEmailData } from './emailService'
+import type { EmailTemplate } from './emailService'
 
 export class RealEmailService {
   private static readonly SMTP_CONFIG = {

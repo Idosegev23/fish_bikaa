@@ -1,5 +1,5 @@
 import emailjs from 'emailjs-com'
-import type { EmailTemplate, OrderEmailData } from './emailService'
+import type { EmailTemplate } from './emailService'
 
 // EmailJS Configuration
 const EMAILJS_CONFIG = {

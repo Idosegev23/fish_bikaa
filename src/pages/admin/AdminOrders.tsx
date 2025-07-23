@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import type { Order } from '../../lib/supabase'
-import { ArrowLeft, Download, Calendar, Search, Filter } from 'lucide-react'
+import { ArrowLeft, Download, Calendar, Search } from 'lucide-react'
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([])

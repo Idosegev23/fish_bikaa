@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import type { FishType } from '../../lib/supabase'
-import { ArrowLeft, Plus, Edit, Trash2, Save, X, Upload, Image } from 'lucide-react'
+import { ArrowLeft, Plus, Edit, Save, X, Upload, Image } from 'lucide-react'
 
 interface NewFishForm {
   name: string

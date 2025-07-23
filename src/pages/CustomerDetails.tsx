@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { Trash2, ShoppingCart, Image as ImageIcon, ArrowRight, Package, Clock, User, Mail, Phone, MapPin } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import type { FishType } from '../lib/supabase'
+
 import type { CartItem } from '../App'
 
 interface CustomerDetailsProps {
