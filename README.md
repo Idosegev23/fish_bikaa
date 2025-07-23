@@ -62,7 +62,13 @@ cp .env.example .env
 ```
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# אופציונלי - להפעלת שליחת מיילים
+VITE_EMAIL_USER=your_gmail@gmail.com
+VITE_EMAIL_PASS=your_gmail_app_password
 ```
+
+> **הערה**: שליחת מיילים היא אופציונלית. ללא הגדרת מיילים, המערכת תמשיך לעבוד רגיל ותדמה הצלחה בשליחה.
 
 4. **הרצת הפרויקט**
 ```bash
@@ -134,11 +140,30 @@ npm run dev
 ## 🚧 פיתוח נוסף
 
 ### תכונות עתידיות
-- מערכת מיילים אוטומטית
 - דוחות מפורטים עם גרפים
 - מחירים מותאמים לדג ספציפי
 - נגישות RTL משופרת
 - PWA (Progressive Web App)
+
+## 📧 הגדרת מיילים (אופציונלי)
+
+להפעלת שליחת מיילים אוטומטית:
+
+1. **יצירת App Password בGmail**:
+   - עבור להגדרות Google Account
+   - אפשר "2-Step Verification"
+   - צור "App Password" לאפליקציה
+
+2. **הוספה למשתני סביבה**:
+   ```bash
+   VITE_EMAIL_USER=your_gmail@gmail.com
+   VITE_EMAIL_PASS=your_16_digit_app_password
+   ```
+
+3. **מיילים שנשלחים**:
+   - אישור הזמנה ללקוח
+   - התראה לאדמין על הזמנה חדשה
+   - דוח יומי (אופציונלי)
 
 ## 📄 רישיון
 

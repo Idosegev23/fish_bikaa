@@ -4,9 +4,5 @@
       "runtime": "nodejs18.x",
       "maxDuration": 30
     }
-  },
-  "env": {
-    "VITE_EMAIL_USER": "@vite_email_user",
-    "VITE_EMAIL_PASS": "@vite_email_pass"
   }
 } 

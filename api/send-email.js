@@ -27,6 +27,17 @@ export default async function handler(req, res) {
       });
     }
 
+    // Check if email credentials are configured
+    if (!process.env.VITE_EMAIL_USER || !process.env.VITE_EMAIL_PASS) {
+      console.warn('⚠️ Email credentials not configured - returning mock success');
+      return res.status(200).json({ 
+        success: true, 
+        messageId: `mock-${Date.now()}`,
+        message: 'Email sending is not configured (mock success)',
+        mock: true
+      });
+    }
+
     console.log('📧 Vercel API: Sending email via Nodemailer...');
     console.log('To:', to);
     console.log('Subject:', subject);
