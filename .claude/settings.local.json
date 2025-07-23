@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:nodemailer.com)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:email:*)",
+      "Bash(npm run dev:all:*)"
+    ],
+    "deny": []
+  }
+}

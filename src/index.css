@@ -1,0 +1,205 @@
+/* ייבוא גופן Inter מודרני */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* תמיכה בעברית RTL */
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #F2ECE4 0%, #fafafa 100%);
+  min-height: 100vh;
+  overflow-x: hidden; /* מניעת גלילה אופקית */
+}
+
+/* Mobile First - מניעת overflow */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* רכיבים מותאמים עם עיצוב מודרני 2025 */
+@layer components {
+  /* כפתורים מודרניים */
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-300 shadow-modern hover:shadow-depth transform hover:-translate-y-0.5 active:translate-y-0;
+  }
+  
+  .btn-secondary {
+    @apply bg-white/80 backdrop-blur-sm hover:bg-white border border-neutral-200 hover:border-primary-300 text-primary-900 font-semibold py-3 px-6 rounded-2xl transition-all duration-300 shadow-soft hover:shadow-modern;
+  }
+  
+  .btn-accent {
+    @apply bg-gradient-to-r from-accent-500 to-accent-700 hover:from-accent-600 hover:to-accent-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-300 shadow-modern hover:shadow-depth transform hover:-translate-y-0.5 active:translate-y-0;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-primary-500 text-primary-700 hover:bg-primary-500 hover:text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-300 bg-white/50 backdrop-blur-xs;
+  }
+
+  /* כרטיסיות מודרניות עם Glass Morphism */
+  .card {
+    @apply bg-white/70 backdrop-blur-sm rounded-3xl shadow-soft border border-white/20 p-8 transition-all duration-300 hover:shadow-depth hover:bg-white/80;
+  }
+  
+  .card-glass {
+    @apply bg-white/30 backdrop-blur-md rounded-3xl shadow-glass border border-white/20 p-8 transition-all duration-300 hover:bg-white/40;
+  }
+  
+  .card-gradient {
+    @apply bg-gradient-to-br from-white/80 to-neutral-100/80 backdrop-blur-sm rounded-3xl shadow-soft border border-white/20 p-8 transition-all duration-300 hover:shadow-depth;
+  }
+
+  /* שדות קלט מודרניים */
+  .input-field {
+    @apply w-full px-4 py-3 border border-neutral-300/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all duration-300 bg-white/80 backdrop-blur-xs placeholder:text-neutral-500;
+  }
+  
+  .input-field:focus {
+    @apply shadow-soft transform scale-[1.02];
+  }
+
+  /* כותרות מודרניות */
+  .heading-gradient {
+    @apply bg-gradient-to-r from-primary-900 via-primary-700 to-accent-700 bg-clip-text text-transparent font-bold;
+  }
+  
+  .heading-ocean {
+    @apply bg-gradient-to-r from-ocean-600 to-sea-600 bg-clip-text text-transparent font-bold;
+  }
+
+  /* תגיות ותוויות */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 border border-primary-200;
+  }
+  
+  .badge-accent {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent-100 text-accent-800 border border-accent-200;
+  }
+  
+  .badge-ocean {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-ocean-100 text-ocean-800 border border-ocean-200;
+  }
+
+  /* ניווט מודרני */
+  .nav-link {
+    @apply px-4 py-2 rounded-xl text-neutral-700 hover:text-primary-700 hover:bg-primary-50/50 transition-all duration-200 font-medium;
+  }
+  
+  .nav-link.active {
+    @apply text-primary-700 bg-primary-100/70 backdrop-blur-xs;
+  }
+
+  /* טבלאות מודרניות */
+  .table-modern {
+    @apply w-full border-separate border-spacing-0 bg-white/80 backdrop-blur-sm rounded-2xl overflow-hidden shadow-soft;
+  }
+  
+  .table-modern th {
+    @apply bg-gradient-to-r from-primary-50 to-primary-100 px-6 py-4 text-right text-sm font-semibold text-primary-900 border-b border-primary-200/50;
+  }
+  
+  .table-modern td {
+    @apply px-6 py-4 text-neutral-700 border-b border-neutral-200/30 transition-colors duration-200;
+  }
+  
+  .table-modern tr:hover td {
+    @apply bg-primary-50/30;
+  }
+
+  /* רכיבים אינטראקטיביים */
+  .hover-lift {
+    @apply transition-all duration-300 transform hover:-translate-y-1 hover:shadow-depth;
+  }
+  
+  .fade-in {
+    @apply animate-fade-in;
+  }
+  
+  .slide-up {
+    @apply animate-slide-up;
+  }
+
+  /* מצבי טעינה */
+  .skeleton {
+    @apply animate-pulse bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 bg-[length:200%_100%] rounded-2xl;
+  }
+
+  /* אלמנטים צפים */
+  .floating-element {
+    @apply animate-float;
+  }
+
+  /* מניעת overflow בטקסט */
+  .text-wrap {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* הגבלת רוחב מקסימלי לאלמנטים */
+  .max-w-screen {
+    max-width: 100vw;
+  }
+
+  /* סטטוס והתראות */
+  .status-success {
+    @apply bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-2xl shadow-soft;
+  }
+  
+  .status-warning {
+    @apply bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-2xl shadow-soft;
+  }
+  
+  .status-error {
+    @apply bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-2xl shadow-soft;
+  }
+}
+
+/* אנימציות מותאמות */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* סקרולבר מותאם */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(242, 236, 228, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #91BBF2, #010B40);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #7da8ff, #000829);
+}
+
+/* משתנים CSS מותאמים */
+:root {
+  --shadow-soft: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+  --shadow-modern: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-depth: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --gradient-primary: linear-gradient(135deg, #91BBF2 0%, #010B40 100%);
+  --gradient-accent: linear-gradient(135deg, #F26B5E 0%, #A61103 100%);
+}

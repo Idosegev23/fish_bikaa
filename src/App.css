@@ -1,0 +1,226 @@
+#root {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0;
+  text-align: right;
+  background: transparent;
+}
+
+/* לוגו מודרני עם אנימציות */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: all 300ms ease-in-out;
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  backdrop-filter: blur(10px);
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em rgba(145, 187, 242, 0.6));
+  transform: translateY(-5px) scale(1.05);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em rgba(97, 218, 251, 0.6));
+}
+
+/* אנימציות חלקות ומודרניות */
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(145, 187, 242, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(145, 187, 242, 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+  
+  .floating-element {
+    animation: float-gentle 3s ease-in-out infinite;
+  }
+  
+  .glow-effect {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+}
+
+/* כרטיסיות מודרניות */
+.card {
+  padding: 2.5em;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+  transition: all 0.3s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 50px rgba(31, 38, 135, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* טקסט מודרני */
+.read-the-docs {
+  color: #737373;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  transition: color 0.3s ease;
+}
+
+.read-the-docs:hover {
+  color: #010B40;
+}
+
+/* אפקטים ויזואליים */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #010B40 0%, #91BBF2 50%, #F26B5E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+.ocean-gradient {
+  background: linear-gradient(135deg, #91BBF2 0%, #010B40 100%);
+}
+
+.warm-gradient {
+  background: linear-gradient(135deg, #F26B5E 0%, #A61103 100%);
+}
+
+.neutral-gradient {
+  background: linear-gradient(135deg, #F2ECE4 0%, #fafafa 100%);
+}
+
+/* אינטראקטיביות מתקדמת */
+.interactive-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.interactive-card:hover {
+  transform: translateY(-8px) rotateX(5deg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.interactive-card:active {
+  transform: translateY(-2px) rotateX(2deg);
+}
+
+/* מסכי responsive מודרניים */
+@media (max-width: 768px) {
+  #root {
+    padding: 1rem;
+  }
+  
+  .card {
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+  }
+  
+  .logo {
+    height: 4em;
+    padding: 1em;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+}
+
+/* אפקטים מיוחדים לשנת 2025 */
+.shimmer-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* חיווי מצב מתקדם */
+.status-indicator {
+  position: relative;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-left: 8px;
+}
+
+.status-indicator.online {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+  animation: pulse-green 2s infinite;
+}
+
+.status-indicator.offline {
+  background: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+}
+
+@keyframes pulse-green {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+  }
+}

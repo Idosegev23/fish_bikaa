@@ -1,0 +1,378 @@
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
+import type { CutType } from '../../lib/supabase'
+import { ArrowLeft, Plus, Edit, Save, X, Scissors } from 'lucide-react'
+
+interface NewCutForm {
+  cut_name: string
+  default_addition: number
+}
+
+export default function AdminCutTypes() {
+  const [cutTypes, setCutTypes] = useState<CutType[]>([])
+  const [loading, setLoading] = useState(true)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editForm, setEditForm] = useState<Partial<CutType>>({})
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [newCutForm, setNewCutForm] = useState<NewCutForm>({
+    cut_name: '',
+    default_addition: 0,
+  })
+
+  useEffect(() => {
+    fetchCutTypes()
+  }, [])
+
+  const fetchCutTypes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cut_types')
+        .select('*')
+        .order('id')
+
+      if (error) throw error
+      setCutTypes(data || [])
+    } catch (error) {
+      console.error('Error fetching cut types:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddCutType = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newCutForm.cut_name) {
+      alert('נא למלא את שם החיתוך')
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('cut_types')
+        .insert([
+          {
+            cut_name: newCutForm.cut_name,
+            default_addition: newCutForm.default_addition,
+          }
+        ])
+
+      if (error) throw error
+
+      await fetchCutTypes()
+      setShowAddModal(false)
+      setNewCutForm({
+        cut_name: '',
+        default_addition: 0,
+      })
+      alert('סוג החיתוך נוסף בהצלחה!')
+    } catch (error) {
+      console.error('Error adding cut type:', error)
+      alert('שגיאה בהוספת סוג החיתוך')
+    }
+  }
+
+  const startEdit = (cutType: CutType) => {
+    setEditingId(cutType.id)
+    setEditForm(cutType)
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditForm({})
+  }
+
+  const saveEdit = async () => {
+    if (!editingId || !editForm.cut_name) return
+
+    try {
+      const { error } = await supabase
+        .from('cut_types')
+        .update({
+          cut_name: editForm.cut_name,
+          default_addition: editForm.default_addition,
+        })
+        .eq('id', editingId)
+
+      if (error) throw error
+
+      await fetchCutTypes()
+      setEditingId(null)
+      setEditForm({})
+      alert('סוג החיתוך עודכן בהצלחה!')
+    } catch (error) {
+      console.error('Error updating cut type:', error)
+      alert('שגיאה בעדכון סוג החיתוך')
+    }
+  }
+
+  const deleteCutType = async (cutId: number) => {
+    if (!confirm('האם אתה בטוח שרצה למחוק את סוג החיתוך? פעולה זו לא ניתנת לביטול.')) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('cut_types')
+        .delete()
+        .eq('id', cutId)
+
+      if (error) throw error
+
+      await fetchCutTypes()
+      alert('סוג החיתוך נמחק בהצלחה!')
+    } catch (error) {
+      console.error('Error deleting cut type:', error)
+      alert('שגיאה במחיקת סוג החיתוך. יתכן שהוא בשימוש במערכת.')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-fish-600"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center space-x-4 space-x-reverse">
+              <Link to="/admin/fish" className="text-fish-600 hover:text-fish-700">
+                <ArrowLeft className="w-6 h-6" />
+              </Link>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">ניהול סוגי חיתוך</h1>
+                <p className="text-gray-600">הוספה ועריכה של סוגי חיתוך ותוספות מחיר</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="btn-primary flex items-center space-x-2 space-x-reverse"
+            >
+              <Plus className="w-4 h-4" />
+              <span>הוסף סוג חיתוך</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    #
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    שם החיתוך
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    תוספת מחיר (₪)
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    פעולות
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {cutTypes.map((cutType) => (
+                  <tr key={cutType.id} className="hover:bg-gray-50">
+                    {editingId === cutType.id ? (
+                      // Edit Mode
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {cutType.id}
+                        </td>
+                        <td className="px-6 py-4">
+                          <input
+                            type="text"
+                            value={editForm.cut_name || ''}
+                            onChange={(e) => setEditForm({...editForm, cut_name: e.target.value})}
+                            className="input-field text-sm"
+                            placeholder="שם החיתוך"
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <input
+                            type="number"
+                            value={editForm.default_addition || 0}
+                            onChange={(e) => setEditForm({...editForm, default_addition: Number(e.target.value)})}
+                            className="input-field text-sm"
+                            step="0.01"
+                            min="0"
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex space-x-2 space-x-reverse">
+                            <button
+                              onClick={saveEdit}
+                              className="text-green-600 hover:text-green-700 p-1"
+                              title="שמור"
+                            >
+                              <Save className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              className="text-gray-600 hover:text-gray-700 p-1"
+                              title="ביטול"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    ) : (
+                      // View Mode
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {cutType.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <Scissors className="w-4 h-4 text-gray-400 ml-2" />
+                            <span className="text-sm font-medium text-gray-900">{cutType.cut_name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-900">
+                            {cutType.default_addition === 0 ? 'ללא תוספת' : `+₪${cutType.default_addition}`}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2 space-x-reverse">
+                            <button
+                              onClick={() => startEdit(cutType)}
+                              className="text-fish-600 hover:text-fish-700 p-1"
+                              title="עריכה"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => deleteCutType(cutType.id)}
+                              className="text-red-600 hover:text-red-700 p-1"
+                              title="מחיקה"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {cutTypes.length === 0 && (
+          <div className="text-center py-12">
+            <Scissors className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-500 mb-2">אין סוגי חיתוך במערכת</h3>
+            <p className="text-gray-400 mb-6">התחילו על ידי הוספת סוג חיתוך ראשון</p>
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="btn-primary"
+            >
+              הוסף סוג חיתוך ראשון
+            </button>
+          </div>
+        )}
+
+        {/* Examples */}
+        {cutTypes.length > 0 && (
+          <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="text-lg font-medium text-blue-900 mb-4">דוגמאות לסוגי חיתוך:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="bg-white p-3 rounded border">
+                <strong>שלם:</strong> דג שלם ללא חיתוך (₪0)
+              </div>
+              <div className="bg-white p-3 rounded border">
+                <strong>פילטים:</strong> דג מחותך לפילטים (+₪8)
+              </div>
+              <div className="bg-white p-3 rounded border">
+                <strong>מנות:</strong> דג מחותך למנות (+₪12)
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Add Cut Type Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/3 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">הוספת סוג חיתוך חדש</h3>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddCutType} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    שם החיתוך *
+                  </label>
+                  <input
+                    type="text"
+                    value={newCutForm.cut_name}
+                    onChange={(e) => setNewCutForm({...newCutForm, cut_name: e.target.value})}
+                    className="input-field"
+                    placeholder="לדוגמה: פילטים, מנות, חצי דג..."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    תוספת מחיר (₪)
+                  </label>
+                  <input
+                    type="number"
+                    value={newCutForm.default_addition}
+                    onChange={(e) => setNewCutForm({...newCutForm, default_addition: Number(e.target.value)})}
+                    className="input-field"
+                    step="0.01"
+                    min="0"
+                    placeholder="0"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    תוספת מחיר לק"ג עבור החיתוך (0 = ללא תוספת)
+                  </p>
+                </div>
+
+                <div className="flex justify-end space-x-3 space-x-reverse pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="btn-secondary"
+                  >
+                    ביטול
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                  >
+                    הוסף סוג חיתוך
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+} 
