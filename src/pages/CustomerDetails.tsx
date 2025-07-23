@@ -75,15 +75,15 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
 
   const onSubmit = async (data: FormData) => {
     if (cart.length === 0) {
-      // הודעה מקצועית
+      // הודעה מודרנית במקום alert
       const notification = document.createElement('div')
-      notification.className = 'fixed top-4 right-4 bg-coral-500 text-white px-6 py-3 rounded-xl shadow-ocean-lg z-50 animate-slide-up'
+      notification.className = 'fixed top-4 right-4 bg-accent-500 text-white px-6 py-3 rounded-2xl shadow-depth z-50 animate-slide-up'
       notification.innerHTML = `
         <div class="flex items-center gap-3">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.36 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
           </svg>
-          <span>הסל ריק! נא להוסיף פריטים</span>
+          <span>הסל ריק! נא להוסיף פריטים לסל הקניות</span>
         </div>
       `
       document.body.appendChild(notification)
@@ -99,12 +99,12 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
     navigate('/order-summary')
   }
 
-  const getWaterTypeClass = (waterType: string) => {
+  const getWaterTypeIcon = (waterType: string) => {
     switch(waterType) {
-      case 'saltwater': return 'bg-ocean-100 text-ocean-800 border-ocean-200'
-      case 'freshwater': return 'bg-wave-100 text-wave-800 border-wave-200'
-      case 'other': return 'bg-sand-100 text-sand-800 border-sand-200'
-      default: return 'bg-deep-100 text-deep-800 border-deep-200'
+      case 'saltwater': return '🌊'
+      case 'freshwater': return '💧'
+      case 'other': return '⭐'
+      default: return '🐟'
     }
   }
 
@@ -119,31 +119,39 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
 
   if (cart.length === 0) {
     return (
-      <div className="container max-w-4xl mx-auto py-20">
-        <div className="text-center card-glass p-16">
-          <div className="w-24 h-24 ocean-gradient rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-ocean">
-            <ShoppingCart className="w-12 h-12 text-white" />
-          </div>
-          <h2 className="text-4xl font-bold text-deep-900 mb-6">
-            הסל ריק
-          </h2>
-          <p className="text-xl text-deep-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-            עדיין לא הוספתם דגים טריים לסל הקניות שלכם
-          </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <button 
-              onClick={() => navigate('/catalog')}
-              className="btn-primary text-xl px-10 py-4"
-            >
-              <Package className="w-6 h-6" />
-              התחילו לקנות
-            </button>
-            <button 
-              onClick={() => navigate('/')}
-              className="btn-secondary text-xl px-10 py-4"
-            >
-              חזרה לעמוד הבית
-            </button>
+      <div className="container max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="text-center card-glass relative overflow-hidden">
+          <div className="absolute inset-0 wave-animation opacity-5"></div>
+          <div className="relative z-10 py-20">
+            <div className="w-32 h-32 bg-gradient-to-br from-primary-500 to-ocean-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl">
+              <ShoppingCart className="w-16 h-16 text-white float-animation" />
+            </div>
+            <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-800 via-ocean-600 to-primary-800 bg-clip-text text-transparent mb-6">
+              🛒 הסל ריק
+            </h2>
+            <p className="text-2xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+              עדיין לא הוספתם דגים טריים לסל הקניות שלכם
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <button 
+          onClick={() => navigate('/catalog')}
+                className="btn-primary text-2xl py-6 px-12 shadow-2xl hover:shadow-3xl"
+              >
+                <div className="flex items-center gap-4">
+                  <Package className="w-8 h-8" />
+                  <span>🐟 בואו נתחיל לקנות!</span>
+                </div>
+              </button>
+              <button 
+                onClick={() => navigate('/')}
+                className="btn-secondary text-xl py-5 px-10"
+              >
+                <div className="flex items-center gap-3">
+                  <span>🏠</span>
+                  <span>חזרה לעמוד הבית</span>
+                </div>
+        </button>
+            </div>
           </div>
         </div>
       </div>
@@ -151,30 +159,34 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
   }
 
   return (
-    <div className="container max-w-7xl mx-auto space-y-10 animate-fade-in">
-      {/* Professional Header */}
-      <div className="text-center card-glass p-12">
-        <div className="w-20 h-20 ocean-gradient rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-ocean">
-          <ShoppingCart className="w-10 h-10 text-white" />
+    <div className="container max-w-7xl mx-auto space-y-10 fade-in px-4 sm:px-6 lg:px-8">
+      {/* Stunning Header */}
+      <div className="text-center card-glass relative overflow-hidden">
+        <div className="absolute inset-0 wave-animation opacity-10"></div>
+        <div className="relative z-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-ocean-500 rounded-full mb-6 shadow-2xl">
+            <ShoppingCart className="w-10 h-10 text-white float-animation" />
+          </div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary-800 via-ocean-600 to-primary-800 bg-clip-text text-transparent mb-6">פרטי הזמנה</h1>
+          <p className="text-xl sm:text-2xl text-slate-600 px-4 sm:px-8 leading-relaxed">מלאו את הפרטים שלכם להשלמת ההזמנה 🐟</p>
         </div>
-        <h1 className="heading-responsive font-bold text-deep-900 mb-6">פרטי הזמנה</h1>
-        <p className="text-xl text-deep-600 leading-relaxed">מלאו את הפרטים שלכם להשלמת ההזמנה</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-10">
         {/* Enhanced Cart Summary - מחזיק 3 columns */}
         <div className="xl:col-span-3 space-y-8">
-          <div className="card p-8">
-            <div className="flex items-center gap-4 pb-6 border-b border-deep-200">
-              <div className="ocean-gradient p-3 rounded-xl">
+          <div className="card-gradient relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-500 via-ocean-400 to-accent-500 rounded-t-3xl"></div>
+            <div className="form-header">
+              <div className="form-icon-container">
                 <ShoppingCart className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h2 className="text-3xl font-bold text-deep-900">סיכום הזמנה</h2>
-                <p className="text-deep-600 mt-1">הדגים הטריים שבחרתם</p>
+                <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-800 to-ocean-700 bg-clip-text text-transparent">סיכום הזמנה</h2>
+                <p className="text-slate-600 mt-1">הדגים הטריים שבחרתם</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="badge text-ocean-700 bg-ocean-100 border-ocean-200 px-4 py-2 text-lg font-bold">
+                <span className="badge px-6 py-3 text-lg font-bold">
                   {cart.length} פריט{cart.length > 1 ? 'ים' : ''}
                 </span>
               </div>
@@ -219,8 +231,9 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                       {/* Enhanced Fish Details */}
                       <div className="flex-1 min-w-0 space-y-4">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                          <h3 className="text-2xl font-bold text-deep-900">{item.fishName}</h3>
-                          <span className={`badge ${getWaterTypeClass(item.waterType)} text-sm font-bold`}>
+                          <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary-800 to-ocean-700 bg-clip-text text-transparent">{item.fishName}</h3>
+                          <span className="badge-ocean text-sm font-bold shadow-lg">
+                            <span className="text-lg">{getWaterTypeIcon(item.waterType)}</span>
                             {getWaterTypeLabel(item.waterType)}
                           </span>
                         </div>
@@ -254,18 +267,18 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                           <div className="text-sm font-semibold text-accent-700 flex items-center justify-center gap-1">
                             <span>💳</span> סה"כ
                           </div>
-                        </div>
-                        <button
-                          onClick={() => onRemoveFromCart(index)}
+                </div>
+                  <button
+                    onClick={() => onRemoveFromCart(index)}
                           className="p-4 rounded-2xl bg-gradient-to-br from-red-50 to-red-100 text-red-600 hover:from-red-100 hover:to-red-200 hover:text-red-700 border border-red-200 transition-all duration-500 hover:scale-110 hover:shadow-xl group-hover:animate-pulse"
                           title="הסר מהעגלה"
-                        >
+                  >
                           <Trash2 className="w-5 h-5" />
-                        </button>
+                  </button>
                       </div>
-                    </div>
-                  </div>
-                ))}
+                </div>
+              </div>
+            ))}
               </div>
             )}
 
@@ -316,20 +329,20 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                     <User className="w-4 h-4 text-white" />
                   </div>
                   <span>שם מלא *</span>
-                </label>
-                <input
-                  type="text"
-                  {...register('customerName', { required: 'שם מלא הוא שדה חובה' })}
+              </label>
+              <input
+                type="text"
+                {...register('customerName', { required: 'שם מלא הוא שדה חובה' })}
                   className="input-field text-xl"
                   placeholder="הכנס את שמך המלא 👤"
-                />
-                {errors.customerName && (
+              />
+              {errors.customerName && (
                   <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
                     <span className="text-2xl">⚠️</span>
                     <span className="text-red-700 font-semibold">{errors.customerName.message}</span>
                   </div>
-                )}
-              </div>
+              )}
+            </div>
 
               <div className="space-y-4">
                 <label className="text-xl font-bold text-slate-700 flex items-center gap-3">
@@ -337,26 +350,26 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                     <Mail className="w-4 h-4 text-white" />
                   </div>
                   <span>דוא"ל *</span>
-                </label>
-                <input
-                  type="email"
-                  {...register('email', { 
-                    required: 'דוא"ל הוא שדה חובה',
-                    pattern: {
-                      value: /^\S+@\S+$/i,
-                      message: 'כתובת דוא"ל לא תקינה'
-                    }
-                  })}
+              </label>
+              <input
+                type="email"
+                {...register('email', { 
+                  required: 'דוא"ל הוא שדה חובה',
+                  pattern: {
+                    value: /^\S+@\S+$/i,
+                    message: 'כתובת דוא"ל לא תקינה'
+                  }
+                })}
                   className="input-field text-xl"
                   placeholder="📧 your.email@example.com"
-                />
-                {errors.email && (
+              />
+              {errors.email && (
                   <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
                     <span className="text-2xl">⚠️</span>
                     <span className="text-red-700 font-semibold">{errors.email.message}</span>
                   </div>
-                )}
-              </div>
+              )}
+            </div>
 
               <div className="space-y-4">
                 <label className="text-xl font-bold text-slate-700 flex items-center gap-3">
@@ -364,20 +377,20 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                     <Phone className="w-4 h-4 text-white" />
                   </div>
                   <span>טלפון *</span>
-                </label>
-                <input
-                  type="tel"
-                  {...register('phone', { required: 'מספר טלפון הוא שדה חובה' })}
+              </label>
+              <input
+                type="tel"
+                {...register('phone', { required: 'מספר טלפון הוא שדה חובה' })}
                   className="input-field text-xl"
                   placeholder="📱 050-1234567"
-                />
-                {errors.phone && (
+              />
+              {errors.phone && (
                   <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
                     <span className="text-2xl">⚠️</span>
                     <span className="text-red-700 font-semibold">{errors.phone.message}</span>
                   </div>
-                )}
-              </div>
+              )}
+            </div>
 
               <div className="space-y-4">
                 <label className="text-xl font-bold text-slate-700 flex items-center gap-3">
@@ -385,14 +398,14 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                     <MapPin className="w-4 h-4 text-white" />
                   </div>
                   <span>הערות נוספות</span>
-                </label>
-                <textarea
-                  {...register('deliveryAddress')}
+              </label>
+              <textarea
+                {...register('deliveryAddress')}
                   className="input-field text-xl resize-none"
                   rows={4}
                   placeholder="📝 הערות או בקשות מיוחדות (אופציונלי)"
-                />
-              </div>
+              />
+            </div>
 
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 border border-blue-200 space-y-8">
                 <div className="text-center">
@@ -406,20 +419,20 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                       <Clock className="w-4 h-4 text-white" />
                     </div>
                     <span>תאריך איסוף *</span>
-                  </label>
-                  <input
-                    type="date"
-                    {...register('deliveryDate', { required: 'תאריך איסוף הוא שדה חובה' })}
-                    min={new Date().toISOString().split('T')[0]}
+                </label>
+                <input
+                  type="date"
+                  {...register('deliveryDate', { required: 'תאריך איסוף הוא שדה חובה' })}
+                  min={new Date().toISOString().split('T')[0]}
                     className="input-field text-xl"
-                  />
-                  {errors.deliveryDate && (
+                />
+                {errors.deliveryDate && (
                     <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
                       <span className="text-2xl">⚠️</span>
                       <span className="text-red-700 font-semibold">{errors.deliveryDate.message}</span>
                     </div>
-                  )}
-                </div>
+                )}
+              </div>
 
                 <div className="space-y-4">
                   <label className="text-xl font-bold text-slate-700 flex items-center gap-3">
@@ -427,9 +440,9 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                       <Clock className="w-4 h-4 text-white" />
                     </div>
                     <span>שעה מועדפת *</span>
-                  </label>
-                  <select 
-                    {...register('deliveryTime', { required: 'שעה מועדפת היא שדה חובה' })}
+                </label>
+                <select 
+                  {...register('deliveryTime', { required: 'שעה מועדפת היא שדה חובה' })}
                     className="input-field text-xl"
                   >
                     <option value="">🕰️ בחרו שעה מועדפת</option>
@@ -438,15 +451,15 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                     <option value="12:00-14:00">🌤️ צהריים - 12:00-14:00</option>
                     <option value="14:00-16:00">🌞 אחר הצהריים - 14:00-16:00</option>
                     <option value="16:00-18:00">🌇 ערב - 16:00-18:00</option>
-                  </select>
-                  {errors.deliveryTime && (
+                </select>
+                {errors.deliveryTime && (
                     <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
                       <span className="text-2xl">⚠️</span>
                       <span className="text-red-700 font-semibold">{errors.deliveryTime.message}</span>
                     </div>
-                  )}
-                </div>
+                )}
               </div>
+            </div>
 
               <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl p-8 border border-slate-200 space-y-6">
                 <div className="text-center mb-6">
@@ -454,9 +467,9 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                   <p className="text-slate-600">כל הפרטים נראים טוב? בואו נמשיך!</p>
                 </div>
                 
-                <button
-                  type="submit"
-                  disabled={loading}
+              <button
+                type="submit"
+                disabled={loading}
                   className="w-full btn-primary text-2xl py-6 font-bold shadow-2xl hover:shadow-3xl disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
@@ -471,20 +484,20 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                       <ArrowRight className="w-6 h-6" />
                     </div>
                   )}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => navigate('/catalog')}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => navigate('/catalog')}
                   className="w-full btn-secondary text-xl py-5 font-semibold shadow-lg hover:shadow-2xl"
-                >
+              >
                   <div className="flex items-center justify-center gap-4">
                     <Package className="w-6 h-6" />
                     <span>🔙 חזרה לקטלוג</span>
                   </div>
-                </button>
-              </div>
-            </form>
+              </button>
+            </div>
+          </form>
           </div>
         </div>
       </div>
