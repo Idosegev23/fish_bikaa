@@ -167,27 +167,48 @@ export default function AdminOrders() {
           </div>
         </div>
 
-        {/* Orders Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+      {/* Orders - Mobile first cards + Table on md+ */}
+      <div className="space-y-4 md:space-y-6">
+        {/* Mobile cards */}
+        <div className="grid grid-cols-1 gap-4 md:hidden">
+          {filteredOrders.map((order) => (
+            <div key={order.id} className="card">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-sm text-neutral-500">
+                    {new Date(order.created_at).toLocaleDateString('he-IL')} • {new Date(order.created_at).toLocaleTimeString('he-IL')}
+                  </div>
+                  <div className="font-semibold text-neutral-900 mt-1">{order.customer_name}</div>
+                  <div className="text-sm text-neutral-600">{order.phone} • {order.email}</div>
+                </div>
+                <div className="text-primary-700 font-bold">₪{Number(order.total_price).toFixed(2)}</div>
+              </div>
+              <div className="mt-3 text-sm text-neutral-600">
+                איסוף: {new Date(order.delivery_date).toLocaleDateString('he-IL')} • {order.delivery_time}
+              </div>
+              <div className="mt-3 border-t border-neutral-200 pt-3 space-y-1">
+                {order.order_items.map((item: any, index: number) => (
+                  <div key={index} className="text-sm flex justify-between">
+                    <span className="text-neutral-700">{item.fish_name} • {item.cut}</span>
+                    <span className="text-neutral-500">{item.quantity_kg} ק"ג</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="bg-white rounded-lg shadow overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    תאריך הזמנה
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    לקוח
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    איסוף
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    פריטים
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    סכום
-                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">תאריך הזמנה</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">לקוח</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">איסוף</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">פריטים</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">סכום</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -195,46 +216,35 @@ export default function AdminOrders() {
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(order.created_at).toLocaleDateString('he-IL')}
-                      <div className="text-xs text-gray-500">
-                        {new Date(order.created_at).toLocaleTimeString('he-IL')}
-                      </div>
+                      <div className="text-xs text-gray-500">{new Date(order.created_at).toLocaleTimeString('he-IL')}</div>
                     </td>
-                    
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{order.customer_name}</div>
                       <div className="text-sm text-gray-500">{order.phone}</div>
                       <div className="text-xs text-gray-500">{order.email}</div>
                     </td>
-                    
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {new Date(order.delivery_date).toLocaleDateString('he-IL')}
-                      </div>
+                      <div className="text-sm text-gray-900">{new Date(order.delivery_date).toLocaleDateString('he-IL')}</div>
                       <div className="text-sm text-gray-500">{order.delivery_time}</div>
                     </td>
-                    
                     <td className="px-6 py-4">
                       <div className="space-y-1">
                         {order.order_items.map((item: any, index: number) => (
                           <div key={index} className="text-sm">
                             <span className="font-medium">{item.fish_name}</span>
-                            <span className="text-gray-500 text-xs block">
-                              {item.cut} • {item.quantity_kg} ק"ג
-                            </span>
+                            <span className="text-gray-500 text-xs block">{item.cut} • {item.quantity_kg} ק"ג</span>
                           </div>
                         ))}
                       </div>
                     </td>
-                    
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-fish-600">
-                      ₪{Number(order.total_price).toFixed(2)}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-700">₪{Number(order.total_price).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
+      </div>
 
         {filteredOrders.length === 0 && (
           <div className="text-center py-12">

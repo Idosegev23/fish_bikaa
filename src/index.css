@@ -12,11 +12,11 @@ html[dir="rtl"] {
 
 body {
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: #f8fafc;
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.6;
-  color: #1e293b;
+  color: #0f172a;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -129,41 +129,41 @@ p, h1, h2, h3, h4, h5, h6 {
 @layer components {
   /* כפתורים מודרניים - Mobile First */
   .btn-primary {
-    @apply bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 px-6 sm:py-4 sm:px-8 rounded-2xl transition-all duration-500 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 active:scale-95 text-sm sm:text-base min-h-[44px] flex items-center justify-center relative overflow-hidden;
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 sm:py-4 sm:px-8 rounded-xl transition-colors duration-200 shadow-soft text-sm sm:text-base min-h-[44px] flex items-center justify-center;
   }
   
   .btn-secondary {
-    @apply bg-white/90 backdrop-blur-sm hover:bg-white border-2 border-primary-200 hover:border-primary-400 text-primary-800 font-semibold py-3 px-6 sm:py-4 sm:px-8 rounded-2xl transition-all duration-500 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 active:scale-95 text-sm sm:text-base min-h-[44px] flex items-center justify-center;
+    @apply bg-white hover:bg-neutral-50 border border-neutral-200 text-neutral-800 font-semibold py-3 px-6 sm:py-4 sm:px-8 rounded-xl transition-colors duration-200 shadow-soft text-sm sm:text-base min-h-[44px] flex items-center justify-center;
   }
   
   .btn-accent {
-    @apply bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold py-3 px-6 sm:py-4 sm:px-8 rounded-2xl transition-all duration-500 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 active:scale-95 text-sm sm:text-base min-h-[44px] flex items-center justify-center;
+    @apply bg-accent-600 hover:bg-accent-700 text-white font-semibold py-3 px-6 sm:py-4 sm:px-8 rounded-xl transition-colors duration-200 shadow-soft text-sm sm:text-base min-h-[44px] flex items-center justify-center;
   }
   
   .btn-outline {
-    @apply border-2 border-primary-500 text-primary-700 hover:bg-primary-500 hover:text-white font-semibold py-2.5 px-4 sm:py-3 sm:px-6 rounded-lg transition-all duration-300 bg-white text-sm sm:text-base min-h-[44px] flex items-center justify-center;
+    @apply border border-primary-500 text-primary-700 hover:bg-primary-50 font-semibold py-2.5 px-4 sm:py-3 sm:px-6 rounded-lg transition-colors duration-200 bg-white text-sm sm:text-base min-h-[44px] flex items-center justify-center;
   }
 
   /* כרטיסיות מודרניות - Mobile First */
   .card {
-    @apply bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/40 p-4 sm:p-6 transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] w-full;
+    @apply bg-white rounded-xl shadow-soft border border-neutral-200 p-4 sm:p-6 w-full;
   }
   
   .card-glass {
-    @apply bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-6 sm:p-8 transition-all duration-500 hover:shadow-2xl hover:bg-white/80 w-full;
+    @apply bg-white rounded-2xl shadow-medium border border-neutral-200 p-6 sm:p-8 w-full;
   }
   
   .card-gradient {
-    @apply bg-gradient-to-br from-white/95 to-slate-50/95 backdrop-blur-sm rounded-3xl shadow-xl border border-white/60 p-6 sm:p-8 transition-all duration-500 hover:shadow-2xl hover:from-white hover:to-slate-50 w-full;
+    @apply bg-white rounded-2xl shadow-medium border border-neutral-200 p-6 sm:p-8 w-full;
   }
 
   /* שדות קלט מודרניים - Mobile First */
   .input-field {
-    @apply w-full px-4 py-3 sm:px-5 sm:py-4 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all duration-500 bg-white/80 backdrop-blur-sm hover:bg-white focus:bg-white placeholder:text-slate-400 text-sm sm:text-base min-h-[50px] shadow-sm hover:shadow-md focus:shadow-lg;
+    @apply w-full px-4 py-3 sm:px-5 sm:py-4 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 transition-colors duration-200 bg-white placeholder:text-neutral-400 text-sm sm:text-base min-h-[44px] shadow-sm;
   }
   
   .input-field:focus {
-    @apply transform scale-[1.02] shadow-xl;
+    @apply shadow-md;
   }
 
   /* כותרות מודרניות - Mobile First */
