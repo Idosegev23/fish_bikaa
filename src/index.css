@@ -156,6 +156,40 @@ p, h1, h2, h3, h4, h5, h6 {
   .card-gradient {
     @apply bg-white rounded-2xl shadow-medium border border-neutral-200 p-6 sm:p-8 w-full;
   }
+  
+  .card-modern {
+    @apply bg-white border border-neutral-100 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-md;
+  }
+  
+  /* Custom Scrollbar - Professional */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgb(209 213 219);
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(156 163 175);
+  }
+  
+  /* Focus styles for better accessibility */
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  /* Smooth transitions for interactive elements */
+  .transition-smooth {
+    transition: all 0.2s ease-in-out;
+  }
 
   /* שדות קלט מודרניים - Mobile First */
   .input-field {
@@ -172,7 +206,7 @@ p, h1, h2, h3, h4, h5, h6 {
   }
   
   .heading-ocean {
-    @apply text-ocean-700 font-bold text-xl sm:text-2xl lg:text-3xl;
+    @apply text-accent-700 font-bold text-xl sm:text-2xl lg:text-3xl;
   }
 
   /* תגיות ותוויות */
@@ -185,7 +219,7 @@ p, h1, h2, h3, h4, h5, h6 {
   }
   
   .badge-ocean {
-    @apply inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-ocean-100 to-ocean-200 text-ocean-800 border border-ocean-300 shadow-md hover:shadow-lg transition-all duration-300;
+    @apply inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-accent-100 to-accent-200 text-accent-800 border border-accent-300 shadow-md hover:shadow-lg transition-all duration-300;
   }
 
   .badge-primary {
@@ -242,7 +276,7 @@ p, h1, h2, h3, h4, h5, h6 {
 
   /* אלמנטים צפים */
   .floating-element {
-    @apply animate-float;
+    @apply transition-transform;
   }
 
   /* מניעת overflow בטקסט */
@@ -321,7 +355,7 @@ p, h1, h2, h3, h4, h5, h6 {
   }
 
   .fish-image-container {
-    @apply relative overflow-hidden rounded-2xl bg-gradient-to-br from-ocean-100 to-ocean-200 aspect-square transition-transform duration-700;
+    @apply relative overflow-hidden rounded-2xl bg-gradient-to-br from-accent-100 to-accent-200 aspect-square transition-transform duration-700;
   }
 
   .price-tag {
@@ -363,7 +397,7 @@ p, h1, h2, h3, h4, h5, h6 {
   }
 
   .cart-item-image {
-    @apply w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-ocean-100 to-ocean-200 flex-shrink-0 transition-transform duration-500;
+    @apply w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-accent-100 to-accent-200 flex-shrink-0 transition-transform duration-500;
   }
 
   /* Beautiful Animations */

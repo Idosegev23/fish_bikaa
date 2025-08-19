@@ -3,7 +3,8 @@ import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { FishType, CutType } from '../lib/supabase'
 import type { CartItem } from '../App'
-import { Plus, Filter, Image as ImageIcon, CheckCircle, AlertCircle, Fish } from 'lucide-react'
+import { isByWeight, isSizeableFish, getAverageWeightKg, computeMaxUnits } from '../lib/fishConfig'
+import { Plus, Filter, Image as ImageIcon, CheckCircle, AlertCircle, Fish, Search, SlidersHorizontal, ArrowUpDown, X } from 'lucide-react'
 
 interface FishCatalogProps {
   onAddToCart: (item: CartItem) => void
@@ -14,12 +15,32 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
   const [fish, setFish] = useState<FishType[]>([])
   const [cutTypes, setCutTypes] = useState<CutType[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedWaterType, setSelectedWaterType] = useState<string>(
-    searchParams.get('type') || 'all'
-  )
+  const [selectedWaterType, setSelectedWaterType] = useState<string>(searchParams.get('type') || 'all')
+  const holidayParam = searchParams.get('holiday')
+  const [activeHoliday, setActiveHoliday] = useState<{ name: string; start_date: string; end_date: string } | null>(null)
+  
+  // חיפוש וסינון
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState<'name' | 'price_asc' | 'price_desc' | 'popularity'>('name')
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500])
+  const [showFilters, setShowFilters] = useState(false)
+  const [availableOnly, setAvailableOnly] = useState(false)
 
   useEffect(() => {
     fetchFishAndCuts()
+  }, [])
+
+  useEffect(() => {
+    const loadHoliday = async () => {
+      const { data } = await supabase
+        .from('holidays')
+        .select('name, start_date, end_date')
+        .eq('active', true)
+        .limit(1)
+        .maybeSingle()
+      if (data) setActiveHoliday(data as any)
+    }
+    loadHoliday()
   }, [])
 
   const fetchFishAndCuts = async () => {
@@ -60,30 +81,64 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
     }
   }
 
-  const filteredFish = selectedWaterType === 'all' 
-    ? fish 
-    : fish.filter(f => f.water_type === selectedWaterType)
-
-  const handleAddToCart = (fishItem: FishType, cutType: CutType, quantity: number) => {
-    const pricePerKg = fishItem.price_per_kg + cutType.default_addition
-    const totalPrice = pricePerKg * quantity
-
-    const cartItem: CartItem = {
-      fishId: fishItem.id,
-      fishName: fishItem.name,
-      waterType: fishItem.water_type,
-      cutType: cutType.cut_name,
-      quantity,
-      pricePerKg,
-      totalPrice
+  // פונקציה לסינון ומיון דגים
+  const getFilteredAndSortedFish = () => {
+    let filtered = fish
+    
+    // סינון לפי סוג מים
+    if (selectedWaterType !== 'all') {
+      filtered = filtered.filter(f => f.water_type === selectedWaterType)
     }
+    
+    // סינון לפי חיפוש טקסט
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim()
+      filtered = filtered.filter(f => 
+        f.name.toLowerCase().includes(query) ||
+        f.description?.toLowerCase().includes(query) ||
+        f.water_type.toLowerCase().includes(query)
+      )
+    }
+    
+    // סינון לפי מחיר
+    filtered = filtered.filter(f => 
+      f.price_per_kg >= priceRange[0] && f.price_per_kg <= priceRange[1]
+    )
+    
+    // סינון לפי זמינות
+    if (availableOnly) {
+      filtered = filtered.filter(f => f.available_kg > 0)
+    }
+    
+    // מיון
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name, 'he')
+        case 'price_asc':
+          return a.price_per_kg - b.price_per_kg
+        case 'price_desc':
+          return b.price_per_kg - a.price_per_kg
+        case 'popularity':
+          // מיון לפי כמות זמינה (יותר זמין = פופולרי יותר)
+          return b.available_kg - a.available_kg
+        default:
+          return 0
+      }
+    })
+    
+    return filtered.map(f => ({
+      ...f,
+      isHolidayRecommended: holidayParam === 'rosh-hashanah' ? 
+        ['דניס','לברק','סלמון','בורי'].includes(f.name) : false
+    }))
+  }
+  
+  const filteredFish = getFilteredAndSortedFish()
 
+  const addCartItem = (cartItem: CartItem) => {
     onAddToCart(cartItem)
-    
-    // רענון נתוני הדגים אחרי הוספה לסל
     fetchFishAndCuts()
-    
-    // הודעה מודרנית עם סטיילינג
     const notification = document.createElement('div')
     notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-2xl shadow-depth z-50 animate-slide-up'
     notification.innerHTML = `
@@ -91,7 +146,7 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
         </svg>
-        <span>${fishItem.name} (${cutType.cut_name}) נוסף לסל הקניות!</span>
+        <span>${cartItem.fishName} (${cartItem.cutType}) נוסף לסל הקניות!</span>
       </div>
     `
     document.body.appendChild(notification)
@@ -116,40 +171,163 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
       {/* Header מודרני */}
       <div className="text-center card-glass">
         <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold heading-gradient mb-6">קטלוג דגים</h1>
-        <p className="text-lg sm:text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
+        {activeHoliday ? (
+          <p className="text-lg sm:text-xl text-primary-700 font-medium">הזמנות לחג: {activeHoliday.name} ({new Date(activeHoliday.start_date).toLocaleDateString('he-IL')}–{new Date(activeHoliday.end_date).toLocaleDateString('he-IL')})</p>
+        ) : (
+          <p className="text-lg sm:text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
           בחרו את הדג שתרצו, סוג החיתוך והכמות. המחירים מעודכנים בזמן אמת והמלאי מתעדכן באופן מיידי.
-        </p>
+          </p>
+        )}
       </div>
 
-      {/* Filter מעוצב */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 card-glass">
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-2 rounded-xl">
-            <Filter className="w-5 h-5 text-white" />
+      {/* חיפוש וסינונים מתקדמים */}
+      <div className="space-y-6">
+        {/* שורת חיפוש ומיון */}
+        <div className="card-modern p-6 space-y-4">
+          {/* שורה עליונה - חיפוש ופעולות */}
+          <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
+            {/* חיפוש */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="חפש דג לפי שם, תיאור או סוג..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pr-10 pl-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/90 backdrop-blur-sm text-neutral-800 placeholder-neutral-400"
+              />
+            </div>
+            
+            {/* מיון */}
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="w-5 h-5 text-neutral-500" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/90 backdrop-blur-sm text-neutral-800 min-w-[160px]"
+              >
+                <option value="name">מיון לפי שם</option>
+                <option value="price_asc">מחיר: נמוך לגבוה</option>
+                <option value="price_desc">מחיר: גבוה לנמוך</option>
+                <option value="popularity">פופולאריות</option>
+              </select>
+            </div>
+            
+            {/* כפתור סינונים */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${
+                showFilters 
+                  ? 'bg-primary-500 text-white border-primary-500' 
+                  : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+              }`}
+            >
+              <SlidersHorizontal className="w-5 h-5" />
+              <span>סינונים</span>
+            </button>
           </div>
-          <span className="text-neutral-700 font-semibold text-base sm:text-lg">סינון לפי סוג מים:</span>
-        </div>
+          
+          {/* פאנל סינונים מתקדם */}
+          {showFilters && (
+            <div className="border-t border-neutral-100 pt-6 mt-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* סוג מים */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-700">סוג מים</label>
         <select
           value={selectedWaterType}
           onChange={(e) => setSelectedWaterType(e.target.value)}
-          className="input-field w-full sm:w-auto text-base sm:text-lg font-medium bg-white/80 backdrop-blur-sm"
+                    className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm"
         >
-          <option value="all">🐟 כל הדגים</option>
-          <option value="saltwater">🌊 מים מלוחים</option>
-          <option value="freshwater">💧 מים מתוקים</option>
-          <option value="other">⭐ מיוחדים</option>
+                    <option value="all">כל הסוגים</option>
+          <option value="saltwater">מים מלוחים</option>
+          <option value="freshwater">מים מתוקים</option>
+          <option value="other">מיוחדים</option>
         </select>
+      </div>
+
+                {/* טווח מחירים */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-700">
+                    מחיר לק"ג: ₪{priceRange[0]} - ₪{priceRange[1]}
+                  </label>
+                  <div className="space-y-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="500"
+                      value={priceRange[0]}
+                      onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
+                      className="w-full accent-primary-500"
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max="500"
+                      value={priceRange[1]}
+                      onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                      className="w-full accent-primary-500"
+                    />
+                  </div>
+                </div>
+                
+                {/* זמינות */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-neutral-700">
+                    <input
+                      type="checkbox"
+                      checked={availableOnly}
+                      onChange={(e) => setAvailableOnly(e.target.checked)}
+                      className="w-4 h-4 accent-primary-500"
+                    />
+                    רק זמינים במלאי
+                  </label>
+                </div>
+                
+                {/* איפוס סינונים */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      setSearchQuery('')
+                      setSelectedWaterType('all')
+                      setPriceRange([0, 500])
+                      setAvailableOnly(false)
+                      setSortBy('name')
+                    }}
+                    className="w-full px-3 py-2 bg-neutral-100 text-neutral-700 rounded-lg hover:bg-neutral-200 transition-colors text-sm font-medium"
+                  >
+                    איפוס סינונים
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* תוצאות */}
+        <div className="flex items-center justify-between text-sm text-neutral-600">
+          <span>נמצאו {filteredFish.length} דגים</span>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="flex items-center gap-1 text-primary-600 hover:text-primary-700"
+            >
+              <X className="w-4 h-4" />
+              ניקוי חיפוש
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Fish Grid מודרני */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
         {filteredFish.map((fishItem, index) => (
           <div key={fishItem.id} className="slide-up" style={{animationDelay: `${index * 0.1}s`}}>
-            <FishCard
-              fish={fishItem}
+          <FishCard
+            fish={fishItem}
               cutTypes={fishItem.available_cuts || []}
-              onAddToCart={handleAddToCart}
-            />
+              onAdd={addCartItem}
+          />
           </div>
         ))}
       </div>
@@ -170,12 +348,13 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
 interface FishCardProps {
   fish: FishType
   cutTypes: CutType[]
-  onAddToCart: (fish: FishType, cutType: CutType, quantity: number) => void
+  onAdd: (item: CartItem) => void
 }
 
-function FishCard({ fish, cutTypes, onAddToCart }: FishCardProps) {
+function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
   const [selectedCut, setSelectedCut] = useState<number>(cutTypes[0]?.id || 1)
   const [quantity, setQuantity] = useState<number>(1)
+  const [size, setSize] = useState<'S' | 'M' | 'L' | undefined>(undefined)
   const [imageError, setImageError] = useState(false)
 
   const selectedCutType = cutTypes.find(cut => cut.id === selectedCut)
@@ -183,13 +362,62 @@ function FishCard({ fish, cutTypes, onAddToCart }: FishCardProps) {
     ? fish.price_per_kg + selectedCutType.default_addition 
     : fish.price_per_kg
 
-  const isOutOfStock = fish.available_kg <= 0
-  const isLowStock = fish.available_kg > 0 && fish.available_kg <= 2
+  const unitsBased = !isByWeight(fish.name)
+  const averageWeight = getAverageWeightKg(fish.name, size)
+  const maxUnits = unitsBased ? computeMaxUnits(fish.available_kg, fish.name, size) : undefined
+  const isOutOfStock = unitsBased ? (maxUnits || 0) <= 0 : fish.available_kg <= 0
+  const isLowStock = unitsBased ? (maxUnits || 0) > 0 && (maxUnits || 0) <= 5 : fish.available_kg > 0 && fish.available_kg <= 2
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (selectedCutType && quantity > 0 && quantity <= fish.available_kg) {
-      onAddToCart(fish, selectedCutType, quantity)
+    if (!selectedCutType) return
+
+    if (unitsBased) {
+      if (quantity <= 0 || (maxUnits !== undefined && quantity > maxUnits)) {
+        const notification = document.createElement('div')
+        notification.className = 'fixed top-4 right-4 bg-accent-500 text-white px-6 py-3 rounded-2xl shadow-depth z-50 animate-slide-up'
+        notification.innerHTML = `
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.36 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <span>לא ניתן להזמין יותר מהמלאי הזמין (${maxUnits || 0} יחידות)</span>
+          </div>
+        `
+        document.body.appendChild(notification)
+        setTimeout(() => notification.remove(), 4000)
+        return
+      }
+      const pricePerUnit = selectedCutType ? fish.price_per_kg + selectedCutType.default_addition : fish.price_per_kg
+      const totalPrice = pricePerUnit * quantity
+      onAdd({
+        fishId: fish.id,
+        fishName: fish.name,
+        waterType: fish.water_type,
+        cutType: selectedCutType.cut_name,
+        cutTypeId: selectedCutType.id,
+        quantity,
+        pricePerKg: pricePerUnit,
+        totalPrice,
+        unitsBased: true,
+        averageWeightKg: averageWeight,
+        size,
+        unitPrice: pricePerUnit,
+      })
+    } else {
+      if (quantity > 0 && quantity <= fish.available_kg) {
+        const pricePerKg = fish.price_per_kg + selectedCutType.default_addition
+        const totalPrice = pricePerKg * quantity
+        onAdd({
+          fishId: fish.id,
+          fishName: fish.name,
+          waterType: fish.water_type,
+          cutType: selectedCutType.cut_name,
+          cutTypeId: selectedCutType.id,
+          quantity,
+          pricePerKg,
+          totalPrice,
+        })
     } else if (quantity > fish.available_kg) {
       // הודעת שגיאה מודרנית
       const notification = document.createElement('div')
@@ -204,6 +432,7 @@ function FishCard({ fish, cutTypes, onAddToCart }: FishCardProps) {
       `
       document.body.appendChild(notification)
       setTimeout(() => notification.remove(), 4000)
+      }
     }
   }
 
@@ -226,23 +455,29 @@ function FishCard({ fish, cutTypes, onAddToCart }: FishCardProps) {
   }
 
   return (
-    <div className="card-glass hover-lift group">
+    <div className="group bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 p-6">
       {/* Fish Image מעוצבת */}
-      <div className="relative w-full h-52 bg-gradient-to-br from-ocean-100 to-ocean-200 rounded-3xl mb-6 overflow-hidden">
+      <div className="relative w-full h-48 bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-xl mb-6 overflow-hidden">
         {/* תג מצב מלאי */}
-        <div className="absolute top-4 left-4 z-10">
+        <div className="absolute top-3 right-3 z-10">
           {isOutOfStock ? (
-            <span className="status-error text-sm font-medium">אזל המלאי</span>
+            <span className="px-2.5 py-1 bg-red-500 text-white text-xs font-semibold rounded-full shadow-md">
+              אזל המלאי
+            </span>
           ) : isLowStock ? (
-            <span className="status-warning text-sm font-medium">מלאי נמוך</span>
+            <span className="px-2.5 py-1 bg-amber-500 text-white text-xs font-semibold rounded-full shadow-md">
+              מלאי נמוך
+            </span>
           ) : (
-            <span className="status-success text-sm font-medium">זמין במלאי</span>
+            <span className="px-2.5 py-1 bg-emerald-500 text-white text-xs font-semibold rounded-full shadow-md">
+              זמין
+            </span>
           )}
         </div>
 
         {/* תג סוג מים */}
-        <div className="absolute top-4 right-4 z-10">
-          <span className="badge-ocean">
+        <div className="absolute top-3 left-3 z-10">
+          <span className="px-2.5 py-1 bg-primary-500 text-white text-xs font-medium rounded-full shadow-md">
             {getWaterTypeIcon(fish.water_type)} {getWaterTypeLabel(fish.water_type)}
           </span>
         </div>
@@ -255,7 +490,7 @@ function FishCard({ fish, cutTypes, onAddToCart }: FishCardProps) {
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-ocean-400 group-hover:scale-105 transition-transform duration-500">
+          <div className="flex flex-col items-center justify-center h-full text-accent-500 group-hover:scale-105 transition-transform duration-500">
             <ImageIcon className="w-16 h-16 mb-3 opacity-50" />
             <span className="text-6xl opacity-70">{getWaterTypeIcon(fish.water_type)}</span>
           </div>
@@ -263,24 +498,55 @@ function FishCard({ fish, cutTypes, onAddToCart }: FishCardProps) {
       </div>
 
       {/* Fish Info מעוצבת */}
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-xl sm:text-2xl font-bold text-primary-900 mb-2 text-wrap">{fish.name}</h3>
+      <div className="space-y-4">
+        <div className="border-b border-neutral-100 pb-4">
+          <h3 className="text-xl font-bold text-neutral-800 mb-2">{fish.name}</h3>
+          <div className="flex items-center justify-between">
+            <span className="text-2xl font-bold text-primary-600">₪{finalPrice}</span>
+            <span className="text-sm text-neutral-500">
+              {unitsBased ? 'ליחידה' : 'לק"ג'}
+            </span>
+          </div>
           {fish.description && (
-            <p className="text-neutral-600 leading-relaxed text-sm sm:text-base text-wrap">{fish.description}</p>
+            <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
+              {fish.description}
+              {isSizeableFish(fish.name) && (
+                <span className="block mt-2 text-xs text-neutral-500">
+                  משקל ממוצע: S≈{getAverageWeightKg(fish.name, 'S')}ק"ג | M≈{getAverageWeightKg(fish.name, 'M')}ק"ג | L≈{getAverageWeightKg(fish.name, 'L')}ק"ג
+                </span>
+              )}
+            </p>
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Dennis sizes */}
+          {isSizeableFish(fish.name) && (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                מידת הדג:
+              </label>
+              <select
+                value={size || ''}
+                onChange={(e) => setSize((e.target.value as 'S'|'M'|'L') || undefined)}
+                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm"
+              >
+                <option value="">בחר מידה</option>
+                <option value="S">S - קטן</option>
+                <option value="M">M - בינוני</option>
+                <option value="L">L - גדול</option>
+              </select>
+            </div>
+          )}
           {/* Cut Type Selection מעוצבת */}
           <div>
-            <label className="block text-base sm:text-lg font-semibold text-neutral-700 mb-3">
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
               סוג חיתוך:
             </label>
             <select
               value={selectedCut}
               onChange={(e) => setSelectedCut(Number(e.target.value))}
-              className="input-field text-base sm:text-lg"
+              className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm"
             >
               {cutTypes.map((cut) => (
                 <option key={cut.id} value={cut.id}>
@@ -290,79 +556,79 @@ function FishCard({ fish, cutTypes, onAddToCart }: FishCardProps) {
             </select>
           </div>
 
-          {/* Quantity מעוצבת */}
+          {/* Quantity/Units מעוצבת */}
           <div>
-            <label className="block text-base sm:text-lg font-semibold text-neutral-700 mb-3">
-              כמות (ק"ג):
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              {unitsBased ? 'כמות (יחידות):' : 'כמות (ק"ג):'}
             </label>
-            <input
-              type="number"
-              min="0.5"
-              max={fish.available_kg}
-              step="0.5"
-              value={quantity}
-              onChange={(e) => {
-                const newQuantity = Number(e.target.value)
-                setQuantity(Math.min(newQuantity, fish.available_kg))
-              }}
-              className="input-field text-base sm:text-lg"
-            />
-            <p className="text-sm text-neutral-500 mt-2 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" />
-              מקסימום זמין: {fish.available_kg} ק"ג
+            <div className="relative">
+              {unitsBased ? (
+                <input
+                  type="number"
+                  min={1}
+                  max={maxUnits}
+                  step={1}
+                  value={quantity}
+                  onChange={(e) => {
+                    const newQuantity = Number(e.target.value)
+                    setQuantity(Math.max(1, Math.min(newQuantity, maxUnits || 0)))
+                  }}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm"
+                />
+              ) : (
+              <input
+                type="number"
+                min="0.5"
+                  max={fish.available_kg}
+                step="0.5"
+                value={quantity}
+                onChange={(e) => {
+                  const newQuantity = Number(e.target.value)
+                  setQuantity(Math.min(newQuantity, fish.available_kg))
+                }}
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm"
+                />
+              )}
+            </div>
+            <p className="text-xs text-neutral-500 mt-1 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {unitsBased ? (
+                <>זמין: {maxUnits || 0} יחידות (≈ {averageWeight}ק"ג ליחידה)</>
+              ) : (
+                <>זמין: {fish.available_kg} ק"ג</>
+              )}
             </p>
           </div>
 
-          {/* Price Display מעוצבת */}
-          <div className="bg-gradient-to-br from-primary-50 to-primary-100/50 backdrop-blur-sm p-6 rounded-3xl border border-primary-200/50">
-            <div className="flex justify-between items-center text-lg text-primary-700 mb-2">
-              <span>מחיר לק"ג:</span>
-              <span className="font-semibold">₪{finalPrice}</span>
+          {/* Price Summary */}
+          <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-neutral-600">סה"כ:</span>
+              <span className="text-lg font-bold text-neutral-800">₪{(finalPrice * quantity).toFixed(2)}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xl font-bold text-primary-900">סה"כ:</span>
-              <span className="text-2xl font-bold text-accent-600">₪{(finalPrice * quantity).toFixed(2)}</span>
+            <div className="text-xs text-neutral-500">
+              {quantity} {unitsBased ? 'יחידות' : 'ק"ג'} × ₪{finalPrice}
             </div>
           </div>
 
-          {/* Add to Cart Button מעוצב */}
+          {/* Add to Cart Button */}
           <button
             type="submit"
             disabled={isOutOfStock || fish.available_kg < quantity}
-            className="w-full btn-primary text-base sm:text-lg py-3 sm:py-4 flex items-center justify-center gap-2 sm:gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-neutral-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             {isOutOfStock ? (
               <>
-                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                <AlertCircle className="w-4 h-4" />
                 <span>אזל המלאי</span>
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Plus className="w-4 h-4" />
                 <span>הוסף לסל</span>
               </>
             )}
           </button>
-
-          {/* Availability מעוצבת */}
-          <div className="text-center">
-            {isOutOfStock ? (
-              <div className="flex items-center justify-center gap-2 text-accent-600">
-                <AlertCircle className="w-5 h-5" />
-                <span className="font-semibold">אזל המלאי</span>
-              </div>
-            ) : fish.available_kg >= quantity ? (
-              <div className="flex items-center justify-center gap-2 text-emerald-600">
-                <CheckCircle className="w-5 h-5" />
-                <span className="font-medium">זמין במלאי: {fish.available_kg} ק"ג</span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-2 text-accent-600">
-                <AlertCircle className="w-5 h-5" />
-                <span className="font-medium">אין מספיק במלאי</span>
-              </div>
-            )}
-          </div>
         </form>
       </div>
     </div>

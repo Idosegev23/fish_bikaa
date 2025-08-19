@@ -296,7 +296,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-fish-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     )
   }
@@ -318,7 +318,14 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
+        {/* Mobile quick actions (condensed) */}
+        <div className="md:hidden grid grid-cols-2 gap-3 mb-6">
+          <Link to="/admin/orders" className="btn-secondary w-full text-sm">הזמנות</Link>
+          <Link to="/admin/fish" className="btn-secondary w-full text-sm">דגים</Link>
+          <Link to="/admin/additional-products" className="btn-secondary w-full text-sm">מוצרים משלימים</Link>
+          <Link to="/admin/meal-recommendations" className="btn-secondary w-full text-sm">המלצות</Link>
+        </div>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="card bg-blue-50 border-blue-200">
@@ -370,27 +377,19 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Quick Actions (condensed) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
           <Link to="/admin/fish" className="card hover:shadow-lg transition-shadow group">
             <div className="text-center p-4">
-              <Package className="w-12 h-12 text-fish-600 mx-auto mb-4 group-hover:text-fish-700" />
+            <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
               <h3 className="text-lg font-semibold mb-2">ניהול דגים</h3>
               <p className="text-gray-600 text-sm">הוספה, עריכה ומחיקה של דגים במערכת</p>
             </div>
           </Link>
 
-          <Link to="/admin/cut-types" className="card hover:shadow-lg transition-shadow group">
-            <div className="text-center p-4">
-              <Scissors className="w-12 h-12 text-fish-600 mx-auto mb-4 group-hover:text-fish-700" />
-              <h3 className="text-lg font-semibold mb-2">ניהול חיתוכים</h3>
-              <p className="text-gray-600 text-sm">הוספה ועריכה של סוגי חיתוך ותוספות מחיר</p>
-            </div>
-          </Link>
-
           <Link to="/admin/orders" className="card hover:shadow-lg transition-shadow group">
             <div className="text-center p-4">
-              <ShoppingCart className="w-12 h-12 text-fish-600 mx-auto mb-4 group-hover:text-fish-700" />
+            <ShoppingCart className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
               <h3 className="text-lg font-semibold mb-2">רשימת הזמנות</h3>
               <p className="text-gray-600 text-sm">צפייה וניהול הזמנות לקוחות</p>
             </div>
@@ -398,9 +397,49 @@ export default function AdminDashboard() {
 
           <Link to="/admin/daily-report" className="card hover:shadow-lg transition-shadow group">
             <div className="text-center p-4">
-              <Users className="w-12 h-12 text-fish-600 mx-auto mb-4 group-hover:text-fish-700" />
+            <Users className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
               <h3 className="text-lg font-semibold mb-2">דוח יומי</h3>
               <p className="text-gray-600 text-sm">דוח מפורט של הזמנות והכנסות יומיות</p>
+            </div>
+          </Link>
+
+          <Link to="/admin/holidays" className="card hover:shadow-lg transition-shadow group">
+            <div className="text-center p-4">
+              <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
+              <h3 className="text-lg font-semibold mb-2">ניהול חגים</h3>
+              <p className="text-gray-600 text-sm">פתיחת הזמנות לחגים והיערכות מלאי</p>
+            </div>
+          </Link>
+
+          <Link to="/admin/additional-products" className="card hover:shadow-lg transition-shadow group">
+            <div className="text-center p-4">
+              <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
+              <h3 className="text-lg font-semibold mb-2">מוצרים משלימים</h3>
+              <p className="text-gray-600 text-sm">ניהול מלאי מוצרים נלווים</p>
+            </div>
+          </Link>
+
+          <Link to="/admin/meal-recommendations" className="card hover:shadow-lg transition-shadow group">
+            <div className="text-center p-4">
+              <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
+              <h3 className="text-lg font-semibold mb-2">המלצות מנות</h3>
+              <p className="text-gray-600 text-sm">שיוך דג+חיתוך למוצרים מומלצים</p>
+            </div>
+          </Link>
+
+          <Link to="/admin/supplier-report" className="card hover:shadow-lg transition-shadow group">
+            <div className="text-center p-4">
+              <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
+              <h3 className="text-lg font-semibold mb-2">דוח ספקים</h3>
+              <p className="text-gray-600 text-sm">דוחות הזמנות ודרישות מלאי לחגים</p>
+            </div>
+          </Link>
+
+          <Link to="/admin/availability" className="card hover:shadow-lg transition-shadow group">
+            <div className="text-center p-4">
+              <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
+              <h3 className="text-lg font-semibold mb-2">זמני איסוף</h3>
+              <p className="text-gray-600 text-sm">ניהול שעות וכמויות איסוף יומיות</p>
             </div>
           </Link>
         </div>
@@ -515,6 +554,19 @@ export default function AdminDashboard() {
           </div>
         </div>
       </main>
+
+      {/* ניווט תחתון - מובייל (אדמין) */}
+      <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-white/95 backdrop-blur border-t border-neutral-200">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-5 text-center text-sm">
+            <Link to="/admin/dashboard" className="py-3 text-primary-700 font-semibold">דשבורד</Link>
+            <Link to="/admin/orders" className="py-3 text-neutral-600">הזמנות</Link>
+            <Link to="/admin/fish" className="py-3 text-neutral-600">דגים</Link>
+            <Link to="/admin/daily-report" className="py-3 text-neutral-600">דוח יומי</Link>
+            <Link to="/admin/holidays" className="py-3 text-neutral-600">חגים</Link>
+          </div>
+        </div>
+      </nav>
     </div>
   )
 } 

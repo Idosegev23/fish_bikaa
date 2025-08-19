@@ -57,4 +57,58 @@ export interface Order {
   order_items: OrderItem[]
   total_price: number
   created_at: string
-} 
+  is_holiday_order?: boolean
+  holiday_id?: number
+  extras?: Array<{
+    product_id: number
+    name: string
+    unit: string
+    quantity: number
+    price: number
+    total: number
+  }>
+  extras_total?: number
+}
+
+export interface Holiday {
+  id: number
+  name: string
+  start_date: string
+  end_date: string
+  active: boolean
+  pickup_deadline?: string
+  supplier_report_deadline?: string
+}
+
+export interface AdditionalProduct {
+  id: number
+  name: string
+  price: number
+  unit: string
+  image_url?: string
+  available_units: number
+  active: boolean
+  meal_tags?: string[]
+  suggest_tags?: string[]
+}
+
+export interface MealRecommendation {
+  id: number
+  fish_id: number
+  cut_type_id: number
+  meal_name: string
+  recommended_products: string[]
+}
+
+export interface AvailabilitySlot {
+  id: number
+  day_of_week: number // 0=ראשון, 1=שני, וכו'
+  start_time: string
+  end_time: string
+  max_orders: number
+  active: boolean
+  created_at: string
+  updated_at: string
+  current_orders?: number // נוסף לצורך ספירה דינמית
+}
+ 

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
 import type { FishType } from '../../lib/supabase'
 import { ArrowLeft, Plus, Edit, Save, X, Upload, Image } from 'lucide-react'
+import { isByWeight, computeMaxUnits } from '../../lib/fishConfig'
 
 interface NewFishForm {
   name: string
@@ -14,6 +16,7 @@ interface NewFishForm {
 }
 
 export default function AdminFishManagement() {
+  const [searchParams] = useSearchParams()
   const [fish, setFish] = useState<FishType[]>([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -37,6 +40,13 @@ export default function AdminFishManagement() {
     
     return () => clearInterval(interval)
   }, [])
+
+  // פתיחת מודאל הוספת דג כאשר מגיעים עם פרמטר add=1
+  useEffect(() => {
+    if (searchParams.get('add') === '1') {
+      setShowAddModal(true)
+    }
+  }, [searchParams])
 
   const fetchFish = async () => {
     try {
@@ -201,7 +211,7 @@ export default function AdminFishManagement() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-fish-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     )
   }
@@ -213,7 +223,7 @@ export default function AdminFishManagement() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4 space-x-reverse">
-              <Link to="/admin/dashboard" className="text-fish-600 hover:text-fish-700">
+              <Link to="/admin/dashboard" className="text-primary-600 hover:text-primary-700">
                 <ArrowLeft className="w-6 h-6" />
               </Link>
               <div>
@@ -222,10 +232,10 @@ export default function AdminFishManagement() {
               <p className="text-xs text-gray-500">המלאי מתעדכן אוטומטיט עם הזמנות חדשות</p>
               </div>
             </div>
-            <div className="flex space-x-4 space-x-reverse">
+            <div className="flex flex-wrap gap-3 md:gap-4 items-stretch">
               <button 
                 onClick={fetchFish}
-                className="btn-secondary flex items-center space-x-2 space-x-reverse"
+                className="btn-secondary flex items-center space-x-2 space-x-reverse w-full sm:w-auto"
                 title="רענן נתונים"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,14 +245,14 @@ export default function AdminFishManagement() {
               </button>
               <Link 
                 to="/admin/cut-types" 
-                className="btn-secondary flex items-center space-x-2 space-x-reverse"
+                className="btn-secondary flex items-center space-x-2 space-x-reverse w-full sm:w-auto"
               >
                 <Edit className="w-4 h-4" />
                 <span>ניהול חיתוכים</span>
               </Link>
               <button 
                 onClick={() => setShowAddModal(true)}
-                className="btn-primary flex items-center space-x-2 space-x-reverse"
+                className="btn-primary flex items-center space-x-2 space-x-reverse w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4" />
                 <span>הוסף דג חדש</span>
@@ -252,8 +262,126 @@ export default function AdminFishManagement() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
+        {/* Mobile first cards */}
+        <div className="grid grid-cols-1 gap-4 md:hidden mb-6">
+          {fish.map((fishItem) => (
+            <div key={fishItem.id} className={`card ${!fishItem.is_active ? 'opacity-75' : ''}`}>
+              {editingId === fishItem.id ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">שם הדג</label>
+                      <input
+                        type="text"
+                        value={editForm.name || ''}
+                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        className="input-field text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">סוג מים</label>
+                      <select
+                        value={editForm.water_type || ''}
+                        onChange={(e) => setEditForm({ ...editForm, water_type: e.target.value as 'saltwater' | 'freshwater' | 'other' })}
+                        className="input-field text-sm"
+                      >
+                        <option value="saltwater">מים מלוחים</option>
+                        <option value="freshwater">מים מתוקים</option>
+                        <option value="other">אחר</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">מחיר לק"ג (₪)</label>
+                      <input
+                        type="number"
+                        value={editForm.price_per_kg || 0}
+                        onChange={(e) => setEditForm({ ...editForm, price_per_kg: Number(e.target.value) })}
+                        className="input-field text-sm"
+                        step="0.01"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">מלאי זמין (משקל בק"ג)</label>
+                      <div className="text-xs text-neutral-500 mb-2">
+                        {isByWeight(editForm.name || '') 
+                          ? 'דג נמכר לפי ק"ג' 
+                          : `דג נמכר ביחידות - ${computeMaxUnits(editForm.available_kg || 0, editForm.name || '')} יחידות זמינות`
+                        }
+                      </div>
+                      <input
+                        type="number"
+                        value={editForm.available_kg || 0}
+                        onChange={(e) => setEditForm({ ...editForm, available_kg: Number(e.target.value) })}
+                        className="input-field text-sm"
+                        step="0.1"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">סטטוס</label>
+                      <select
+                        value={editForm.is_active ? 'true' : 'false'}
+                        onChange={(e) => setEditForm({ ...editForm, is_active: e.target.value === 'true' })}
+                        className="input-field text-sm"
+                      >
+                        <option value="true">פעיל</option>
+                        <option value="false">לא פעיל</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <button onClick={saveEdit} disabled={uploading} className="btn-primary text-sm disabled:opacity-50">שמור</button>
+                    <button onClick={cancelEdit} disabled={uploading} className="btn-secondary text-sm disabled:opacity-50">ביטול</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-neutral-200 rounded-lg flex items-center justify-center overflow-hidden">
+                      {fishItem.image_url ? (
+                        <img src={fishItem.image_url} alt={fishItem.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <Image className="w-6 h-6 text-neutral-400" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-semibold text-neutral-900 truncate">{fishItem.name}</div>
+                      <div className="text-sm text-neutral-600 truncate">{fishItem.water_type === 'saltwater' ? 'מים מלוחים' : fishItem.water_type === 'freshwater' ? 'מים מתוקים' : 'אחר'}</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3">
+                      <div className="text-neutral-500">מחיר/ק"ג</div>
+                      <div className="font-semibold text-neutral-900">₪{fishItem.price_per_kg}</div>
+                    </div>
+                    <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3">
+                      <div className="text-neutral-500">מלאי</div>
+                      <div className="font-semibold text-neutral-900">
+                        {isByWeight(fishItem.name) ? (
+                          `${fishItem.available_kg} ק"ג`
+                        ) : (
+                          `${computeMaxUnits(fishItem.available_kg, fishItem.name)} יח׳`
+                        )}
+                      </div>
+                    </div>
+                    <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3">
+                      <div className="text-neutral-500">סטטוס</div>
+                      <div className={`font-semibold ${fishItem.is_active ? 'text-emerald-700' : 'text-red-600'}`}>{fishItem.is_active ? 'פעיל' : 'לא פעיל'}</div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <button onClick={() => startEdit(fishItem)} className="text-primary-600 hover:text-primary-700 p-1" title="עריכה">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="bg-white rounded-lg shadow overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -428,7 +556,11 @@ export default function AdminFishManagement() {
                           ₪{fishItem.price_per_kg}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {fishItem.available_kg} ק"ג
+                          {isByWeight(fishItem.name) ? (
+                            `${fishItem.available_kg} ק"ג`
+                          ) : (
+                            `${computeMaxUnits(fishItem.available_kg, fishItem.name)} יח׳`
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
@@ -446,7 +578,7 @@ export default function AdminFishManagement() {
                           <div className="flex space-x-2 space-x-reverse">
                             <button
                               onClick={() => startEdit(fishItem)}
-                              className="text-fish-600 hover:text-fish-700"
+                              className="text-primary-600 hover:text-primary-700"
                               title="עריכה"
                             >
                               <Edit className="w-4 h-4" />
@@ -468,6 +600,8 @@ export default function AdminFishManagement() {
           </div>
         )}
       </main>
+
+      <AdminBottomNav />
 
       {/* Add Fish Modal */}
       {showAddModal && (
@@ -530,9 +664,9 @@ export default function AdminFishManagement() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      מלאי זמין (ק"ג)
-                    </label>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                מלאי זמין (משקל בק"ג)
+              </label>
                     <input
                       type="number"
                       value={newFishForm.available_kg}
@@ -564,7 +698,7 @@ export default function AdminFishManagement() {
                     <div className="space-y-1 text-center">
                       <Upload className="mx-auto h-12 w-12 text-gray-400" />
                       <div className="flex text-sm text-gray-600">
-                        <label htmlFor="fish-image" className="relative cursor-pointer bg-white rounded-md font-medium text-fish-600 hover:text-fish-500 focus-within:outline-none">
+                        <label htmlFor="fish-image" className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none">
                           <span>העלה תמונה</span>
                           <input
                             id="fish-image"

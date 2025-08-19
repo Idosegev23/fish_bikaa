@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
 import type { Order } from '../../lib/supabase'
-import { ArrowLeft, Download, Calendar, Search } from 'lucide-react'
+import { ArrowLeft, Download, Calendar, Search, Eye, X } from 'lucide-react'
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -10,6 +11,8 @@ export default function AdminOrders() {
   const [searchTerm, setSearchTerm] = useState('')
   const [dateFilter, setDateFilter] = useState('')
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [orderModalOpen, setOrderModalOpen] = useState(false)
 
   useEffect(() => {
     fetchOrders()
@@ -86,10 +89,20 @@ export default function AdminOrders() {
     return filteredOrders.reduce((sum, order) => sum + Number(order.total_price), 0)
   }
 
+  const openOrderModal = (order: Order) => {
+    setSelectedOrder(order)
+    setOrderModalOpen(true)
+  }
+
+  const closeOrderModal = () => {
+    setSelectedOrder(null)
+    setOrderModalOpen(false)
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-fish-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     )
   }
@@ -99,9 +112,9 @@ export default function AdminOrders() {
       {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 py-6">
             <div className="flex items-center space-x-4 space-x-reverse">
-              <Link to="/admin/dashboard" className="text-fish-600 hover:text-fish-700">
+              <Link to="/admin/dashboard" className="text-primary-600 hover:text-primary-700">
                 <ArrowLeft className="w-6 h-6" />
               </Link>
               <div>
@@ -111,7 +124,7 @@ export default function AdminOrders() {
             </div>
             <button 
               onClick={exportToCSV}
-              className="btn-primary flex items-center space-x-2 space-x-reverse"
+              className="btn-primary flex items-center space-x-2 space-x-reverse w-full md:w-auto"
             >
               <Download className="w-4 h-4" />
               <span>ייצוא לCSV</span>
@@ -120,7 +133,7 @@ export default function AdminOrders() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
         {/* Filters */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -172,7 +185,11 @@ export default function AdminOrders() {
         {/* Mobile cards */}
         <div className="grid grid-cols-1 gap-4 md:hidden">
           {filteredOrders.map((order) => (
-            <div key={order.id} className="card">
+            <div 
+              key={order.id} 
+              className="card cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary-200"
+              onClick={() => openOrderModal(order)}
+            >
               <div className="flex justify-between items-start">
                 <div>
                   <div className="text-sm text-neutral-500">
@@ -181,18 +198,26 @@ export default function AdminOrders() {
                   <div className="font-semibold text-neutral-900 mt-1">{order.customer_name}</div>
                   <div className="text-sm text-neutral-600">{order.phone} • {order.email}</div>
                 </div>
-                <div className="text-primary-700 font-bold">₪{Number(order.total_price).toFixed(2)}</div>
+                <div className="flex items-center gap-2">
+                  <div className="text-primary-700 font-bold">₪{Number(order.total_price).toFixed(2)}</div>
+                  <Eye className="w-4 h-4 text-primary-600" />
+                </div>
               </div>
               <div className="mt-3 text-sm text-neutral-600">
                 איסוף: {new Date(order.delivery_date).toLocaleDateString('he-IL')} • {order.delivery_time}
               </div>
               <div className="mt-3 border-t border-neutral-200 pt-3 space-y-1">
-                {order.order_items.map((item: any, index: number) => (
+                {order.order_items.slice(0, 2).map((item: any, index: number) => (
                   <div key={index} className="text-sm flex justify-between">
                     <span className="text-neutral-700">{item.fish_name} • {item.cut}</span>
                     <span className="text-neutral-500">{item.quantity_kg} ק"ג</span>
                   </div>
                 ))}
+                {order.order_items.length > 2 && (
+                  <div className="text-xs text-primary-600 font-medium">
+                    ועוד {order.order_items.length - 2} פריטים... (לחץ לפרטים)
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -209,6 +234,7 @@ export default function AdminOrders() {
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">איסוף</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">פריטים</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">סכום</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">פעולות</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -229,15 +255,29 @@ export default function AdminOrders() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="space-y-1">
-                        {order.order_items.map((item: any, index: number) => (
+                        {order.order_items.slice(0, 2).map((item: any, index: number) => (
                           <div key={index} className="text-sm">
                             <span className="font-medium">{item.fish_name}</span>
                             <span className="text-gray-500 text-xs block">{item.cut} • {item.quantity_kg} ק"ג</span>
                           </div>
                         ))}
+                        {order.order_items.length > 2 && (
+                          <div className="text-xs text-primary-600 font-medium">
+                            ועוד {order.order_items.length - 2} פריטים...
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-700">₪{Number(order.total_price).toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => openOrderModal(order)}
+                        className="inline-flex items-center gap-1 px-3 py-1 bg-primary-100 text-primary-700 text-sm font-medium rounded-lg hover:bg-primary-200 transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                        פרטים
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -254,6 +294,147 @@ export default function AdminOrders() {
           </div>
         )}
       </main>
+
+      <AdminBottomNav />
+
+      {/* Order Details Modal */}
+      {orderModalOpen && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-neutral-200">
+              <div>
+                <h2 className="text-xl font-bold text-neutral-900">פרטי הזמנה #{selectedOrder.id}</h2>
+                <p className="text-sm text-neutral-500 mt-1">
+                  נוצרה: {new Date(selectedOrder.created_at).toLocaleDateString('he-IL')} • {new Date(selectedOrder.created_at).toLocaleTimeString('he-IL')}
+                </p>
+              </div>
+              <button
+                onClick={closeOrderModal}
+                className="p-2 hover:bg-neutral-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Customer Info */}
+              <div className="bg-neutral-50 rounded-xl p-4">
+                <h3 className="font-semibold text-neutral-900 mb-3">פרטי לקוח</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-sm text-neutral-600">שם:</span>
+                    <div className="font-medium">{selectedOrder.customer_name}</div>
+                  </div>
+                  <div>
+                    <span className="text-sm text-neutral-600">טלפון:</span>
+                    <div className="font-medium">{selectedOrder.phone}</div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="text-sm text-neutral-600">דוא"ל:</span>
+                    <div className="font-medium">{selectedOrder.email}</div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="text-sm text-neutral-600">כתובת איסוף:</span>
+                    <div className="font-medium">{selectedOrder.delivery_address}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Delivery Info */}
+              <div className="bg-blue-50 rounded-xl p-4">
+                <h3 className="font-semibold text-neutral-900 mb-3">פרטי איסוף</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-sm text-neutral-600">תאריך:</span>
+                    <div className="font-medium">{new Date(selectedOrder.delivery_date).toLocaleDateString('he-IL')}</div>
+                  </div>
+                  <div>
+                    <span className="text-sm text-neutral-600">שעה:</span>
+                    <div className="font-medium">{selectedOrder.delivery_time}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fish Orders */}
+              <div>
+                <h3 className="font-semibold text-neutral-900 mb-3">דגים בהזמנה</h3>
+                <div className="border border-neutral-200 rounded-xl overflow-hidden">
+                  {selectedOrder.order_items.map((item: any, index: number) => (
+                    <div key={index} className="flex items-center gap-4 p-4 border-b border-neutral-100 last:border-b-0">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span className="text-blue-600 text-lg">🐟</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-neutral-900">{item.fish_name}</div>
+                        <div className="text-sm text-neutral-600">{item.cut}</div>
+                        <div className="text-sm text-neutral-500">{item.quantity_kg} ק"ג</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-neutral-900">₪{Number(item.price_total).toFixed(2)}</div>
+                        <div className="text-sm text-neutral-500">₪{Number(item.price_per_kg).toFixed(2)}/ק"ג</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Extras */}
+              {selectedOrder.extras && selectedOrder.extras.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-neutral-900 mb-3">מוצרים משלימים</h3>
+                  <div className="border border-neutral-200 rounded-xl overflow-hidden">
+                    {selectedOrder.extras.map((extra: any, index: number) => (
+                      <div key={index} className="flex items-center gap-4 p-4 border-b border-neutral-100 last:border-b-0">
+                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <span className="text-green-600 text-sm font-medium">+</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-neutral-900">{extra.name}</div>
+                          <div className="text-sm text-neutral-600">{extra.quantity} {extra.unit}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-neutral-900">₪{Number(extra.total).toFixed(2)}</div>
+                          <div className="text-sm text-neutral-500">₪{Number(extra.price).toFixed(2)}/{extra.unit}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Holiday Info */}
+              {selectedOrder.is_holiday_order && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <h3 className="font-semibold text-amber-800 mb-2">🎉 הזמנת חג</h3>
+                  <p className="text-sm text-amber-700">הזמנה זו מסומנת כהזמנת חג</p>
+                </div>
+              )}
+
+              {/* Total */}
+              <div className="bg-primary-50 rounded-xl p-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span>סה"כ דגים:</span>
+                    <span>₪{(Number(selectedOrder.total_price) - Number(selectedOrder.extras_total || 0)).toFixed(2)}</span>
+                  </div>
+                  {selectedOrder.extras_total && Number(selectedOrder.extras_total) > 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span>סה"כ תוספות:</span>
+                      <span>₪{Number(selectedOrder.extras_total).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-lg font-bold border-t border-primary-200 pt-2">
+                    <span>סה"כ לתשלום:</span>
+                    <span className="text-primary-700">₪{Number(selectedOrder.total_price).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

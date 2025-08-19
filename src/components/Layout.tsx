@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ShoppingCart, Settings, Home, BookOpen, Mail, Phone, MapPin } from 'lucide-react'
+import { Settings, Mail, Phone, MapPin } from 'lucide-react'
 import type { CartItem } from '../App'
 
 interface LayoutProps {
@@ -11,11 +12,21 @@ interface LayoutProps {
 export default function Layout({ children, cart }: LayoutProps) {
   const location = useLocation()
   const cartItemsCount = cart.length
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 4)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
-    <div className="min-h-screen bg-neutral-gradient">
-      {/* Header מודרני עם Glass Morphism */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-white/20 shadow-soft">
+    <div className="min-h-screen bg-neutral-50">
+      {/* Header מודרני עם Glass Morphism - קבוע וגלוי תמיד */}
+      <header className={`fixed top-0 inset-x-0 z-50 backdrop-blur-lg border-b ${scrolled ? 'bg-white/90 border-white/30 shadow-md' : 'bg-white/80 border-white/20 shadow-soft'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* לוגו ושם החנות */}
@@ -26,41 +37,32 @@ export default function Layout({ children, cart }: LayoutProps) {
               </div>
             </Link>
 
-            {/* ניווט מרכזי */}
+            {/* ניווט מרכזי - דסקטופ */}
             <nav className="hidden md:flex items-center space-x-2 space-x-reverse bg-white/50 backdrop-blur-sm rounded-2xl p-2 border border-white/20">
               <Link 
                 to="/" 
-                className={`nav-link flex items-center gap-2 ${
-                  location.pathname === '/' ? 'active' : ''
-                }`}
+                className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
               >
-                <Home className="w-4 h-4" />
                 דף הבית
               </Link>
-              
               <Link 
                 to="/catalog" 
-                className={`nav-link flex items-center gap-2 ${
-                  location.pathname === '/catalog' ? 'active' : ''
-                }`}
+                className={`nav-link ${location.pathname === '/catalog' ? 'active' : ''}`}
               >
-                <BookOpen className="w-4 h-4" />
                 קטלוג דגים
               </Link>
             </nav>
 
-            {/* כפתורי פעולה */}
+            {/* כפתור קופה */}
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              {/* סל קניות מודרני */}
               <Link 
-                to="/customer-details" 
+                to="/order-summary" 
                 className="relative btn-primary flex items-center gap-1 sm:gap-2 group px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base"
               >
-                <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline">סל קניות</span>
-                <span className="sm:hidden">סל</span>
+                <span className="hidden sm:inline">לקופה</span>
+                <span className="sm:hidden">קופה</span>
                 {cartItemsCount > 0 && (
-                  <span className="absolute -top-1 sm:-top-2 -right-1 sm:-right-2 bg-accent-500 text-white text-xs rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center font-bold shadow-modern animate-pulse-soft">
+                  <span className="absolute -top-1 sm:-top-2 -right-1 sm:-right-2 bg-accent-600 text-white text-xs rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center font-bold shadow-medium">
                     {cartItemsCount}
                   </span>
                 )}
@@ -68,39 +70,10 @@ export default function Layout({ children, cart }: LayoutProps) {
             </div>
           </div>
         </div>
-
-        {/* ניווט מובייל */}
-        <nav className="md:hidden bg-white/70 backdrop-blur-sm border-t border-white/20 px-4 py-3">
-          <div className="flex justify-center items-center">
-            <div className="flex gap-6">
-              <Link 
-                to="/" 
-                className={`nav-link text-sm flex items-center gap-2 ${
-                  location.pathname === '/' ? 'active' : ''
-                }`}
-              >
-                <Home className="w-4 h-4" />
-                דף הבית
-              </Link>
-              
-              <Link 
-                to="/catalog" 
-                className={`nav-link text-sm flex items-center gap-2 ${
-                  location.pathname === '/catalog' ? 'active' : ''
-                }`}
-              >
-                <BookOpen className="w-4 h-4" />
-                קטלוג דגים
-              </Link>
-            </div>
-
-
-          </div>
-        </nav>
       </header>
 
       {/* תוכן ראשי */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 overflow-x-hidden">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 overflow-x-hidden pb-0">
         <div className="max-w-screen">
           {children}
         </div>

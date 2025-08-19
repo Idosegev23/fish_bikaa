@@ -1,6 +1,34 @@
 import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
 
 export default function HomePage() {
+  const [activeHoliday, setActiveHoliday] = useState<{ name: string; start_date: string; end_date: string } | null>(null)
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from('holidays')
+        .select('name, start_date, end_date')
+        .eq('active', true)
+        .limit(1)
+        .maybeSingle()
+      if (data) setActiveHoliday(data as any)
+    }
+    load()
+  }, [])
+
+  const slugify = (name: string) =>
+    name
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/"|\'|”|“|׳|"/g, '')
+      .replace(/[^\p{L}\p{N}-]+/gu, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+
   return (
     <div className="space-y-16 fade-in">
       {/* Hero Section מודרני */}
@@ -13,15 +41,37 @@ export default function HomePage() {
           <p className="text-lg sm:text-xl md:text-2xl text-neutral-600 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed slide-up px-4 sm:px-0" style={{animationDelay: '0.2s'}}>
             החנות המובילה לדגים טריים ואיכותיים. הזמינו מראש ואספו בזמן שנוח לכם
           </p>
-         <Link 
+         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 slide-up" style={{animationDelay: '0.4s'}}>
+           <Link 
              to="/catalog" 
-             className="btn-primary text-lg sm:text-xl px-6 sm:px-10 py-3 sm:py-5 inline-flex items-center hover-lift slide-up"
-             style={{animationDelay: '0.4s'}}
+             className="btn-primary text-lg sm:text-xl px-6 sm:px-10 py-3 sm:py-5 inline-flex items-center hover-lift"
            >
              הזמן עכשיו
            </Link>
+           {activeHoliday && (
+             <Link
+               to={`/catalog?holiday=${encodeURIComponent(slugify(activeHoliday.name))}`}
+               className="btn-secondary text-lg sm:text-xl px-6 sm:px-10 py-3 sm:py-5 inline-flex items-center hover-lift"
+               aria-label={`הזמנות ל${activeHoliday.name}`}
+             >
+               הזמנות ל{activeHoliday.name}
+             </Link>
+           )}
+         </div>
         </div>
       </div>
+
+      {activeHoliday && (
+        <div className="card-glass slide-up">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold mb-2">חג פעיל: {activeHoliday.name}</h3>
+            <p className="text-neutral-600">{new Date(activeHoliday.start_date).toLocaleDateString('he-IL')} – {new Date(activeHoliday.end_date).toLocaleDateString('he-IL')}</p>
+            <div className="mt-4">
+              <Link to={`/catalog?holiday=${encodeURIComponent(slugify(activeHoliday.name))}`} className="btn-primary">להזמנות לחג</Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Categories מודרניות */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -98,7 +148,7 @@ export default function HomePage() {
 
           <div className="text-center group">
             <div className="w-16 h-1 bg-primary-400 rounded-full mx-auto mb-6"></div>
-            <h3 className="text-xl font-bold mb-4 text-ocean-800">הזמנה נוחה</h3>
+            <h3 className="text-xl font-bold mb-4 text-accent-700">הזמנה נוחה</h3>
             <p className="text-neutral-600 leading-relaxed">
               הזמינו מראש אונליין ואספו בזמן שנוח לכם - ללא המתנה
             </p>

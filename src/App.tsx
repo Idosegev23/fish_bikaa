@@ -12,16 +12,27 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminFishManagement from './pages/admin/AdminFishManagement'
 import AdminCutTypes from './pages/admin/AdminCutTypes'
 import AdminDailyReport from './pages/admin/AdminDailyReport'
+import AdminAdditionalProducts from './pages/admin/AdminAdditionalProducts.tsx'
+import AdminMealRecommendations from './pages/admin/AdminMealRecommendations.tsx'
+import AdminSupplierReport from './pages/admin/AdminSupplierReport'
+import AdminAvailability from './pages/admin/AdminAvailability'
 import AdminOrders from './pages/admin/AdminOrders'
+import AdminHolidays from './pages/admin/AdminHolidays'
 
 export interface CartItem {
   fishId: number
   fishName: string
   waterType: string
   cutType: string
-  quantity: number
-  pricePerKg: number
+  cutTypeId?: number
+  quantity: number // יחידות לדגים לפי יחידה, ק"ג לדגים לפי משקל
+  pricePerKg: number // לדגים לפי יחידה נשתמש במחיר ליחידה ב-field זה לצורך תאימות
   totalPrice: number
+  // שדות אופציונליים לתמיכה ביחידות ומידות
+  unitsBased?: boolean
+  averageWeightKg?: number
+  size?: 'S' | 'M' | 'L'
+  unitPrice?: number
 }
 
 function App() {
@@ -91,6 +102,21 @@ function App() {
           } />
           <Route path="/admin/daily-report" element={
             isAdmin ? <AdminDailyReport /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          <Route path="/admin/holidays" element={
+            isAdmin ? <AdminHolidays /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          <Route path="/admin/additional-products" element={
+            isAdmin ? <AdminAdditionalProducts /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          <Route path="/admin/meal-recommendations" element={
+            isAdmin ? <AdminMealRecommendations /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          <Route path="/admin/supplier-report" element={
+            isAdmin ? <AdminSupplierReport /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          <Route path="/admin/availability" element={
+            isAdmin ? <AdminAvailability /> : <AdminLogin onLogin={setIsAdmin} />
           } />
           
           <Route path="/admin/orders" element={

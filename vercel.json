@@ -3,8 +3,18 @@
     "api/send-email.js": {
       "runtime": "@vercel/node@3.0.7",
       "maxDuration": 30
+    },
+    "api/holiday-scheduler.js": {
+      "runtime": "@vercel/node@3.0.7",
+      "maxDuration": 60
     }
   },
+  "crons": [
+    {
+      "path": "/api/holiday-scheduler",
+      "schedule": "0 9 * * *"
+    }
+  ],
   "build": {
     "env": {
       "NODE_VERSION": "18"

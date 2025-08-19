@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
 import EmailService from '../../lib/emailService'
 import { ArrowLeft, Download, Mail, Calendar, TrendingUp, DollarSign, ShoppingCart } from 'lucide-react'
@@ -139,9 +140,9 @@ export default function AdminDailyReport() {
       {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 py-6">
             <div className="flex items-center space-x-4 space-x-reverse">
-              <Link to="/admin/dashboard" className="text-fish-600 hover:text-fish-700">
+              <Link to="/admin/dashboard" className="text-primary-600 hover:text-primary-700">
                 <ArrowLeft className="w-6 h-6" />
               </Link>
               <div>
@@ -149,10 +150,10 @@ export default function AdminDailyReport() {
                 <p className="text-gray-600">סיכום הזמנות והכנסות יומיות</p>
               </div>
             </div>
-            <div className="flex space-x-3 space-x-reverse">
+            <div className="flex space-x-3 space-x-reverse w-full md:w-auto">
               <button
                 onClick={downloadCSV}
-                className="btn-secondary flex items-center space-x-2 space-x-reverse"
+                className="btn-secondary flex items-center space-x-2 space-x-reverse w-full md:w-auto"
                 disabled={loading}
               >
                 <Download className="w-4 h-4" />
@@ -161,7 +162,7 @@ export default function AdminDailyReport() {
               <button
                 onClick={sendDailyReport}
                 disabled={sendingEmail || loading}
-                className="btn-primary flex items-center space-x-2 space-x-reverse disabled:opacity-50"
+                className="btn-primary flex items-center space-x-2 space-x-reverse disabled:opacity-50 w-full md:w-auto"
               >
                 <Mail className="w-4 h-4" />
                 <span>{sendingEmail ? 'שולח...' : 'שלח דוח במייל'}</span>
@@ -171,7 +172,7 @@ export default function AdminDailyReport() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
         {/* Date Selection */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <div className="flex items-center space-x-4 space-x-reverse">
@@ -196,7 +197,7 @@ export default function AdminDailyReport() {
 
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-fish-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
           </div>
         ) : (
           <>
@@ -247,7 +248,7 @@ export default function AdminDailyReport() {
                   {stats.popularFish.map((fish, index) => (
                     <div key={fish.name} className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <span className="bg-fish-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold ml-3">
+                        <span className="bg-primary-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold ml-3">
                           {index + 1}
                         </span>
                         <span className="font-medium">{fish.name}</span>
@@ -272,57 +273,95 @@ export default function AdminDailyReport() {
                   <p className="text-gray-500 text-lg">לא נמצאו הזמנות לתאריך זה</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">זמן</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">לקוח</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">טלפון</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">פריטים</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">סה"כ</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">איסוף</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {stats.todayOrders.map((order) => (
-                        <tr key={order.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {new Date(order.created_at).toLocaleTimeString('he-IL')}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{order.customer_name}</div>
-                            <div className="text-sm text-gray-500">{order.email}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {order.phone}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
-                            {Array.isArray(order.order_items) 
-                              ? order.order_items.map((item: any, index: number) => (
-                                  <div key={index} className="text-xs">
-                                    {item.fish_name} ({item.cut}) - {item.quantity_kg}ק"ג
-                                  </div>
-                                ))
-                              : 'לא זמין'
-                            }
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
-                            ₪{order.total_price}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {order.delivery_date} {order.delivery_time}
-                          </td>
+                <>
+                  {/* Mobile cards */}
+                  <div className="md:hidden p-4 space-y-4">
+                    {stats.todayOrders.map((order) => (
+                      <div key={order.id} className="card">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="text-sm text-neutral-500">
+                              {new Date(order.created_at).toLocaleTimeString('he-IL')}
+                            </div>
+                            <div className="font-semibold text-neutral-900 mt-1">{order.customer_name}</div>
+                            <div className="text-sm text-neutral-600">{order.phone} • {order.email}</div>
+                          </div>
+                          <div className="text-primary-700 font-bold">₪{Number(order.total_price).toFixed(2)}</div>
+                        </div>
+                        <div className="mt-3 text-sm text-neutral-600">
+                          איסוף: {order.delivery_date} {order.delivery_time}
+                        </div>
+                        <div className="mt-3 border-t border-neutral-200 pt-3 space-y-1">
+                          {Array.isArray(order.order_items) ? (
+                            order.order_items.map((item: any, index: number) => (
+                              <div key={index} className="text-sm flex justify-between">
+                                <span className="text-neutral-700">{item.fish_name} • {item.cut}</span>
+                                <span className="text-neutral-500">{item.quantity_kg} ק"ג</span>
+                              </div>
+                            ))
+                          ) : (
+                            <span className="text-sm text-neutral-500">פרטי פריטים לא זמינים</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desktop table */}
+                  <div className="overflow-x-auto hidden md:block">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">זמן</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">לקוח</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">טלפון</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">פריטים</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">סה"כ</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">איסוף</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {stats.todayOrders.map((order) => (
+                          <tr key={order.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {new Date(order.created_at).toLocaleTimeString('he-IL')}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{order.customer_name}</div>
+                              <div className="text-sm text-gray-500">{order.email}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {order.phone}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-900">
+                              {Array.isArray(order.order_items) 
+                                ? order.order_items.map((item: any, index: number) => (
+                                    <div key={index} className="text-xs">
+                                      {item.fish_name} ({item.cut}) - {item.quantity_kg}ק"ג
+                                    </div>
+                                  ))
+                                : 'לא זמין'
+                              }
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
+                              ₪{order.total_price}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {order.delivery_date} {order.delivery_time}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           </>
         )}
       </main>
+
+      <AdminBottomNav />
     </div>
   )
 } 
