@@ -245,7 +245,7 @@ export default function AdminDailyReport() {
                 className="btn-secondary flex items-center space-x-2 space-x-reverse w-full md:w-auto disabled:opacity-50"
               >
                 <FileText className="w-4 h-4" />
-                <span>{generatingPDF ? 'יוצר PDF...' : 'הורד PDF רגיל'}</span>
+                <span>{generatingPDF ? 'יוצר PDF...' : 'הורד PDF עברית v2 🔧'}</span>
               </button>
               <button
                 onClick={sendReportViaWhatsApp}

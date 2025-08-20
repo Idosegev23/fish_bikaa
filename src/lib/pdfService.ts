@@ -2,6 +2,17 @@ import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import type { Order } from './supabase'
 
+// Helper function to reverse Hebrew text for better display
+const reverseText = (text: string): string => {
+  // Hebrew characters range
+  const hebrewRegex = /[\u0590-\u05FF]/
+  if (hebrewRegex.test(text)) {
+    // Split text by words and reverse the order for better Hebrew display
+    return text.split(' ').reverse().join(' ')
+  }
+  return text
+}
+
 // הגדרת AutoTable עבור TypeScript
 declare module 'jspdf' {
   interface jsPDF {
@@ -78,22 +89,22 @@ export class PDFService {
   }
 
   private addHeader(title: string, subtitle?: string) {
-    // כותרת ראשית
+    // כותרת ראשית עם טקסט הפוך לעברית
     this.doc.setFontSize(20)
     this.doc.setFont('helvetica', 'bold')
-    this.doc.text(title, 105, 25, { align: 'center' })
+    this.doc.text(reverseText(title), 105, 25, { align: 'center' })
 
     // כותרת משנה
     if (subtitle) {
       this.doc.setFontSize(14)
       this.doc.setFont('helvetica', 'normal')
-      this.doc.text(subtitle, 105, 35, { align: 'center' })
+      this.doc.text(reverseText(subtitle), 105, 35, { align: 'center' })
     }
 
-    // שם העסק
+    // שם העסק עם טקסט הפוך
     this.doc.setFontSize(16)
     this.doc.setFont('helvetica', 'bold')
-    this.doc.text('דגי בקעת אונו', 50, 25)
+    this.doc.text(reverseText('דגי בקעת אונו'), 50, 25)
     
     // תאריך הדוח
     this.doc.setFontSize(10)
@@ -131,7 +142,7 @@ export class PDFService {
     // טבלת הזמנות
     this.doc.setFontSize(14)
     this.doc.setFont('helvetica', 'bold')
-    this.doc.text('פירוט הזמנות', 15, yPosition)
+    this.doc.text(reverseText('פירוט הזמנות'), 15, yPosition)
     yPosition += 10
 
     const ordersTableData = data.orders.map(order => {
@@ -160,7 +171,15 @@ export class PDFService {
     try {
       this.doc.autoTable({
         startY: yPosition,
-        head: [['מספר הזמנה', 'שם לקוח', 'טלפון', 'תאריך איסוף', 'שעת איסוף', 'פריטים', 'סטטוס']],
+        head: [[
+          reverseText('מספר הזמנה'), 
+          reverseText('שם לקוח'), 
+          reverseText('טלפון'), 
+          reverseText('תאריך איסוף'), 
+          reverseText('שעת איסוף'), 
+          reverseText('פריטים'), 
+          reverseText('סטטוס')
+        ]],
         body: ordersTableData,
         styles: {
           fontSize: 8,
@@ -209,7 +228,7 @@ export class PDFService {
     // סיכום דגים
     this.doc.setFontSize(14)
     this.doc.setFont('helvetica', 'bold')
-    this.doc.text('סיכום דגים', 15, yPosition)
+    this.doc.text(reverseText('סיכום דגים'), 15, yPosition)
     yPosition += 10
 
     const fishTableData = data.fishSummary.map(fish => [
@@ -221,7 +240,7 @@ export class PDFService {
     try {
       this.doc.autoTable({
         startY: yPosition,
-        head: [['סוג דג', 'כמות כוללת', 'יחידת מדידה']],
+        head: [[reverseText('סוג דג'), reverseText('כמות כוללת'), reverseText('יחידת מדידה')]],
         body: fishTableData,
         styles: {
           fontSize: 10,
@@ -278,7 +297,7 @@ export class PDFService {
     // טבלת דרישות דגים
     this.doc.setFontSize(14)
     this.doc.setFont('helvetica', 'bold')
-    this.doc.text('כמויות שהוזמנו בפועל לחג', 15, yPosition)
+    this.doc.text(reverseText('כמויות שהוזמנו בפועל לחג'), 15, yPosition)
     yPosition += 10
 
     const supplierTableData = data.fishRequirements.map(fish => [
@@ -291,7 +310,7 @@ export class PDFService {
     try {
       this.doc.autoTable({
         startY: yPosition,
-        head: [['סוג דג', 'כמות שהוזמנה', 'יחידת מדידה']],
+        head: [[reverseText('סוג דג'), reverseText('כמות שהוזמנה'), reverseText('יחידת מדידה')]],
         body: supplierTableData.map(row => [row[0], row[1], row[2]]), // רק 3 עמודות ראשונות
         styles: {
           fontSize: 10,
