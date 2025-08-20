@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
 import { pdfService, type DailyReportData } from '../../lib/pdfService'
+import { pdfMakeService, type DailyReportData as PDFMakeDailyReportData } from '../../lib/pdfMakeService'
 import { sendWhatsAppMessage } from '../../lib/whatsappService'
 import { ArrowLeft, Download, MessageCircle, Calendar, TrendingUp, DollarSign, ShoppingCart, FileText } from 'lucide-react'
 
@@ -28,6 +29,7 @@ export default function AdminDailyReport() {
   const [loading, setLoading] = useState(false)
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false)
   const [generatingPDF, setGeneratingPDF] = useState(false)
+  const [generatingPDFMake, setGeneratingPDFMake] = useState(false)
 
   useEffect(() => {
     fetchDailyReport()
@@ -143,6 +145,27 @@ export default function AdminDailyReport() {
     }
   }
 
+  const downloadPDFWithHebrew = async () => {
+    setGeneratingPDFMake(true)
+    try {
+      const reportData: PDFMakeDailyReportData = {
+        date: selectedDate,
+        orders: stats.todayOrders,
+        totalRevenue: stats.totalRevenue,
+        totalOrders: stats.totalOrders,
+        fishSummary: generateFishSummary()
+      }
+      
+      await pdfMakeService.generateDailyReport(reportData)
+      alert('✅ הדוח הורד בהצלחה עם תמיכה בעברית!')
+    } catch (error) {
+      alert('❌ שגיאה ביצירת הדוח')
+      console.error('Error generating PDFMake:', error)
+    } finally {
+      setGeneratingPDFMake(false)
+    }
+  }
+
   const sendReportViaWhatsApp = async () => {
     setSendingWhatsApp(true)
     try {
@@ -207,19 +230,27 @@ export default function AdminDailyReport() {
                 <p className="text-gray-600">סיכום הזמנות והכנסות יומיות</p>
               </div>
             </div>
-            <div className="flex space-x-3 space-x-reverse w-full md:w-auto">
+            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3 md:space-x-reverse w-full md:w-auto">
+              <button
+                onClick={downloadPDFWithHebrew}
+                disabled={generatingPDFMake || loading}
+                className="btn-primary flex items-center space-x-2 space-x-reverse w-full md:w-auto disabled:opacity-50"
+              >
+                <FileText className="w-4 h-4" />
+                <span>{generatingPDFMake ? 'יוצר PDF...' : 'הורד PDF עברית ✨'}</span>
+              </button>
               <button
                 onClick={downloadPDF}
                 disabled={generatingPDF || loading}
                 className="btn-secondary flex items-center space-x-2 space-x-reverse w-full md:w-auto disabled:opacity-50"
               >
                 <FileText className="w-4 h-4" />
-                <span>{generatingPDF ? 'יוצר PDF...' : 'הורד דוח PDF'}</span>
+                <span>{generatingPDF ? 'יוצר PDF...' : 'הורד PDF רגיל'}</span>
               </button>
               <button
                 onClick={sendReportViaWhatsApp}
                 disabled={sendingWhatsApp || loading}
-                className="btn-primary flex items-center space-x-2 space-x-reverse disabled:opacity-50 w-full md:w-auto"
+                className="bg-green-600 hover:bg-green-700 text-white flex items-center space-x-2 space-x-reverse disabled:opacity-50 w-full md:w-auto px-4 py-2 rounded-lg transition-colors"
               >
                 <MessageCircle className="w-4 h-4" />
                 <span>{sendingWhatsApp ? 'שולח...' : 'שלח בוואטסאפ'}</span>
