@@ -35,14 +35,12 @@ export default function HomePage() {
       <div className="relative text-center py-16 sm:py-20 bg-white rounded-3xl border border-neutral-200">
         
         <div className="relative z-10">
-          <div className="flex justify-center mb-6 sm:mb-8 slide-up">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32">
-              <img 
-                src="/logo.png" 
-                alt="דגי בקעת אונו" 
-                className="w-full h-full object-contain rounded-2xl shadow-lg"
-              />
-            </div>
+          <div className="flex justify-center mb-8 sm:mb-10 slide-up">
+            <img 
+              src="/logo.png" 
+              alt="דגי בקעת אונו" 
+              className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 object-contain rounded-3xl shadow-2xl hover:scale-105 transition-transform duration-300"
+            />
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold heading-gradient mb-6 sm:mb-8 slide-up leading-tight" style={{animationDelay: '0.1s'}}>
             ברוכים הבאים לדגי בקעת אונו
