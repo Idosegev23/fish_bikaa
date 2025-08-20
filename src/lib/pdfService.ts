@@ -52,16 +52,6 @@ export class PDFService {
       unit: 'mm',
       format: 'a4'
     })
-    
-    // וידוא שautoTable נטען כראוי
-    if (typeof this.doc.autoTable !== 'function') {
-      // נסה לטעון שוב אם לא עבד
-      try {
-        require('jspdf-autotable')
-      } catch (e) {
-        console.warn('Failed to load jspdf-autotable:', e)
-      }
-    }
   }
 
   private async addLogo() {
@@ -118,11 +108,6 @@ export class PDFService {
       format: 'a4'
     })
 
-    // וידוא שautoTable זמין
-    if (typeof this.doc.autoTable !== 'function') {
-      throw new Error('autoTable is not available. Please check jspdf-autotable installation.')
-    }
-
     await this.addLogo()
     this.addHeader('דוח יומי', `תאריך: ${new Date(data.date).toLocaleDateString('he-IL')}`)
 
@@ -172,33 +157,48 @@ export class PDFService {
       ]
     })
 
-    this.doc.autoTable({
-      startY: yPosition,
-      head: [['מספר הזמנה', 'שם לקוח', 'טלפון', 'תאריך איסוף', 'שעת איסוף', 'פריטים', 'סטטוס']],
-      body: ordersTableData,
-      styles: {
-        fontSize: 8,
-        cellPadding: 2,
-        halign: 'center'
-      },
-      headStyles: {
-        fillColor: [59, 130, 246],
-        textColor: 255,
-        fontStyle: 'bold'
-      },
-      columnStyles: {
-        0: { cellWidth: 20 },
-        1: { cellWidth: 30 },
-        2: { cellWidth: 25 },
-        3: { cellWidth: 25 },
-        4: { cellWidth: 20 },
-        5: { cellWidth: 50 },
-        6: { cellWidth: 20 }
-      }
-    })
+    try {
+      this.doc.autoTable({
+        startY: yPosition,
+        head: [['מספר הזמנה', 'שם לקוח', 'טלפון', 'תאריך איסוף', 'שעת איסוף', 'פריטים', 'סטטוס']],
+        body: ordersTableData,
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+          halign: 'center'
+        },
+        headStyles: {
+          fillColor: [59, 130, 246],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        columnStyles: {
+          0: { cellWidth: 20 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 25 },
+          4: { cellWidth: 20 },
+          5: { cellWidth: 50 },
+          6: { cellWidth: 20 }
+        }
+      })
+    } catch (error) {
+      console.error('AutoTable error:', error)
+      // fallback: create manual table
+      yPosition += 10
+      this.doc.setFontSize(10)
+      this.doc.text('טבלת הזמנות - autoTable לא זמין', 15, yPosition)
+      yPosition += 20
+    }
 
     // בדיקה אם צריך עמוד חדש
-    const finalY = (this.doc as any).lastAutoTable.finalY
+    let finalY = yPosition
+    try {
+      finalY = (this.doc as any).lastAutoTable?.finalY || yPosition
+    } catch (e) {
+      finalY = yPosition + 50 // fallback position
+    }
+    
     if (finalY > 250) {
       this.doc.addPage()
       yPosition = 20
@@ -218,21 +218,33 @@ export class PDFService {
       fish.isUnits ? 'יחידות' : 'קילוגרם'
     ])
 
-    this.doc.autoTable({
-      startY: yPosition,
-      head: [['סוג דג', 'כמות כוללת', 'יחידת מדידה']],
-      body: fishTableData,
-      styles: {
-        fontSize: 10,
-        cellPadding: 3,
-        halign: 'center'
-      },
-      headStyles: {
-        fillColor: [16, 185, 129],
-        textColor: 255,
-        fontStyle: 'bold'
-      }
-    })
+    try {
+      this.doc.autoTable({
+        startY: yPosition,
+        head: [['סוג דג', 'כמות כוללת', 'יחידת מדידה']],
+        body: fishTableData,
+        styles: {
+          fontSize: 10,
+          cellPadding: 3,
+          halign: 'center'
+        },
+        headStyles: {
+          fillColor: [16, 185, 129],
+          textColor: 255,
+          fontStyle: 'bold'
+        }
+      })
+    } catch (error) {
+      console.error('AutoTable error (fish summary):', error)
+      // fallback: create manual list
+      yPosition += 10
+      this.doc.setFontSize(10)
+      data.fishSummary.forEach(fish => {
+        const quantity = fish.isUnits ? `${fish.totalQuantity} יחידות` : `${fish.totalWeight.toFixed(1)} ק"ג`
+        this.doc.text(`${fish.fishName}: ${quantity}`, 15, yPosition)
+        yPosition += 7
+      })
+    }
 
     return new Blob([this.doc.output('blob')], { type: 'application/pdf' })
   }
@@ -243,11 +255,6 @@ export class PDFService {
       unit: 'mm',
       format: 'a4'
     })
-
-    // וידוא שautoTable זמין
-    if (typeof this.doc.autoTable !== 'function') {
-      throw new Error('autoTable is not available. Please check jspdf-autotable installation.')
-    }
 
     await this.addLogo()
     this.addHeader(
@@ -281,29 +288,46 @@ export class PDFService {
       fish.suppliers?.join(', ') || 'לא צוין'
     ])
 
-    this.doc.autoTable({
-      startY: yPosition,
-      head: [['סוג דג', 'כמות שהוזמנה', 'יחידת מדידה']],
-      body: supplierTableData.map(row => [row[0], row[1], row[2]]), // רק 3 עמודות ראשונות
-      styles: {
-        fontSize: 10,
-        cellPadding: 3,
-        halign: 'center'
-      },
-      headStyles: {
-        fillColor: [168, 85, 247],
-        textColor: 255,
-        fontStyle: 'bold'
-      },
-      columnStyles: {
-        0: { cellWidth: 60 },
-        1: { cellWidth: 50 },
-        2: { cellWidth: 40 }
-      }
-    })
+    try {
+      this.doc.autoTable({
+        startY: yPosition,
+        head: [['סוג דג', 'כמות שהוזמנה', 'יחידת מדידה']],
+        body: supplierTableData.map(row => [row[0], row[1], row[2]]), // רק 3 עמודות ראשונות
+        styles: {
+          fontSize: 10,
+          cellPadding: 3,
+          halign: 'center'
+        },
+        headStyles: {
+          fillColor: [168, 85, 247],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        columnStyles: {
+          0: { cellWidth: 60 },
+          1: { cellWidth: 50 },
+          2: { cellWidth: 40 }
+        }
+      })
+    } catch (error) {
+      console.error('AutoTable error (supplier report):', error)
+      // fallback: create manual list
+      yPosition += 10
+      this.doc.setFontSize(10)
+      data.fishRequirements.forEach(fish => {
+        const quantity = fish.isUnits ? `${fish.totalRequired} יחידות` : `${fish.totalRequired.toFixed(1)} ק"ג`
+        this.doc.text(`${fish.fishName}: ${quantity}`, 15, yPosition)
+        yPosition += 7
+      })
+    }
 
     // הוספת הערות
-    const finalY = (this.doc as any).lastAutoTable.finalY
+    let finalY = yPosition
+    try {
+      finalY = (this.doc as any).lastAutoTable?.finalY || yPosition
+    } catch (e) {
+      finalY = yPosition + 20 // fallback position
+    }
     yPosition = finalY + 20
 
     this.doc.setFontSize(10)

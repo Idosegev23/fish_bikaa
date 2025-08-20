@@ -69,6 +69,7 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
                   {...register('username', { required: 'שם משתמש הוא שדה חובה' })}
                   className="input-field pr-10"
                   placeholder="הכנס שם משתמש"
+                  autoComplete="username"
                 />
               </div>
               {errors.username && (
