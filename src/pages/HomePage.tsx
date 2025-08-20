@@ -180,12 +180,9 @@ export default function HomePage() {
         <p className="text-neutral-600 mb-8 max-w-2xl mx-auto">
           גלו את מגוון הדגים הטריים שלנו ובצעו הזמנה פשוטה ומהירה
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex justify-center">
           <Link to="/catalog" className="btn-primary hover-lift">
             רוצה לראות קטלוג
-          </Link>
-          <Link to="/admin" className="btn-outline hover-lift">
-            כניסת מנהל
           </Link>
         </div>
       </div>
