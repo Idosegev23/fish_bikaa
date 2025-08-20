@@ -15,7 +15,10 @@ export default function AdminBottomNav() {
         <div className="grid grid-cols-7 text-center text-xs">
           <Link to="/admin/dashboard" className={`${base} ${isActive('/admin/dashboard') ? active : inactive}`}>דשבורד</Link>
           <Link to="/admin/daily-orders" className={`${base} ${isActive('/admin/daily-orders') ? active : inactive}`}>יומי</Link>
-          <Link to="/admin/kitchen-weighing" className={`${base} ${isActive('/admin/kitchen-weighing') ? active : inactive}`}>שקילה</Link>
+          <div className={`${base} cursor-not-allowed opacity-50 text-gray-400`} title="תכונה בתשלום">
+            שקילה
+            <div className="text-xs opacity-60">(בקרוב)</div>
+          </div>
           <Link to="/admin/orders" className={`${base} ${isActive('/admin/orders') ? active : inactive}`}>הזמנות</Link>
           <Link to="/admin/fish" className={`${base} ${isActive('/admin/fish') ? active : inactive}`}>דגים</Link>
           <Link to="/admin/daily-report" className={`${base} ${isActive('/admin/daily-report') ? active : inactive}`}>דוח</Link>

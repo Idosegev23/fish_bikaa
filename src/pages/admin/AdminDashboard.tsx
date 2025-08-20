@@ -322,11 +322,13 @@ export default function AdminDashboard() {
         {/* Mobile quick actions (condensed) */}
         <div className="md:hidden grid grid-cols-2 gap-3 mb-6">
           <button
-            onClick={() => window.open('/kitchen', '_blank')}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+            disabled
+            className="bg-gray-400 cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg text-sm flex items-center justify-center gap-2 opacity-60"
+            title="תכונה זו עדיין לא זמינה"
           >
             <Scale className="w-4 h-4" />
             מסך מטבח
+            <span className="text-xs">(בקרוב)</span>
           </button>
           <Link to="/admin/orders" className="btn-secondary w-full text-sm">הזמנות</Link>
           <Link to="/admin/fish" className="btn-secondary w-full text-sm">דגים</Link>
@@ -383,23 +385,21 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Kitchen Display Button - Special */}
+        {/* Kitchen Display Button - Special (Disabled) */}
         <div className="mb-8">
-          <button
-            onClick={() => window.open('/kitchen', '_blank')}
-            className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-6 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-4 text-xl group"
-          >
-            <Monitor className="w-8 h-8 group-hover:scale-110 transition-transform" />
+          <div className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white font-bold py-6 px-8 rounded-2xl shadow-lg flex items-center justify-center gap-4 text-xl opacity-60 cursor-not-allowed">
+            <Monitor className="w-8 h-8" />
             <div className="text-center">
-              <div className="text-2xl font-bold">📺 פתח מסך מטבח</div>
-              <div className="text-lg opacity-90">שקילה למסך טלוויזיה</div>
+              <div className="text-2xl font-bold">📺 מסך מטבח</div>
+              <div className="text-lg opacity-90">תכונה זו תהיה זמינה בקרוב</div>
+              <div className="text-sm opacity-75 mt-1">💰 עדכון בתשלום</div>
             </div>
-            <Scale className="w-8 h-8 group-hover:scale-110 transition-transform" />
-          </button>
+            <Scale className="w-8 h-8" />
+          </div>
         </div>
 
         {/* Quick Actions (condensed) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
           <Link to="/admin/fish" className="card hover:shadow-lg transition-shadow group">
             <div className="text-center p-4">
             <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
@@ -451,8 +451,16 @@ export default function AdminDashboard() {
           <Link to="/admin/supplier-report" className="card hover:shadow-lg transition-shadow group">
             <div className="text-center p-4">
               <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
-              <h3 className="text-lg font-semibold mb-2">דוח ספקים</h3>
-              <p className="text-gray-600 text-sm">דוחות הזמנות ודרישות מלאי לחגים</p>
+              <h3 className="text-lg font-semibold mb-2">דוח מלאי</h3>
+              <p className="text-gray-600 text-sm">בדיקת מלאי מול ביקוש - מה להזמין</p>
+            </div>
+          </Link>
+
+          <Link to="/admin/holiday-supplier-report" className="card hover:shadow-lg transition-shadow group">
+            <div className="text-center p-4">
+              <TrendingUp className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
+              <h3 className="text-lg font-semibold mb-2">דוח הזמנות חג</h3>
+              <p className="text-gray-600 text-sm">כמויות שהוזמנו בפועל לחג</p>
             </div>
           </Link>
 

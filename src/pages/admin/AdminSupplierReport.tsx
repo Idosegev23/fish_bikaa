@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
 import { isByWeight, computeMaxUnits } from '../../lib/fishConfig'
-import { ArrowLeft, Download, FileText, Mail, Calendar } from 'lucide-react'
+import { pdfService, SupplierReportData } from '../../lib/pdfService'
+import { sendWhatsAppMessage } from '../../lib/whatsappService'
+import { ArrowLeft, Download, FileText, MessageCircle, Calendar } from 'lucide-react'
 
 type Holiday = {
   id: number
@@ -26,7 +28,8 @@ export default function AdminSupplierReport() {
   const [selectedHolidayId, setSelectedHolidayId] = useState<number | null>(null)
   const [requirements, setRequirements] = useState<FishRequirement[]>([])
   const [loading, setLoading] = useState(false)
-  const [generating, setGenerating] = useState(false)
+  const [generatingPDF, setGeneratingPDF] = useState(false)
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false)
 
   useEffect(() => {
     fetchHolidays()
@@ -141,53 +144,107 @@ export default function AdminSupplierReport() {
     await fetchRequirements(holidayId)
   }
 
-  const generatePDFReport = async () => {
+  const downloadSupplierPDF = async () => {
     if (!selectedHolidayId || requirements.length === 0) return
     
-    setGenerating(true)
+    setGeneratingPDF(true)
     try {
       const selectedHoliday = holidays.find(h => h.id === selectedHolidayId)
       if (!selectedHoliday) return
 
-      // יצירת תוכן הדוח
-      const reportContent = {
-        holiday: selectedHoliday,
-        requirements: requirements.filter(r => r.deficit > 0), // רק דגים שחסרים
-        generated_at: new Date().toISOString(),
-        total_items: requirements.length,
-        deficit_items: requirements.filter(r => r.deficit > 0).length
+      // חישוב סה"כ הזמנות לתקופה
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('*')
+        .gte('created_at', selectedHoliday.start_date)
+        .lte('created_at', selectedHoliday.end_date)
+      
+      const totalOrders = orders?.length || 0
+
+      const reportData: SupplierReportData = {
+        startDate: selectedHoliday.start_date,
+        endDate: selectedHoliday.end_date,
+        fishRequirements: requirements.map(req => ({
+          fishName: req.fish_name,
+          totalRequired: req.total_quantity, // כמות שהוזמנה בפועל לחג
+          isUnits: req.unit === 'units',
+          currentStock: req.current_stock, // מלאי נוכחי
+          deficit: req.deficit // חסר במלאי
+        })),
+        totalOrders
       }
-
-      // כאן תוכל להוסיף יצירת PDF אמיתית
-      // לעת עתה - הורדת JSON
-      const blob = new Blob([JSON.stringify(reportContent, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `supplier-report-${selectedHoliday.name}-${new Date().toISOString().split('T')[0]}.json`
-      a.click()
-      URL.revokeObjectURL(url)
-
-      // הודעת הצלחה
-      const notification = document.createElement('div')
-      notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-2xl shadow-depth z-50'
-      notification.innerHTML = `
-        <div class="flex items-center gap-3">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          <span>דוח ספקים נוצר בהצלחה!</span>
-        </div>
-      `
-      document.body.appendChild(notification)
-      setTimeout(() => notification.remove(), 3000)
+      
+      const pdfBlob = await pdfService.generateSupplierReport(reportData)
+      const filename = `דוח-ספקים-${selectedHoliday.name}-${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
+      
+      pdfService.downloadPDF(pdfBlob, filename)
+      alert('✅ דוח הספקים הורד בהצלחה!')
 
     } catch (error) {
-      console.error('Error generating report:', error)
-      alert('שגיאה ביצירת הדוח')
+      console.error('Error generating PDF:', error)
+      alert('❌ שגיאה ביצירת הדוח')
     } finally {
-      setGenerating(false)
+      setGeneratingPDF(false)
     }
+  }
+
+  const sendSupplierReportViaWhatsApp = async () => {
+    if (!selectedHolidayId || requirements.length === 0) return
+    
+    setSendingWhatsApp(true)
+    try {
+      const selectedHoliday = holidays.find(h => h.id === selectedHolidayId)
+      if (!selectedHoliday) return
+
+      const message = createSupplierWhatsAppMessage(selectedHoliday)
+      
+      const adminPhone = import.meta.env.VITE_ADMIN_PHONE
+      if (!adminPhone) {
+        alert('❌ מספר אדמין לא מוגדר')
+        return
+      }
+      
+      await sendWhatsAppMessage(adminPhone, message)
+      alert('✅ דוח הספקים נשלח בוואטסאפ!')
+
+    } catch (error) {
+      console.error('Error sending WhatsApp report:', error)
+      alert('❌ שגיאה בשליחת הדוח')
+    } finally {
+      setSendingWhatsApp(false)
+    }
+  }
+
+  const createSupplierWhatsAppMessage = (holiday: Holiday) => {
+    const startDate = new Date(holiday.start_date).toLocaleDateString('he-IL')
+    const endDate = new Date(holiday.end_date).toLocaleDateString('he-IL')
+    const deficitItems = requirements.filter(r => r.deficit > 0)
+    
+    let message = `📋 *דוח לספקים - דגי בקעת אונו*\n`
+    message += `🎉 חג: ${holiday.name}\n`
+    message += `📅 תקופה: ${startDate} - ${endDate}\n\n`
+    
+    message += `📊 *סיכום כללי:*\n`
+    message += `• סה"כ סוגי דגים: ${requirements.length}\n`
+    message += `• דגים שחסרים: ${deficitItems.length}\n\n`
+    
+    if (deficitItems.length > 0) {
+      message += `🚨 *דגים נדרשים מהספקים:*\n`
+      deficitItems.forEach(req => {
+        const quantity = req.unit === 'units' ? `${req.deficit} יח׳` : `${req.deficit.toFixed(1)} ק"ג`
+        message += `• ${req.fish_name}: ${quantity}\n`
+      })
+      message += `\n`
+    }
+    
+    message += `📝 *הערות חשובות:*\n`
+    message += `• הזמינו עם מרווח בטחון של 10-15%\n`
+    message += `• התאמת משקלים סופית בקופה\n`
+    message += `• לדוח מפורט - הורידו PDF מהמערכת\n\n`
+    
+    message += `📱 *הודעה אוטומטית ממערכת ההזמנות*`
+    
+    return message
   }
 
   const selectedHoliday = holidays.find(h => h.id === selectedHolidayId)
@@ -234,23 +291,43 @@ export default function AdminSupplierReport() {
               ))}
             </select>
             
-            <button 
-              onClick={generatePDFReport}
-              disabled={!selectedHolidayId || requirements.length === 0 || generating}
-              className="btn-primary disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {generating ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  יוצר דוח...
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  הורד דוח ספקים
-                </>
-              )}
-            </button>
+            <div className="flex gap-3">
+              <button 
+                onClick={downloadSupplierPDF}
+                disabled={!selectedHolidayId || requirements.length === 0 || generatingPDF}
+                className="btn-secondary disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {generatingPDF ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+                    יוצר PDF...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-4 h-4" />
+                    הורד דוח PDF
+                  </>
+                )}
+              </button>
+              
+              <button 
+                onClick={sendSupplierReportViaWhatsApp}
+                disabled={!selectedHolidayId || requirements.length === 0 || sendingWhatsApp}
+                className="btn-primary disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {sendingWhatsApp ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    שולח...
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="w-4 h-4" />
+                    שלח בוואטסאפ
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 

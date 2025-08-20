@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
-import EmailService from '../../lib/emailService'
-import { ArrowLeft, Download, Mail, Calendar, TrendingUp, DollarSign, ShoppingCart } from 'lucide-react'
+import { pdfService, DailyReportData } from '../../lib/pdfService'
+import { sendWhatsAppMessage } from '../../lib/whatsappService'
+import { ArrowLeft, Download, MessageCircle, Calendar, TrendingUp, DollarSign, ShoppingCart, FileText } from 'lucide-react'
 
 interface DailyStats {
   totalOrders: number
@@ -25,7 +26,8 @@ export default function AdminDailyReport() {
     new Date().toISOString().split('T')[0]
   )
   const [loading, setLoading] = useState(false)
-  const [sendingEmail, setSendingEmail] = useState(false)
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false)
+  const [generatingPDF, setGeneratingPDF] = useState(false)
 
   useEffect(() => {
     fetchDailyReport()
@@ -85,54 +87,109 @@ export default function AdminDailyReport() {
     }
   }
 
-  const downloadCSV = () => {
-    try {
-      const csvData = EmailService.generateOrdersCSV(stats.todayOrders)
-      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
-      const link = document.createElement('a')
-      
-      if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob)
-        link.setAttribute('href', url)
-        link.setAttribute('download', `daily-report-${selectedDate}.csv`)
-        link.style.visibility = 'hidden'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+  const generateFishSummary = () => {
+    const fishMap = new Map()
+    
+    stats.todayOrders.forEach(order => {
+      if (Array.isArray(order.order_items)) {
+        order.order_items.forEach((item: any) => {
+          const fishName = item.fish_name || 'לא ידוע'
+          const quantity = item.quantity_kg || item.quantity || 0
+          const isUnits = item.unit_based || false
+          
+          if (!fishMap.has(fishName)) {
+            fishMap.set(fishName, {
+              fishName,
+              totalQuantity: 0,
+              totalWeight: 0,
+              isUnits
+            })
+          }
+          
+          const fishData = fishMap.get(fishName)
+          if (isUnits) {
+            fishData.totalQuantity += quantity
+          } else {
+            fishData.totalWeight += quantity
+          }
+        })
       }
+    })
+    
+    return Array.from(fishMap.values())
+  }
+
+  const downloadPDF = async () => {
+    setGeneratingPDF(true)
+    try {
+      const reportData: DailyReportData = {
+        date: selectedDate,
+        orders: stats.todayOrders,
+        totalRevenue: stats.totalRevenue,
+        totalOrders: stats.totalOrders,
+        fishSummary: generateFishSummary()
+      }
+      
+      const pdfBlob = await pdfService.generateDailyReport(reportData)
+      const filename = `דוח-יומי-${new Date(selectedDate).toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
+      
+      pdfService.downloadPDF(pdfBlob, filename)
+      alert('✅ הדוח הורד בהצלחה!')
     } catch (error) {
-      console.error('Error generating CSV:', error)
-      alert('שגיאה ביצירת קובץ CSV')
+      alert('❌ שגיאה ביצירת הדוח')
+      console.error('Error generating PDF:', error)
+    } finally {
+      setGeneratingPDF(false)
     }
   }
 
-  const sendDailyReport = async () => {
-    setSendingEmail(true)
+  const sendReportViaWhatsApp = async () => {
+    setSendingWhatsApp(true)
     try {
-      const csvData = EmailService.generateOrdersCSV(stats.todayOrders)
-      const reportTemplate = EmailService.generateDailyReportEmail(stats.todayOrders, csvData)
+      // יצירת הודעת טקסט מקוצרת
+      const message = createWhatsAppReportMessage()
       
-      // Try to send via API endpoint first, then fallback to mock
-      const emailSent = await EmailService.sendEmail(
-        'triroars@gmail.com',
-        reportTemplate,
-        'admin'
-      )
-
-      if (emailSent) {
-        alert('דוח יומי נשלח בהצלחה למייל!')
-        console.log('📧 Daily report email sent successfully')
-        // כאן במימוש אמיתי נשלח גם את קובץ ה-CSV
-        console.log('📎 CSV data:', csvData.substring(0, 200) + '...')
-      } else {
-        alert('שגיאה בשליחת הדוח')
+      // שליחת הודעה (צריך מספר אדמין)
+      const adminPhone = import.meta.env.VITE_ADMIN_PHONE
+      if (!adminPhone) {
+        alert('❌ מספר אדמין לא מוגדר')
+        return
       }
+      
+      await sendWhatsAppMessage(adminPhone, message)
+      alert('✅ הדוח נשלח בוואטסאפ!')
     } catch (error) {
-      console.error('Error sending daily report:', error)
-      alert('שגיאה בשליחת הדוח')
+      alert('❌ שגיאה בשליחת הדוח')
+      console.error('Error sending WhatsApp report:', error)
     } finally {
-      setSendingEmail(false)
+      setSendingWhatsApp(false)
     }
+  }
+  
+  const createWhatsAppReportMessage = () => {
+    const dateStr = new Date(selectedDate).toLocaleDateString('he-IL')
+    const fishSummary = generateFishSummary()
+    
+    let message = `📊 *דוח יומי - דגי בקעת אונו*\n`
+    message += `📅 תאריך: ${dateStr}\n\n`
+    message += `📈 *סיכום כללי:*\n`
+    message += `• סה"כ הזמנות: ${stats.totalOrders}\n`
+    message += `• הזמנות שהושלמו: ${stats.todayOrders.filter(o => o.status === 'completed').length}\n`
+    message += `• הזמנות בהכנה: ${stats.todayOrders.filter(o => o.status === 'pending' || o.status === 'weighing').length}\n\n`
+    
+    if (fishSummary.length > 0) {
+      message += `🐟 *סיכום דגים:*\n`
+      fishSummary.forEach(fish => {
+        const quantity = fish.isUnits ? `${fish.totalQuantity} יח׳` : `${fish.totalWeight.toFixed(1)} ק"ג`
+        message += `• ${fish.fishName}: ${quantity}\n`
+      })
+      message += `\n`
+    }
+    
+    message += `📱 *הודעה אוטומטית ממערכת ההזמנות*\n`
+    message += `💾 לדוח מפורט יותר, הורידו קובץ PDF מהמערכת`
+    
+    return message
   }
 
   return (
@@ -152,20 +209,20 @@ export default function AdminDailyReport() {
             </div>
             <div className="flex space-x-3 space-x-reverse w-full md:w-auto">
               <button
-                onClick={downloadCSV}
-                className="btn-secondary flex items-center space-x-2 space-x-reverse w-full md:w-auto"
-                disabled={loading}
+                onClick={downloadPDF}
+                disabled={generatingPDF || loading}
+                className="btn-secondary flex items-center space-x-2 space-x-reverse w-full md:w-auto disabled:opacity-50"
               >
-                <Download className="w-4 h-4" />
-                <span>הורד CSV</span>
+                <FileText className="w-4 h-4" />
+                <span>{generatingPDF ? 'יוצר PDF...' : 'הורד דוח PDF'}</span>
               </button>
               <button
-                onClick={sendDailyReport}
-                disabled={sendingEmail || loading}
+                onClick={sendReportViaWhatsApp}
+                disabled={sendingWhatsApp || loading}
                 className="btn-primary flex items-center space-x-2 space-x-reverse disabled:opacity-50 w-full md:w-auto"
               >
-                <Mail className="w-4 h-4" />
-                <span>{sendingEmail ? 'שולח...' : 'שלח דוח במייל'}</span>
+                <MessageCircle className="w-4 h-4" />
+                <span>{sendingWhatsApp ? 'שולח...' : 'שלח בוואטסאפ'}</span>
               </button>
             </div>
           </div>

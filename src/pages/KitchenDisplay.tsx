@@ -69,9 +69,7 @@ export default function KitchenDisplay() {
         !order.status || order.status === 'pending' || order.status === 'weighing'
       )
 
-      console.log('🔍 Kitchen fetch - All orders:', data?.length || 0)
-      console.log('🔍 Kitchen fetch - Filtered orders:', filteredData?.length || 0)
-      console.log('🔍 Kitchen fetch - Ready orders found:', data?.filter(o => o.status === 'ready').length || 0)
+
 
       if (error) throw error
 
@@ -127,12 +125,8 @@ export default function KitchenDisplay() {
       setSelectedItemIndex(null)
       setWeightInput('')
 
-      // בדיקה אם כל הפריטים נשקלו
+      // בדיקה אם כל הפריטים נשקלו - הסליידר יופיע אוטומטית בתחתית המסך
       const allWeighed = updatedItems.every(item => item.actual_weight && item.actual_weight > 0)
-      if (allWeighed) {
-        // ההזמנה מוכנה - הסליידר יופיע אוטומטית בתחתית המסך
-        console.log('🎉 כל הפריטים נשקלו! הסליידר יופיע בתחתית המסך')
-      }
 
     } catch (error) {
       console.error('Error saving weight:', error)
@@ -173,10 +167,7 @@ export default function KitchenDisplay() {
     const newValue = parseInt(e.target.value)
     setSliderValue(newValue)
     
-    // זיהוי הגעה ל-100% - כאן יופיע כפתור השליחה
-    if (newValue === 100) {
-      console.log('🎯 הסליידר הגיע ל-100%! כפתור השליחה יופיע')
-    }
+
   }
 
   // פונקציה לשליחת הודעת "הזמנה מוכנה" ללקוח
@@ -187,7 +178,6 @@ export default function KitchenDisplay() {
     setSendingReady(true)
     try {
       // עדכון סטטוס ההזמנה למוכנה
-      console.log('🚀 Updating order status to ready for order ID:', orderToProcess.id)
       const { error: updateError } = await supabase
         .from('orders')
         .update({ status: 'ready' })
@@ -197,7 +187,6 @@ export default function KitchenDisplay() {
         console.error('❌ Error updating order status:', updateError)
         throw updateError
       }
-      console.log('✅ Order status updated successfully')
 
       // יצירת הודעת WhatsApp
       const message = createOrderReadyMessage(orderToProcess)

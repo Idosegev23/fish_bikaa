@@ -169,8 +169,8 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
       return
     }
 
-    // בדיקת שדות חובה
-    if (!data.customerName || !data.email || !data.phone || !data.deliveryDate || !data.deliveryTime) {
+    // בדיקת שדות חובה (אימייל אופציונלי)
+    if (!data.customerName || !data.phone || !data.deliveryDate || !data.deliveryTime) {
       showNotification('יש למלא את כל השדות הנדרשים', 'warning')
       return
     }
@@ -368,6 +368,7 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                     <Mail className="w-4 h-4 text-white" />
                   </div>
                   <span>דוא"ל</span>
+                  <span className="text-sm text-neutral-500 font-normal">(אופציונלי)</span>
               </label>
               <input
                 type="email"
