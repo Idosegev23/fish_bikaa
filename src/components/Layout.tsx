@@ -31,6 +31,13 @@ export default function Layout({ children, cart }: LayoutProps) {
           <div className="flex items-center justify-between h-20">
             {/* לוגו ושם החנות */}
             <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
+                <img 
+                  src="/logo.png" 
+                  alt="דגי בקעת אונו" 
+                  className="w-full h-full object-contain rounded-lg"
+                />
+              </div>
               <div className="min-w-0 flex-1">
                 <span className="text-lg sm:text-2xl font-bold text-primary-900 block truncate">דגי בקעת אונו</span>
                 <p className="text-xs sm:text-sm text-neutral-500 -mt-1 hidden sm:block">דגים טריים ואיכותיים</p>
@@ -85,7 +92,16 @@ export default function Layout({ children, cart }: LayoutProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {/* מידע על החנות */}
             <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-primary-900">דגי בקעת אונו</h3>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 flex-shrink-0">
+                  <img 
+                    src="/logo.png" 
+                    alt="דגי בקעת אונו" 
+                    className="w-full h-full object-contain rounded-lg"
+                  />
+                </div>
+                <h3 className="text-2xl font-bold text-primary-900">דגי בקעת אונו</h3>
+              </div>
               <p className="text-neutral-600 leading-relaxed">
                 החנות המובילה לדגים טריים ואיכותיים. אנחנו מביאים לכם את הדגים הטובים ביותר 
                 מהים התיכון ומהמקורות הטובים ביותר בישראל.

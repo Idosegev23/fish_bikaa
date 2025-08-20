@@ -69,6 +69,10 @@ export default function KitchenDisplay() {
         !order.status || order.status === 'pending' || order.status === 'weighing'
       )
 
+      console.log('🔍 Kitchen fetch - All orders:', data?.length || 0)
+      console.log('🔍 Kitchen fetch - Filtered orders:', filteredData?.length || 0)
+      console.log('🔍 Kitchen fetch - Ready orders found:', data?.filter(o => o.status === 'ready').length || 0)
+
       if (error) throw error
 
       setOrders(filteredData)
@@ -183,10 +187,17 @@ export default function KitchenDisplay() {
     setSendingReady(true)
     try {
       // עדכון סטטוס ההזמנה למוכנה
-      await supabase
+      console.log('🚀 Updating order status to ready for order ID:', orderToProcess.id)
+      const { error: updateError } = await supabase
         .from('orders')
         .update({ status: 'ready' })
         .eq('id', orderToProcess.id)
+      
+      if (updateError) {
+        console.error('❌ Error updating order status:', updateError)
+        throw updateError
+      }
+      console.log('✅ Order status updated successfully')
 
       // יצירת הודעת WhatsApp
       const message = createOrderReadyMessage(orderToProcess)
