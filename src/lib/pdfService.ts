@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
-import { Order } from './supabase'
+import type { Order } from './supabase'
 
 // הגדרת AutoTable עבור TypeScript
 declare module 'jspdf' {

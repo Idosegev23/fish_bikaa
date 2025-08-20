@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
-import { pdfService, SupplierReportData } from '../../lib/pdfService'
+import { pdfService, type SupplierReportData } from '../../lib/pdfService'
 import { sendWhatsAppMessage } from '../../lib/whatsappService'
 import { ArrowLeft, FileText, MessageCircle, Calendar, TrendingUp } from 'lucide-react'
 

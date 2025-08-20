@@ -60,6 +60,7 @@ export interface Order {
   created_at: string
   is_holiday_order?: boolean
   holiday_id?: number
+  status?: 'pending' | 'weighing' | 'ready' | 'completed'
   extras?: Array<{
     product_id: number
     name: string

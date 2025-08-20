@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
 import { isByWeight, computeMaxUnits } from '../../lib/fishConfig'
-import { pdfService, SupplierReportData } from '../../lib/pdfService'
+import { pdfService, type SupplierReportData } from '../../lib/pdfService'
 import { sendWhatsAppMessage } from '../../lib/whatsappService'
 import { ArrowLeft, Download, FileText, MessageCircle, Calendar } from 'lucide-react'
 
