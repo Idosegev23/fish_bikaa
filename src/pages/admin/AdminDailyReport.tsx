@@ -4,6 +4,7 @@ import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
 import { pdfService, type DailyReportData } from '../../lib/pdfService'
 import { pdfMakeService, type DailyReportData as PDFMakeDailyReportData } from '../../lib/pdfMakeService'
+import { pdfLibService, type DailyReportData as PDFLibDailyReportData } from '../../lib/pdfLibService'
 import { sendWhatsAppMessage } from '../../lib/whatsappService'
 import { ArrowLeft, Download, MessageCircle, Calendar, TrendingUp, DollarSign, ShoppingCart, FileText } from 'lucide-react'
 
@@ -30,6 +31,7 @@ export default function AdminDailyReport() {
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false)
   const [generatingPDF, setGeneratingPDF] = useState(false)
   const [generatingPDFMake, setGeneratingPDFMake] = useState(false)
+  const [generatingPDFLib, setGeneratingPDFLib] = useState(false)
 
   useEffect(() => {
     fetchDailyReport()
@@ -166,6 +168,30 @@ export default function AdminDailyReport() {
     }
   }
 
+  const downloadPDFWithPDFLib = async () => {
+    setGeneratingPDFLib(true)
+    try {
+      const reportData: PDFLibDailyReportData = {
+        date: selectedDate,
+        orders: stats.todayOrders,
+        totalRevenue: stats.totalRevenue,
+        totalOrders: stats.totalOrders,
+        fishSummary: generateFishSummary()
+      }
+      
+      const pdfBlob = await pdfLibService.generateDailyReport(reportData)
+      const filename = `דוח-יומי-מושלם-${new Date(selectedDate).toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
+      
+      pdfLibService.downloadPDF(pdfBlob, filename)
+      alert('✅ הדוח הורד בהצלחה עם עברית מושלמת!')
+    } catch (error) {
+      alert('❌ שגיאה ביצירת הדוח')
+      console.error('Error generating PDFLib:', error)
+    } finally {
+      setGeneratingPDFLib(false)
+    }
+  }
+
   const sendReportViaWhatsApp = async () => {
     setSendingWhatsApp(true)
     try {
@@ -232,12 +258,20 @@ export default function AdminDailyReport() {
             </div>
             <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3 md:space-x-reverse w-full md:w-auto">
               <button
+                onClick={downloadPDFWithPDFLib}
+                disabled={generatingPDFLib || loading}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white flex items-center space-x-2 space-x-reverse w-full md:w-auto disabled:opacity-50 px-4 py-2 rounded-lg transition-colors font-semibold"
+              >
+                <FileText className="w-4 h-4" />
+                <span>{generatingPDFLib ? 'יוצר PDF...' : '🚀 PDF מושלם בעברית'}</span>
+              </button>
+              <button
                 onClick={downloadPDFWithHebrew}
                 disabled={generatingPDFMake || loading}
                 className="btn-primary flex items-center space-x-2 space-x-reverse w-full md:w-auto disabled:opacity-50"
               >
                 <FileText className="w-4 h-4" />
-                <span>{generatingPDFMake ? 'יוצר PDF...' : 'הורד PDF עברית ✨'}</span>
+                <span>{generatingPDFMake ? 'יוצר PDF...' : 'PDF עברית v1 ✨'}</span>
               </button>
               <button
                 onClick={downloadPDF}
@@ -245,7 +279,7 @@ export default function AdminDailyReport() {
                 className="btn-secondary flex items-center space-x-2 space-x-reverse w-full md:w-auto disabled:opacity-50"
               >
                 <FileText className="w-4 h-4" />
-                <span>{generatingPDF ? 'יוצר PDF...' : 'הורד PDF עברית v2 🔧'}</span>
+                <span>{generatingPDF ? 'יוצר PDF...' : 'PDF בסיסי 🔧'}</span>
               </button>
               <button
                 onClick={sendReportViaWhatsApp}
