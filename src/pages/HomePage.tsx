@@ -42,19 +42,28 @@ export default function HomePage() {
             החנות המובילה לדגים טריים ואיכותיים. הזמינו מראש ואספו בזמן שנוח לכם
           </p>
          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 slide-up" style={{animationDelay: '0.4s'}}>
-           <Link 
-             to="/catalog" 
-             className="btn-primary text-lg sm:text-xl px-6 sm:px-10 py-3 sm:py-5 inline-flex items-center hover-lift"
-           >
-             הזמן עכשיו
-           </Link>
-           {activeHoliday && (
-             <Link
-               to={`/catalog?holiday=${encodeURIComponent(slugify(activeHoliday.name))}`}
-               className="btn-secondary text-lg sm:text-xl px-6 sm:px-10 py-3 sm:py-5 inline-flex items-center hover-lift"
-               aria-label={`הזמנות ל${activeHoliday.name}`}
+           {activeHoliday ? (
+             <>
+               <Link
+                 to={`/catalog?holiday=${encodeURIComponent(slugify(activeHoliday.name))}`}
+                 className="btn-primary text-lg sm:text-xl px-6 sm:px-10 py-3 sm:py-5 inline-flex items-center hover-lift"
+                 aria-label={`הזמנות ל${activeHoliday.name}`}
+               >
+                 🎉 הזמנות ל{activeHoliday.name}
+               </Link>
+               <Link 
+                 to="/catalog" 
+                 className="btn-secondary text-lg sm:text-xl px-6 sm:px-10 py-3 sm:py-5 inline-flex items-center hover-lift"
+               >
+                 הזמנה רגילה
+               </Link>
+             </>
+           ) : (
+             <Link 
+               to="/catalog" 
+               className="btn-primary text-lg sm:text-xl px-6 sm:px-10 py-3 sm:py-5 inline-flex items-center hover-lift"
              >
-               הזמנות ל{activeHoliday.name}
+               הזמן עכשיו
              </Link>
            )}
          </div>
@@ -64,11 +73,13 @@ export default function HomePage() {
       {activeHoliday && (
         <div className="card-glass slide-up">
           <div className="text-center">
-            <h3 className="text-2xl font-bold mb-2">חג פעיל: {activeHoliday.name}</h3>
-            <p className="text-neutral-600">{new Date(activeHoliday.start_date).toLocaleDateString('he-IL')} – {new Date(activeHoliday.end_date).toLocaleDateString('he-IL')}</p>
-            <div className="mt-4">
-              <Link to={`/catalog?holiday=${encodeURIComponent(slugify(activeHoliday.name))}`} className="btn-primary">להזמנות לחג</Link>
-            </div>
+            <h3 className="text-2xl font-bold mb-2">🎉 {activeHoliday.name} - זמן הזמנות!</h3>
+            <p className="text-neutral-600 mb-4">
+              תאריכי החג: {new Date(activeHoliday.start_date).toLocaleDateString('he-IL')} – {new Date(activeHoliday.end_date).toLocaleDateString('he-IL')}
+            </p>
+            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+              💡 השתמשו בכפתור "הזמנות ל{activeHoliday.name}" למעלה לחוויית הזמנה מותאמת לחג
+            </p>
           </div>
         </div>
       )}

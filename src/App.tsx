@@ -18,6 +18,9 @@ import AdminSupplierReport from './pages/admin/AdminSupplierReport'
 import AdminAvailability from './pages/admin/AdminAvailability'
 import AdminOrders from './pages/admin/AdminOrders'
 import AdminHolidays from './pages/admin/AdminHolidays'
+import AdminDailyOrders from './pages/admin/AdminDailyOrders'
+import AdminKitchenWeighing from './pages/admin/AdminKitchenWeighing'
+import KitchenDisplay from './pages/KitchenDisplay'
 
 export interface CartItem {
   fishId: number
@@ -122,6 +125,17 @@ function App() {
           <Route path="/admin/orders" element={
             isAdmin ? <AdminOrders /> : <AdminLogin onLogin={setIsAdmin} />
           } />
+          
+          <Route path="/admin/daily-orders" element={
+            isAdmin ? <AdminDailyOrders /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          
+          <Route path="/admin/kitchen-weighing" element={
+            isAdmin ? <AdminKitchenWeighing /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          
+          {/* נתיב ציבורי למסך מטבח - ללא צורך בהתחברות */}
+          <Route path="/kitchen" element={<KitchenDisplay />} />
         </Routes>
       </div>
     </Router>

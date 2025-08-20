@@ -22,6 +22,7 @@ export interface FishType {
   created_at: string
   updated_at: string
   available_cuts?: CutType[]
+  sale_unit?: 'units' | 'kg'
 }
 
 export interface CutType {

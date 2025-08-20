@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { CartItem } from '../App'
 import { CheckCircle, Loader, Mail } from 'lucide-react'
-import EmailService from '../lib/emailService'
+import { sendOrderNotifications } from '../lib/whatsappService'
 
 interface OrderSummaryProps {
   cart: CartItem[]
@@ -19,6 +19,8 @@ interface OrderData {
   deliveryTime: string
   cart: CartItem[]
   totalPrice: number
+  isHolidayMode?: boolean
+  isImmediatePickup?: boolean
   extras?: Array<{
     id: number
     name: string
@@ -103,7 +105,8 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
             showPopup = daysDiff >= 0 && daysDiff <= 3
           }
           
-          if (showPopup && !holidayAlertChecked) {
+          // הצג פופאפ רק אם זה לא הזמנת חג (כדי להציע להפוך לחג)
+          if (showPopup && !holidayAlertChecked && !orderData?.isHolidayMode) {
             setHolidayAlertOpen(true)
             setHolidayAlertChecked(true)
           }
@@ -343,8 +346,8 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
         await updateExtrasInventory(extrasArray)
       }
 
-      // שליחת מיילים
-      await sendOrderEmails(orderData, data[0]?.id)
+      // שליחת הודעות WhatsApp
+      await sendOrderNotifications(orderData, data[0]?.id?.toString() || 'N/A')
 
       // ניקוי נתונים מקומיים
       localStorage.removeItem('orderData')
@@ -563,56 +566,7 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
     }
   }
 
-  const sendOrderEmails = async (orderData: OrderData, orderId?: string) => {
-    try {
-      // הכנת נתוני המייל
-      const emailData = {
-        customerName: orderData.customerName,
-        email: orderData.email,
-        phone: orderData.phone,
-        deliveryAddress: orderData.deliveryAddress,
-        deliveryDate: orderData.deliveryDate,
-        deliveryTime: orderData.deliveryTime,
-        orderItems: orderData.cart,
-        totalPrice: orderData.totalPrice,
-        orderId: orderId?.toString()
-      }
 
-      // שליחת מייל ללקוח (עם הפעלת המערכת האמיתית)
-      const customerTemplate = EmailService.generateCustomerEmail(emailData)
-      console.log('🚀 Attempting to send customer email...')
-      const customerEmailSent = await EmailService.sendEmail(
-        orderData.email, 
-        customerTemplate, 
-        'customer'
-      )
-
-      // שליחת מייל לאדמין (עם הפעלת המערכת האמיתית)
-      const adminTemplate = EmailService.generateAdminEmail(emailData)
-      console.log('🚀 Attempting to send admin email...')
-      const adminEmailSent = await EmailService.sendEmail(
-        'triroars@gmail.com', 
-        adminTemplate, 
-        'admin'
-      )
-
-      if (customerEmailSent) {
-        console.log('✅ Customer email sent successfully')
-      } else {
-        console.warn('⚠️ Failed to send customer email')
-      }
-
-      if (adminEmailSent) {
-        console.log('✅ Admin email sent successfully')
-      } else {
-        console.warn('⚠️ Failed to send admin email')
-      }
-
-    } catch (error) {
-      console.error('Error sending emails:', error)
-      // שגיאה בשליחת מיילים לא תחסום את ההזמנה
-    }
-  }
 
   if (submitted) {
     return (
@@ -621,19 +575,19 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
           ההזמנה נשלחה בהצלחה!
         </h1>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Mail className="w-8 h-8 text-blue-600 ml-3" />
+            <div className="text-3xl ml-3">📱</div>
             <div>
-              <h3 className="text-lg font-semibold text-blue-900">מיילים נשלחו!</h3>
-              <p className="text-blue-700">
-                נשלח אישור הזמנה לכתובת המייל שלכם והודעה למנהל החנות
+              <h3 className="text-lg font-semibold text-green-900">הודעת WhatsApp נשלחה!</h3>
+              <p className="text-green-700">
+                נשלחה הודעת אישור למספר הטלפון שלכם והודעה למנהל החנות
               </p>
             </div>
           </div>
         </div>
         <p className="text-gray-600 mb-8">
-          קיבלתם הודעת אישור בדוא"ל. נתרה עמכם בקרוב לגבי ההזמנה.
+          תקבלו הודעת WhatsApp עם פרטי ההזמנה. נתראה באיסוף!
         </p>
         <div className="space-y-4">
           <button
@@ -858,9 +812,24 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
 
             <div>
               <h3 className="font-medium text-gray-700">זמן איסוף</h3>
-              <p className="text-gray-600">
-                {new Date(orderData.deliveryDate).toLocaleDateString('he-IL')} • {orderData.deliveryTime}
-              </p>
+              {orderData.isImmediatePickup ? (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🚀</span>
+                    <div>
+                      <p className="font-semibold text-orange-800">מעכשיו לעכשיו</p>
+                      <p className="text-sm text-orange-700">ההזמנה תהיה מוכנה בתוך 30-45 דקות</p>
+                      <p className="text-xs text-orange-600 mt-1">
+                        תקבלו הודעת WhatsApp כשההזמנה מוכנה לאיסוף
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-600">
+                  {new Date(orderData.deliveryDate).toLocaleDateString('he-IL')} • {orderData.deliveryTime}
+                </p>
+              )}
             </div>
           </div>
         </div>

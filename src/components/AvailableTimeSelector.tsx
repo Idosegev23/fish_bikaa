@@ -69,18 +69,37 @@ export default function AvailableTimeSelector({
       
       if (ordersError) throw ordersError
       
-      // ספירת הזמנות לכל סלוט
-      const slotsWithCounts = slots.map(slot => {
-        const timeRange = `${slot.start_time}-${slot.end_time}`
-        const currentOrders = (orders || []).filter(order => 
-          order.delivery_time === timeRange
-        ).length
-        
-        return {
-          ...slot,
-          current_orders: currentOrders
-        }
-      })
+      // ספירת הזמנות לכל סלוט וסינון שעות שעברו
+      const now = new Date()
+      const selectedDateObj = new Date(selectedDate)
+      const isToday = selectedDateObj.toDateString() === now.toDateString()
+      
+      const slotsWithCounts = slots
+        .map(slot => {
+          const timeRange = `${slot.start_time}-${slot.end_time}`
+          const currentOrders = (orders || []).filter(order => 
+            order.delivery_time === timeRange
+          ).length
+          
+          return {
+            ...slot,
+            current_orders: currentOrders
+          }
+        })
+        .filter(slot => {
+          // אם זה היום, הסתר שעות שכבר עברו
+          if (isToday) {
+            const [startHour, startMinute] = slot.start_time.split(':').map(Number)
+            const slotTime = new Date()
+            slotTime.setHours(startHour, startMinute, 0, 0)
+            
+            // הוסף בופר של שעה כדי לתת זמן להכנה
+            const bufferTime = new Date(now.getTime() + 60 * 60 * 1000) // שעה קדימה
+            
+            return slotTime > bufferTime
+          }
+          return true
+        })
       
       setAvailableSlots(slotsWithCounts)
       

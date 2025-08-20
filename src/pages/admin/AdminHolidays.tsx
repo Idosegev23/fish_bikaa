@@ -23,17 +23,18 @@ type OrderRow = {
 
 export default function AdminHolidays() {
   const [holidays, setHolidays] = useState<Holiday[]>([])
-  const [name, setName] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [pickupDeadline, setPickupDeadline] = useState('')
-  const [supplierReportDeadline, setSupplierReportDeadline] = useState('')
   const [loading, setLoading] = useState(false)
   const [selectedHolidayId, setSelectedHolidayId] = useState<number | null>(null)
   const [orders, setOrders] = useState<OrderRow[]>([])
   const [importing, setImporting] = useState(false)
   const [apiHolidays, setApiHolidays] = useState<Array<{ baseName: string; start_date: string; end_date: string }>>([])
   const [autoSeeded, setAutoSeeded] = useState(false)
+  const [activationPopup, setActivationPopup] = useState<{ show: boolean; holiday: Holiday | null }>({ show: false, holiday: null })
+  const [activationData, setActivationData] = useState({
+    orderStartDate: '',
+    orderEndDate: '',
+    supplierReportDate: ''
+  })
 
   // טען חגים מהמסד
   useEffect(() => {
@@ -68,40 +69,7 @@ export default function AdminHolidays() {
     [holidays, selectedHolidayId]
   )
 
-  const addHoliday = async () => {
-    if (!name || !startDate || !endDate) return
-    try {
-      setLoading(true)
-      // השבת כל החגים הפעילים
-      await supabase.from('holidays').update({ active: false }).eq('active', true)
-      // יצירת חג חדש כפעיל
-      const { data, error } = await supabase
-        .from('holidays')
-        .insert([{ 
-          name, 
-          start_date: startDate, 
-          end_date: endDate, 
-          pickup_deadline: pickupDeadline || null,
-          supplier_report_deadline: supplierReportDeadline || null,
-          active: true 
-        }])
-        .select('id')
-        .single()
-      if (error) throw error
-      setName('')
-      setStartDate('')
-      setEndDate('')
-      setPickupDeadline('')
-      setSupplierReportDeadline('')
-      await fetchHolidays()
-      setSelectedHolidayId(data.id)
-    } catch (e) {
-      console.error('Error creating holiday:', e)
-      alert('שגיאה ביצירת החג. יש לוודא שטבלת holidays קיימת ומדיניות RLS מאפשרת כתיבה.')
-    } finally {
-      setLoading(false)
-    }
-  }
+
 
   const removeHoliday = async (id: number) => {
     try {
@@ -117,20 +85,69 @@ export default function AdminHolidays() {
   }
 
   const toggleActive = async (id: number) => {
+    const target = holidays.find(h => h.id === id)
+    if (!target) return
+
+    if (target.active) {
+      // השבתה - ישירה ללא פופאפ
+      try {
+        setLoading(true)
+        await supabase.from('holidays').update({ active: false }).eq('id', id)
+        await fetchHolidays()
+      } catch (e) {
+        console.error('Error deactivating holiday:', e)
+        alert('שגיאה בהשבתת חג')
+      } finally {
+        setLoading(false)
+      }
+    } else {
+      // הפעלה - פתיחת פופאפ
+      setActivationData({
+        orderStartDate: target.start_date,
+        orderEndDate: target.end_date,
+        supplierReportDate: ''
+      })
+      setActivationPopup({ show: true, holiday: target })
+    }
+  }
+
+  const activateHoliday = async () => {
+    if (!activationPopup.holiday) return
+    
     try {
       setLoading(true)
-      // אם נהפוך לאקטיבי, נבטל אחרים
-      const target = holidays.find(h => h.id === id)
-      const toActive = !(target?.active)
-      if (toActive) {
-        await supabase.from('holidays').update({ active: false }).eq('active', true)
-      }
-      await supabase.from('holidays').update({ active: toActive }).eq('id', id)
+      // השבתת כל החגים הפעילים
+      await supabase.from('holidays').update({ active: false }).eq('active', true)
+      
+      // הפעלת החג הנבחר עם הנתונים החדשים
+      await supabase
+        .from('holidays')
+        .update({ 
+          active: true,
+          pickup_deadline: activationData.orderEndDate,
+          supplier_report_deadline: activationData.supplierReportDate || null
+        })
+        .eq('id', activationPopup.holiday.id)
+      
       await fetchHolidays()
-      setSelectedHolidayId(id)
+      setSelectedHolidayId(activationPopup.holiday.id)
+      setActivationPopup({ show: false, holiday: null })
+      
+      // הודעה מודרנית
+      const notification = document.createElement('div')
+      notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-2xl shadow-depth z-50 animate-slide-up'
+      notification.innerHTML = `
+        <div class="flex items-center gap-3">
+          <span>🎉</span>
+          <span>החג "${activationPopup.holiday.name}" הופעל בהצלחה!</span>
+        </div>
+      `
+      document.body.appendChild(notification)
+      setTimeout(() => notification.remove(), 4000)
+      
     } catch (e) {
-      console.error('Error toggling holiday:', e)
-      alert('שגיאה בעדכון סטטוס חג')
+      console.error('Error activating holiday:', e)
+      alert('שגיאה בהפעלת חג')
     } finally {
       setLoading(false)
     }
@@ -334,19 +351,25 @@ export default function AdminHolidays() {
   }, [orders])
 
   const [inventory, setInventory] = useState<Record<string, number>>({})
+  const [fishUnits, setFishUnits] = useState<Record<string, 'units' | 'kg'>>({})
   useEffect(() => {
     const loadInventory = async () => {
       try {
         const names = Object.keys(requirements.byFish)
-        if (names.length === 0) { setInventory({}); return }
+        if (names.length === 0) { setInventory({}); setFishUnits({}); return }
         const { data, error } = await supabase
           .from('fish_types')
-          .select('name, available_kg')
+          .select('name, available_kg, sale_unit')
           .in('name', names)
         if (error) throw error
-        const map: Record<string, number> = {}
-        ;(data || []).forEach((row: any) => { map[row.name] = Number(row.available_kg) || 0 })
-        setInventory(map)
+        const inventoryMap: Record<string, number> = {}
+        const unitsMap: Record<string, 'units' | 'kg'> = {}
+        ;(data || []).forEach((row: any) => { 
+          inventoryMap[row.name] = Number(row.available_kg) || 0
+          unitsMap[row.name] = row.sale_unit || 'units'
+        })
+        setInventory(inventoryMap)
+        setFishUnits(unitsMap)
       } catch (e) {
         console.error('Error loading inventory:', e)
       }
@@ -368,56 +391,26 @@ export default function AdminHolidays() {
                 <p className="text-gray-600">פתיחת הזמנות לחגים ותכנון הכנות</p>
               </div>
             </div>
-            <Link to="/catalog?holiday=rosh-hashanah" className="btn-secondary w-full md:w-auto">כפתור לקוח: הזמנות לראש השנה</Link>
+            {selectedHoliday && (
+              <Link 
+                to={`/catalog?holiday=${encodeURIComponent(selectedHoliday.name.replace(/\s+/g, '-').replace(/"|\'|"|"|׳|"/g, '').toLowerCase())}`} 
+                className="btn-secondary w-full md:w-auto"
+              >
+                צפה בממשק לקוח: {selectedHoliday.name}
+              </Link>
+            )}
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
-        {/* Create Holiday */}
-        <div className="card mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Settings className="w-5 h-5 text-neutral-500" />
-            <h2 className="text-lg font-semibold">פתיחת הזמנות לחג</h2>
-          </div>
-          <div className="grid grid-cols-1 gap-4">
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="שם החג (למשל: ראש השנה)" className="input-field" />
-            
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">תאריך התחלה</label>
-                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="input-field" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">תאריך סיום</label>
-                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="input-field" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  דוח לספקים 
-                  <span className="text-xs text-gray-500 block">מתי לשלוח דוח</span>
-                </label>
-                <input type="date" value={supplierReportDeadline} onChange={e => setSupplierReportDeadline(e.target.value)} className="input-field" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  סיום איסוף
-                  <span className="text-xs text-gray-500 block">עד מתי לקבל הזמנות</span>
-                </label>
-                <input type="date" value={pickupDeadline} onChange={e => setPickupDeadline(e.target.value)} className="input-field" />
-              </div>
-            </div>
-
-            <button onClick={addHoliday} className="btn-primary flex items-center justify-center gap-2 w-full md:w-auto">
-              <Plus className="w-4 h-4" /> פתח הזמנות לחג
-            </button>
-          </div>
-          {/* ייבוא אוטומטי: נעשה ברקע פעם אחת כאשר הטבלה ריקה. אין צורך בכפתורים. */}
-        </div>
 
         {/* Holidays List */}
         <div className="card mb-6">
-          <h2 className="text-lg font-semibold mb-4">חגים פעילים</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">חגים במערכת</h2>
+            <p className="text-sm text-neutral-600">לחץ "הפעל" כדי להתחיל לקבל הזמנות לחג</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {holidays.length === 0 && (
               <div className="text-neutral-600">אין חגים מוגדרים</div>
@@ -469,15 +462,43 @@ export default function AdminHolidays() {
               {/* Summary */}
               <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-4">
                 {(() => {
-                  let totalDeficit = 0
+                  let totalOrderedUnits = 0
+                  let totalOrderedKg = 0
+                  let totalDeficitUnits = 0
+                  let totalDeficitKg = 0
+                  
                   Object.entries(requirements.byFish).forEach(([fish, qty]) => {
                     const available = inventory[fish] || 0
-                    totalDeficit += Math.max(qty - available, 0)
+                    const deficit = Math.max(qty - available, 0)
+                    
+                    if (fishUnits[fish] === 'kg') {
+                      totalOrderedKg += qty
+                      totalDeficitKg += deficit
+                    } else {
+                      totalOrderedUnits += Math.floor(qty)
+                      totalDeficitUnits += Math.floor(deficit)
+                    }
                   })
+                  
+                  const formatSummary = (units: number, kg: number) => {
+                    const parts = []
+                    if (units > 0) parts.push(`${units} יח׳`)
+                    if (kg > 0) parts.push(`${kg.toFixed(1)} ק״ג`)
+                    return parts.length > 0 ? parts.join(' + ') : '0'
+                  }
+                  
                   return (
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <div className="text-neutral-700">סה"כ חסר להשלמה (כל הדגים):</div>
-                      <div className={`text-lg font-bold ${totalDeficit > 0 ? 'text-red-700' : 'text-emerald-700'}`}>{totalDeficit} ק"ג</div>
+                    <div className="space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="text-neutral-700">סה"כ הוזמן לחג זה (כל הדגים):</div>
+                        <div className="text-lg font-bold text-primary-700">{formatSummary(totalOrderedUnits, totalOrderedKg)}</div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="text-neutral-700">סה"כ חסר להשלמה (כל הדגים):</div>
+                        <div className={`text-lg font-bold ${(totalDeficitUnits + totalDeficitKg) > 0 ? 'text-red-700' : 'text-emerald-700'}`}>
+                          {formatSummary(totalDeficitUnits, totalDeficitKg)}
+                        </div>
+                      </div>
                     </div>
                   )
                 })()}
@@ -490,15 +511,22 @@ export default function AdminHolidays() {
                 {Object.entries(requirements.byFish).map(([fish, qty]) => {
                   const available = inventory[fish] || 0
                   const needMore = Math.max(qty - available, 0)
+                  const unit = fishUnits[fish] === 'kg' ? 'ק"ג' : 'יח׳'
+                  const isUnits = fishUnits[fish] === 'units'
+                  
+                  const formatQuantity = (value: number) => {
+                    return isUnits ? Math.floor(value).toString() : value.toFixed(1)
+                  }
+                  
                   return (
                     <div key={fish} className="border rounded-xl p-4 bg-white">
                       <div className="flex items-center justify-between">
                         <div className="font-semibold text-neutral-900">{fish}</div>
-                        <div className="text-primary-700 font-bold">סה"כ דרוש: {qty} ק"ג</div>
+                        <div className="text-primary-700 font-bold">הוזמן: {formatQuantity(qty)} {unit}</div>
                       </div>
-                      <div className="mt-2 text-sm text-neutral-700">מלאי נוכחי: {available} ק"ג</div>
+                      <div className="mt-2 text-sm text-neutral-700">מלאי נוכחי: {formatQuantity(available)} {unit}</div>
                       <div className={`mt-1 text-sm font-semibold ${needMore > 0 ? 'text-red-700' : 'text-emerald-700'}`}>
-                        {needMore > 0 ? `חסר להשלמה: ${needMore} ק"ג` : 'המלאי מספק'}
+                        {needMore > 0 ? `חסר להשלמה: ${formatQuantity(needMore)} ${unit}` : 'המלאי מספק'}
                       </div>
                     </div>
                   )
@@ -511,21 +539,28 @@ export default function AdminHolidays() {
                   <thead className="bg-neutral-50">
                     <tr>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600">דג</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600">סה"כ דרוש (ק"ג)</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600">מלאי נוכחי (ק"ג)</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600">חסר להשלמה (ק"ג)</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600">סה"כ הוזמן</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600">מלאי נוכחי</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-neutral-600">חסר להשלמה</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-neutral-200">
                     {Object.entries(requirements.byFish).map(([fish, qty]) => {
                       const available = inventory[fish] || 0
                       const needMore = Math.max(qty - available, 0)
+                      const unit = fishUnits[fish] === 'kg' ? 'ק"ג' : 'יח׳'
+                      const isUnits = fishUnits[fish] === 'units'
+                      
+                      const formatQuantity = (value: number) => {
+                        return isUnits ? Math.floor(value).toString() : value.toFixed(1)
+                      }
+                      
                       return (
                         <tr key={fish}>
                           <td className="px-4 py-3 text-sm text-neutral-900 font-medium">{fish}</td>
-                          <td className="px-4 py-3 text-sm text-neutral-700">{qty}</td>
-                          <td className="px-4 py-3 text-sm text-neutral-700">{available}</td>
-                          <td className={`px-4 py-3 text-sm font-semibold ${needMore > 0 ? 'text-red-700' : 'text-emerald-700'}`}>{needMore}</td>
+                          <td className="px-4 py-3 text-sm text-neutral-700">{formatQuantity(qty)} {unit}</td>
+                          <td className="px-4 py-3 text-sm text-neutral-700">{formatQuantity(available)} {unit}</td>
+                          <td className={`px-4 py-3 text-sm font-semibold ${needMore > 0 ? 'text-red-700' : 'text-emerald-700'}`}>{formatQuantity(needMore)} {unit}</td>
                         </tr>
                       )
                     })}
@@ -538,6 +573,87 @@ export default function AdminHolidays() {
       </main>
 
       <AdminBottomNav />
+
+      {/* Holiday Activation Popup */}
+      {activationPopup.show && activationPopup.holiday && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-neutral-900">
+                  הפעלת חג: {activationPopup.holiday.name}
+                </h3>
+                <button 
+                  onClick={() => setActivationPopup({ show: false, holiday: null })}
+                  className="text-neutral-400 hover:text-neutral-600"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <p className="text-sm text-amber-800">
+                    <strong>תאריכי החג:</strong> {new Date(activationPopup.holiday.start_date).toLocaleDateString('he-IL')} – {new Date(activationPopup.holiday.end_date).toLocaleDateString('he-IL')}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    מתי להתחיל לקבל הזמנות לחג?
+                  </label>
+                  <input 
+                    type="date" 
+                    value={activationData.orderStartDate}
+                    onChange={(e) => setActivationData(prev => ({ ...prev, orderStartDate: e.target.value }))}
+                    className="input-field w-full"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    עד מתי לקבל הזמנות לחג?
+                  </label>
+                  <input 
+                    type="date" 
+                    value={activationData.orderEndDate}
+                    onChange={(e) => setActivationData(prev => ({ ...prev, orderEndDate: e.target.value }))}
+                    className="input-field w-full"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    מתי לשלוח דוח הזמנות לספק? (אופציונלי)
+                  </label>
+                  <input 
+                    type="date" 
+                    value={activationData.supplierReportDate}
+                    onChange={(e) => setActivationData(prev => ({ ...prev, supplierReportDate: e.target.value }))}
+                    className="input-field w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button 
+                  onClick={() => setActivationPopup({ show: false, holiday: null })}
+                  className="btn-secondary flex-1"
+                >
+                  ביטול
+                </button>
+                <button 
+                  onClick={activateHoliday}
+                  disabled={!activationData.orderStartDate || !activationData.orderEndDate}
+                  className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  הפעל חג
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

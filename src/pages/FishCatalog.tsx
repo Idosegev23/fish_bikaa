@@ -17,7 +17,8 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
   const [loading, setLoading] = useState(true)
   const [selectedWaterType, setSelectedWaterType] = useState<string>(searchParams.get('type') || 'all')
   const holidayParam = searchParams.get('holiday')
-  const [activeHoliday, setActiveHoliday] = useState<{ name: string; start_date: string; end_date: string } | null>(null)
+  const [activeHoliday, setActiveHoliday] = useState<{ name: string; start_date: string; end_date: string; pickup_deadline?: string } | null>(null)
+  const isHolidayMode = holidayParam && activeHoliday
   
   // חיפוש וסינון
   const [searchQuery, setSearchQuery] = useState('')
@@ -34,7 +35,7 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
     const loadHoliday = async () => {
       const { data } = await supabase
         .from('holidays')
-        .select('name, start_date, end_date')
+        .select('name, start_date, end_date, pickup_deadline')
         .eq('active', true)
         .limit(1)
         .maybeSingle()
@@ -170,13 +171,43 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
     <div className="space-y-12 fade-in">
       {/* Header מודרני */}
       <div className="text-center card-glass">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold heading-gradient mb-6">קטלוג דגים</h1>
-        {activeHoliday ? (
-          <p className="text-lg sm:text-xl text-primary-700 font-medium">הזמנות לחג: {activeHoliday.name} ({new Date(activeHoliday.start_date).toLocaleDateString('he-IL')}–{new Date(activeHoliday.end_date).toLocaleDateString('he-IL')})</p>
+        {isHolidayMode ? (
+          <>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-800 rounded-full text-sm font-medium mb-4">
+              🎉 מצב הזמנה לחג
+            </div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+              <span className="heading-gradient">הזמנות ל{activeHoliday?.name}</span>
+            </h1>
+            <div className="bg-primary-50 border border-primary-200 rounded-xl p-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-semibold text-primary-800">תאריכי החג:</span>
+                  <p className="text-primary-700">
+                    {new Date(activeHoliday?.start_date || '').toLocaleDateString('he-IL')} – {new Date(activeHoliday?.end_date || '').toLocaleDateString('he-IL')}
+                  </p>
+                </div>
+                {activeHoliday?.pickup_deadline && (
+                  <div>
+                    <span className="font-semibold text-accent-800">מועד אחרון להזמנה:</span>
+                    <p className="text-accent-700">
+                      {new Date(activeHoliday.pickup_deadline).toLocaleDateString('he-IL')}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <p className="text-lg text-neutral-600 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
+              בחרו את הדגים להזמנה לחג. ההזמנות יסופקו בתאריכי החג שנבחרו.
+            </p>
+          </>
         ) : (
-          <p className="text-lg sm:text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
-          בחרו את הדג שתרצו, סוג החיתוך והכמות. המחירים מעודכנים בזמן אמת והמלאי מתעדכן באופן מיידי.
-          </p>
+          <>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold heading-gradient mb-6">קטלוג דגים</h1>
+            <p className="text-lg sm:text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
+              בחרו את הדג שתרצו, סוג החיתוך והכמות. המחירים מעודכנים בזמן אמת והמלאי מתעדכן באופן מיידי.
+            </p>
+          </>
         )}
       </div>
 

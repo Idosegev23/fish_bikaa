@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Fish, ShoppingCart, DollarSign, TrendingUp, Package, Users, Scissors } from 'lucide-react'
+import { Fish, ShoppingCart, DollarSign, TrendingUp, Package, Users, Scissors, Scale, Monitor } from 'lucide-react'
 import {
   BarChart,
   Bar,
@@ -321,10 +321,16 @@ export default function AdminDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
         {/* Mobile quick actions (condensed) */}
         <div className="md:hidden grid grid-cols-2 gap-3 mb-6">
+          <button
+            onClick={() => window.open('/kitchen', '_blank')}
+            className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+          >
+            <Scale className="w-4 h-4" />
+            מסך מטבח
+          </button>
           <Link to="/admin/orders" className="btn-secondary w-full text-sm">הזמנות</Link>
           <Link to="/admin/fish" className="btn-secondary w-full text-sm">דגים</Link>
           <Link to="/admin/additional-products" className="btn-secondary w-full text-sm">מוצרים משלימים</Link>
-          <Link to="/admin/meal-recommendations" className="btn-secondary w-full text-sm">המלצות</Link>
         </div>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -375,6 +381,21 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Kitchen Display Button - Special */}
+        <div className="mb-8">
+          <button
+            onClick={() => window.open('/kitchen', '_blank')}
+            className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-6 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-4 text-xl group"
+          >
+            <Monitor className="w-8 h-8 group-hover:scale-110 transition-transform" />
+            <div className="text-center">
+              <div className="text-2xl font-bold">📺 פתח מסך מטבח</div>
+              <div className="text-lg opacity-90">שקילה למסך טלוויזיה</div>
+            </div>
+            <Scale className="w-8 h-8 group-hover:scale-110 transition-transform" />
+          </button>
         </div>
 
         {/* Quick Actions (condensed) */}

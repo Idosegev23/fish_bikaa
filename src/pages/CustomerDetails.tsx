@@ -32,8 +32,14 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
   const [cartWithImages, setCartWithImages] = useState<CartItemWithFish[]>([])
   const [loadingImages, setLoadingImages] = useState(true)
   const [activeHoliday, setActiveHoliday] = useState<{ name: string; start_date: string; end_date: string } | null>(null)
+  const [isImmediatePickup, setIsImmediatePickup] = useState(false)
   
   const { register, handleSubmit, formState: { errors }, setValue, trigger, watch } = useForm<FormData>()
+
+  // ניקוי נתוני הזמנה קודמת בכניסה לדף
+  useEffect(() => {
+    localStorage.removeItem('orderData')
+  }, [])
 
   // טעינת תמונות ומידע דגים
   useEffect(() => {
@@ -99,32 +105,112 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
     return toISODate(d < today ? today : d)
   }
 
+  // Check if we're in holiday mode based on URL params
+  const isHolidayMode = new URLSearchParams(window.location.search).has('holiday')
+  
+  // Calculate date constraints for holiday mode
+  const getDateConstraints = () => {
+    if (isHolidayMode && activeHoliday) {
+      return {
+        min: activeHoliday.start_date,
+        max: activeHoliday.end_date
+      }
+    }
+    return {
+      min: new Date().toISOString().split('T')[0],
+      max: undefined
+    }
+  }
+  
+  const dateConstraints = getDateConstraints()
+
+  // פונקציה למעבר ל"מעכשיו לעכשיו"
+  const handleImmediatePickup = async () => {
+    const now = new Date()
+    const today = now.toISOString().split('T')[0]
+    
+    // הגדרת תאריך היום ושעה "מעכשיו לעכשיו"
+    setValue('deliveryDate', today, { shouldDirty: true, shouldValidate: true })
+    setValue('deliveryTime', 'immediate', { shouldDirty: true, shouldValidate: true })
+    
+    setIsImmediatePickup(true)
+    
+    // ואליציה של השדות
+    await trigger(['deliveryDate', 'deliveryTime'])
+  }
+
+  // פונקציה לביטול "מעכשיו לעכשיו"
+  const handleCancelImmediate = () => {
+    setValue('deliveryTime', '', { shouldDirty: true, shouldValidate: true })
+    setIsImmediatePickup(false)
+  }
+
   const totalPrice = cart.reduce((sum, item) => sum + item.totalPrice, 0)
+
+  const showNotification = (message: string, type: 'error' | 'warning' = 'error') => {
+    const notification = document.createElement('div')
+    const bgColor = type === 'error' ? 'bg-red-500' : 'bg-amber-500'
+    notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-2xl shadow-depth z-50 animate-slide-up`
+    notification.innerHTML = `
+      <div class="flex items-center gap-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.36 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+        <span>${message}</span>
+      </div>
+    `
+    document.body.appendChild(notification)
+    setTimeout(() => notification.remove(), 4000)
+  }
 
   const onSubmit = async (data: FormData) => {
     if (cart.length === 0) {
-      // הודעה מודרנית במקום alert
-      const notification = document.createElement('div')
-      notification.className = 'fixed top-4 right-4 bg-accent-500 text-white px-6 py-3 rounded-2xl shadow-depth z-50 animate-slide-up'
-      notification.innerHTML = `
-        <div class="flex items-center gap-3">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.36 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-          </svg>
-          <span>הסל ריק! נא להוסיף פריטים לסל הקניות</span>
-        </div>
-      `
-      document.body.appendChild(notification)
-      setTimeout(() => notification.remove(), 4000)
+      showNotification('הסל ריק! נא להוסיף פריטים לסל הקניות')
       return
+    }
+
+    // בדיקת שדות חובה
+    if (!data.customerName || !data.email || !data.phone || !data.deliveryDate || !data.deliveryTime) {
+      showNotification('יש למלא את כל השדות הנדרשים', 'warning')
+      return
+    }
+
+    // בדיקת תאריך במצב חג
+    if (isHolidayMode && activeHoliday) {
+      const selectedDate = new Date(data.deliveryDate)
+      const startDate = new Date(activeHoliday.start_date)
+      const endDate = new Date(activeHoliday.end_date)
+      
+      if (selectedDate < startDate || selectedDate > endDate) {
+        showNotification(`התאריך שנבחר אינו בטווח החג (${new Date(activeHoliday.start_date).toLocaleDateString('he-IL')} - ${new Date(activeHoliday.end_date).toLocaleDateString('he-IL')})`, 'warning')
+        return
+      }
     }
 
     setLoading(true)
     
-    // שמירת נתונים בLocal Storage לעכשיו
-    localStorage.setItem('orderData', JSON.stringify({ ...data, cart, totalPrice }))
-    
-    navigate('/order-summary')
+    try {
+      // עיבוד נתוני הזמנה
+      const orderData = {
+        ...data,
+        cart,
+        totalPrice,
+        isHolidayMode,
+        isImmediatePickup,
+        // אם זה "מעכשיו לעכשיו", נעדכן את השעה לטקסט מתאים
+        deliveryTime: data.deliveryTime === 'immediate' ? 'מעכשיו לעכשיו' : data.deliveryTime
+      }
+      
+      // שמירת נתונים בLocal Storage
+      localStorage.setItem('orderData', JSON.stringify(orderData))
+      
+      navigate('/order-summary')
+    } catch (error) {
+      console.error('Error saving order data:', error)
+      showNotification('שגיאה בשמירת הנתונים. נא לנסות שוב.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const getWaterTypeIcon = (waterType: string) => {
@@ -348,26 +434,38 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                     </div>
                     <span>תאריך איסוף *</span>
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input
-                  type="date"
-                  {...register('deliveryDate', { required: 'תאריך איסוף הוא שדה חובה' })}
-                  min={new Date().toISOString().split('T')[0]}
-                    className="input-field text-base"
-                  />
-                  {activeHoliday && (
-                    <button
-                      type="button"
-                      className="btn-secondary text-sm"
-                      onClick={async () => {
-                        const chosen = computePreHolidayDate(activeHoliday.start_date)
-                        setValue('deliveryDate', chosen, { shouldDirty: true, shouldValidate: true })
-                        await trigger('deliveryDate')
-                      }}
-                    >
-                      בחירת תאריך חג: {activeHoliday.name}
-                    </button>
+                <div className="space-y-3">
+                  {isHolidayMode && activeHoliday && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <p className="text-sm text-amber-800 font-medium">
+                        🎉 הזמנה לחג {activeHoliday.name}
+                      </p>
+                      <p className="text-xs text-amber-700 mt-1">
+                        ניתן לבחור רק תאריכים בטווח החג: {new Date(activeHoliday.start_date).toLocaleDateString('he-IL')} - {new Date(activeHoliday.end_date).toLocaleDateString('he-IL')}
+                      </p>
+                    </div>
                   )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input
+                      type="date"
+                      {...register('deliveryDate', { required: 'תאריך איסוף הוא שדה חובה' })}
+                      min={dateConstraints.min}
+                      max={dateConstraints.max}
+                      className="input-field text-base"
+                    />
+                    {isHolidayMode && activeHoliday && (
+                      <button
+                        type="button"
+                        className="btn-secondary text-sm"
+                        onClick={async () => {
+                          setValue('deliveryDate', activeHoliday.start_date, { shouldDirty: true, shouldValidate: true })
+                          await trigger('deliveryDate')
+                        }}
+                      >
+                        בחר יום ראשון של {activeHoliday.name}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {errors.deliveryDate && (
                     <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
@@ -377,11 +475,56 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                 )}
               </div>
 
+              {/* כפתור "מעכשיו לעכשיו" */}
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-orange-800 text-lg">🚀 צריך מיד?</h4>
+                    <p className="text-orange-700 text-sm">קבלו את ההזמנה בתוך 30-45 דקות</p>
+                  </div>
+                  {!isImmediatePickup ? (
+                    <button
+                      type="button"
+                      onClick={handleImmediatePickup}
+                      disabled={isHolidayMode} // לא זמין במצב חג
+                      className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                        isHolidayMode 
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                          : 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                      }`}
+                    >
+                      מעכשיו לעכשיו
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <span className="text-green-700 font-semibold flex items-center gap-1">
+                        ✅ מעכשיו לעכשיו
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCancelImmediate}
+                        className="text-orange-600 hover:text-orange-800 underline text-sm"
+                      >
+                        ביטול
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {isHolidayMode && (
+                  <p className="text-amber-600 text-xs mt-2">
+                    * "מעכשיו לעכשיו" לא זמין בהזמנות חג
+                  </p>
+                )}
+              </div>
+
+              {/* בורר שעות - מוסתר במצב "מעכשיו לעכשיו" */}
+              {!isImmediatePickup && (
                 <AvailableTimeSelector 
                   selectedDate={watch('deliveryDate')}
                   register={register}
                   errors={errors}
                 />
+              )}
             </div>
 
               <div className="bg-white rounded-2xl p-5 border border-neutral-200 space-y-4">
