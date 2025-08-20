@@ -178,7 +178,7 @@ export default function AdminSupplierReport() {
       const filename = `דוח-ספקים-${selectedHoliday.name}-${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
       
       pdfService.downloadPDF(pdfBlob, filename)
-      alert('✅ דוח הספקים הורד בהצלחה!')
+      alert('דוח הורד בהצלחה')
 
     } catch (error) {
       console.error('Error generating PDF:', error)
@@ -260,8 +260,8 @@ export default function AdminSupplierReport() {
                 <ArrowLeft className="w-5 h-5 text-gray-600" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">דוח ספקים לחגים</h1>
-                <p className="text-gray-600">סיכום הזמנות ודרישות מלאי</p>
+                <h1 className="text-2xl font-bold text-gray-900">דוח ספקים לחג</h1>
+                <p className="text-gray-600">סכימה לפי סוג דג - כמויות נדרשות vs מלאי נוכחי - נשלח לפי תאריך deadline</p>
               </div>
             </div>
           </div>

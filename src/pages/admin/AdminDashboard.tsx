@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Fish, ShoppingCart, DollarSign, TrendingUp, Package, Users, Scissors, Scale, Monitor } from 'lucide-react'
+import { Fish, ShoppingCart, DollarSign, TrendingUp, Package, Users, Scissors, Scale, Monitor, Calendar, FileText } from 'lucide-react'
 import {
   BarChart,
   Bar,
@@ -416,11 +416,11 @@ export default function AdminDashboard() {
             </div>
           </Link>
 
-          <Link to="/admin/daily-report" className="card hover:shadow-lg transition-shadow group">
+          <Link to="/admin/reports" className="card hover:shadow-lg transition-shadow group">
             <div className="text-center p-4">
-            <Users className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
-              <h3 className="text-lg font-semibold mb-2">דוח יומי</h3>
-              <p className="text-gray-600 text-sm">דוח מפורט של הזמנות והכנסות יומיות</p>
+              <FileText className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
+              <h3 className="text-lg font-semibold mb-2">דוחות המערכת</h3>
+              <p className="text-gray-600 text-sm">כל הדוחות במקום אחד - יומי, מלאי, חגים, הכנסות</p>
             </div>
           </Link>
 
@@ -445,22 +445,6 @@ export default function AdminDashboard() {
               <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
               <h3 className="text-lg font-semibold mb-2">המלצות מנות</h3>
               <p className="text-gray-600 text-sm">שיוך דג+חיתוך למוצרים מומלצים</p>
-            </div>
-          </Link>
-
-          <Link to="/admin/supplier-report" className="card hover:shadow-lg transition-shadow group">
-            <div className="text-center p-4">
-              <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
-              <h3 className="text-lg font-semibold mb-2">דוח מלאי</h3>
-              <p className="text-gray-600 text-sm">בדיקת מלאי מול ביקוש - מה להזמין</p>
-            </div>
-          </Link>
-
-          <Link to="/admin/holiday-supplier-report" className="card hover:shadow-lg transition-shadow group">
-            <div className="text-center p-4">
-              <TrendingUp className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
-              <h3 className="text-lg font-semibold mb-2">דוח הזמנות חג</h3>
-              <p className="text-gray-600 text-sm">כמויות שהוזמנו בפועל לחג</p>
             </div>
           </Link>
 

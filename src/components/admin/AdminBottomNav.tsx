@@ -21,7 +21,7 @@ export default function AdminBottomNav() {
           </div>
           <Link to="/admin/orders" className={`${base} ${isActive('/admin/orders') ? active : inactive}`}>הזמנות</Link>
           <Link to="/admin/fish" className={`${base} ${isActive('/admin/fish') ? active : inactive}`}>דגים</Link>
-          <Link to="/admin/daily-report" className={`${base} ${isActive('/admin/daily-report') ? active : inactive}`}>דוח</Link>
+          <Link to="/admin/reports" className={`${base} ${isActive('/admin/reports') ? active : inactive}`}>דוחות</Link>
           <Link to="/admin/holidays" className={`${base} ${isActive('/admin/holidays') ? active : inactive}`}>חגים</Link>
         </div>
       </div>

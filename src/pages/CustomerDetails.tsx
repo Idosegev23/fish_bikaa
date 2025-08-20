@@ -191,14 +191,21 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
     
     try {
       // עיבוד נתוני הזמנה
+      // אם זה מעכשיו לעכשיו, נגדיר שעה נוכחית אמיתית
+      const currentTime = new Date().toLocaleTimeString('he-IL', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      })
+      
       const orderData = {
         ...data,
         cart,
         totalPrice,
         isHolidayMode,
         isImmediatePickup,
-        // אם זה "מעכשיו לעכשיו", נעדכן את השעה לטקסט מתאים
-        deliveryTime: data.deliveryTime === 'immediate' ? 'מעכשיו לעכשיו' : data.deliveryTime
+        // אם זה "מעכשיו לעכשיו", נשמור שעה נוכחית אמיתית
+        deliveryTime: data.deliveryTime === 'immediate' ? currentTime : data.deliveryTime
       }
       
       // שמירת נתונים בLocal Storage

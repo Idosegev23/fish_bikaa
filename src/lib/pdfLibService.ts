@@ -1,4 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import fontkit from '@pdf-lib/fontkit'
 import type { Order } from './supabase'
 
 export interface DailyReportData {
@@ -40,24 +41,49 @@ export class PDFLibService {
     }
   }
 
-  private reverseHebrewText(text: string): string {
-    // פונקציה לטיפול בטקסט עברי
-    const hebrewRegex = /[\u0590-\u05FF]/
-    if (hebrewRegex.test(text)) {
-      // הפוך סדר מילים לעברית
-      return text.split(' ').reverse().join(' ')
+  private async loadOpenSansFont(): Promise<Uint8Array | null> {
+    try {
+      const response = await fetch('/fonts/OpenSans-VariableFont_wdth,wght.ttf')
+      if (!response.ok) {
+        throw new Error(`Failed to fetch font: ${response.status}`)
+      }
+      const arrayBuffer = await response.arrayBuffer()
+      console.log('✅ פונט OpenSans נטען בהצלחה')
+      return new Uint8Array(arrayBuffer)
+    } catch (error) {
+      console.warn('לא ניתן לטעון את פונט OpenSans:', error)
+      return null
     }
+  }
+
+  private reverseHebrewText(text: string): string {
+    // החזרת הטקסט כמו שהוא - הפונט OpenSans יטפל ב-RTL כראוי
     return text
   }
 
   async generateDailyReport(data: DailyReportData): Promise<Blob> {
     const pdfDoc = await PDFDocument.create()
+    pdfDoc.registerFontkit(fontkit)
     const page = pdfDoc.addPage([595, 842]) // A4 size
     const { width, height } = page.getSize()
     
-    // טעינת פונט
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    // טעינת פונט עברי
+    const openSansFontBytes = await this.loadOpenSansFont()
+    let font, boldFont
+    
+    if (openSansFontBytes) {
+      try {
+        font = await pdfDoc.embedFont(openSansFontBytes)
+        boldFont = font // OpenSans supports bold through weight variations
+      } catch (error) {
+        console.warn('נכשל בטעינת פונט OpenSans, עובר לפונט ברירת מחדל:', error)
+        font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+        boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+      }
+    } else {
+      font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+      boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    }
     
     // טעינת לוגו
     const logoBytes = await this.loadLogo()
@@ -181,8 +207,8 @@ export class PDFLibService {
 
     yPosition -= 10
 
-    // נתוני הזמנות (מוגבל לעמוד הראשון)
-    const maxOrders = Math.min(data.orders.length, 15)
+    // נתוני הזמנות (כל ההזמנות)
+    const maxOrders = data.orders.length
     for (let i = 0; i < maxOrders; i++) {
       const order = data.orders[i]
       const status = order.status === 'completed' ? 'הושלם' : 
@@ -215,7 +241,8 @@ export class PDFLibService {
     yPosition -= 20
 
     // סיכום דגים
-    if (yPosition > 150) {
+    // תמיד מציג סיכום דגים
+    {
       const fishTitle = this.reverseHebrewText('סיכום דגים')
       page.drawText(fishTitle, {
         x: 50,
@@ -254,8 +281,8 @@ export class PDFLibService {
 
       yPosition -= 10
 
-      // נתוני דגים
-      const maxFish = Math.min(data.fishSummary.length, 10)
+      // נתוני דגים (כל הדגים)
+      const maxFish = data.fishSummary.length
       for (let i = 0; i < maxFish; i++) {
         const fish = data.fishSummary[i]
         const quantity = fish.isUnits ? `${fish.totalQuantity}` : `${fish.totalWeight.toFixed(1)}`
@@ -297,11 +324,27 @@ export class PDFLibService {
 
   async generateSupplierReport(data: SupplierReportData): Promise<Blob> {
     const pdfDoc = await PDFDocument.create()
+    pdfDoc.registerFontkit(fontkit)
     const page = pdfDoc.addPage([595, 842]) // A4 size
     const { width, height } = page.getSize()
     
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    // טעינת פונט עברי
+    const openSansFontBytes = await this.loadOpenSansFont()
+    let font, boldFont
+    
+    if (openSansFontBytes) {
+      try {
+        font = await pdfDoc.embedFont(openSansFontBytes)
+        boldFont = font // OpenSans supports bold through weight variations
+      } catch (error) {
+        console.warn('נכשל בטעינת פונט OpenSans, עובר לפונט ברירת מחדל:', error)
+        font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+        boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+      }
+    } else {
+      font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+      boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    }
     
     // טעינת לוגו
     const logoBytes = await this.loadLogo()

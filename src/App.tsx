@@ -16,6 +16,11 @@ import AdminAdditionalProducts from './pages/admin/AdminAdditionalProducts.tsx'
 import AdminMealRecommendations from './pages/admin/AdminMealRecommendations.tsx'
 import AdminSupplierReport from './pages/admin/AdminSupplierReport'
 import AdminHolidaySupplierReport from './pages/admin/AdminHolidaySupplierReport'
+import AdminCombinedReport from './pages/admin/AdminCombinedReport'
+import AdminInventoryReport from './pages/admin/AdminInventoryReport'
+import AdminHolidayOrdersReport from './pages/admin/AdminHolidayOrdersReport'
+import AdminRevenueReport from './pages/admin/AdminRevenueReport'
+import AdminReports from './pages/admin/AdminReports'
 import AdminAvailability from './pages/admin/AdminAvailability'
 import AdminOrders from './pages/admin/AdminOrders'
 import AdminHolidays from './pages/admin/AdminHolidays'
@@ -121,6 +126,21 @@ function App() {
           } />
           <Route path="/admin/holiday-supplier-report" element={
             isAdmin ? <AdminHolidaySupplierReport /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          <Route path="/admin/combined-report" element={
+            isAdmin ? <AdminCombinedReport /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          <Route path="/admin/inventory-report" element={
+            isAdmin ? <AdminInventoryReport /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          <Route path="/admin/holiday-orders-report" element={
+            isAdmin ? <AdminHolidayOrdersReport /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          <Route path="/admin/revenue-report" element={
+            isAdmin ? <AdminRevenueReport /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          <Route path="/admin/reports" element={
+            isAdmin ? <AdminReports /> : <AdminLogin onLogin={setIsAdmin} />
           } />
           <Route path="/admin/availability" element={
             isAdmin ? <AdminAvailability /> : <AdminLogin onLogin={setIsAdmin} />

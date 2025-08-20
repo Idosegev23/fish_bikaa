@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
-import { pdfService, type DailyReportData } from '../../lib/pdfService'
-import { pdfMakeService, type DailyReportData as PDFMakeDailyReportData } from '../../lib/pdfMakeService'
 import { pdfLibService, type DailyReportData as PDFLibDailyReportData } from '../../lib/pdfLibService'
 import { sendWhatsAppMessage } from '../../lib/whatsappService'
 import { ArrowLeft, Download, MessageCircle, Calendar, TrendingUp, DollarSign, ShoppingCart, FileText } from 'lucide-react'
@@ -29,8 +27,6 @@ export default function AdminDailyReport() {
   )
   const [loading, setLoading] = useState(false)
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false)
-  const [generatingPDF, setGeneratingPDF] = useState(false)
-  const [generatingPDFMake, setGeneratingPDFMake] = useState(false)
   const [generatingPDFLib, setGeneratingPDFLib] = useState(false)
 
   useEffect(() => {
@@ -123,51 +119,6 @@ export default function AdminDailyReport() {
     return Array.from(fishMap.values())
   }
 
-  const downloadPDF = async () => {
-    setGeneratingPDF(true)
-    try {
-      const reportData: DailyReportData = {
-        date: selectedDate,
-        orders: stats.todayOrders,
-        totalRevenue: stats.totalRevenue,
-        totalOrders: stats.totalOrders,
-        fishSummary: generateFishSummary()
-      }
-      
-      const pdfBlob = await pdfService.generateDailyReport(reportData)
-      const filename = `דוח-יומי-${new Date(selectedDate).toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
-      
-      pdfService.downloadPDF(pdfBlob, filename)
-      alert('✅ הדוח הורד בהצלחה!')
-    } catch (error) {
-      alert('❌ שגיאה ביצירת הדוח')
-      console.error('Error generating PDF:', error)
-    } finally {
-      setGeneratingPDF(false)
-    }
-  }
-
-  const downloadPDFWithHebrew = async () => {
-    setGeneratingPDFMake(true)
-    try {
-      const reportData: PDFMakeDailyReportData = {
-        date: selectedDate,
-        orders: stats.todayOrders,
-        totalRevenue: stats.totalRevenue,
-        totalOrders: stats.totalOrders,
-        fishSummary: generateFishSummary()
-      }
-      
-      await pdfMakeService.generateDailyReport(reportData)
-      alert('✅ הדוח הורד בהצלחה עם תמיכה בעברית!')
-    } catch (error) {
-      alert('❌ שגיאה ביצירת הדוח')
-      console.error('Error generating PDFMake:', error)
-    } finally {
-      setGeneratingPDFMake(false)
-    }
-  }
-
   const downloadPDFWithPDFLib = async () => {
     setGeneratingPDFLib(true)
     try {
@@ -183,7 +134,7 @@ export default function AdminDailyReport() {
       const filename = `דוח-יומי-מושלם-${new Date(selectedDate).toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
       
       pdfLibService.downloadPDF(pdfBlob, filename)
-      alert('✅ הדוח הורד בהצלחה עם עברית מושלמת!')
+      alert('דוח הורד בהצלחה')
     } catch (error) {
       alert('❌ שגיאה ביצירת הדוח')
       console.error('Error generating PDFLib:', error)
@@ -252,39 +203,23 @@ export default function AdminDailyReport() {
                 <ArrowLeft className="w-6 h-6" />
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">דוח יומי</h1>
-                <p className="text-gray-600">סיכום הזמנות והכנסות יומיות</p>
+                <h1 className="text-3xl font-bold text-gray-900">דוח יומי להזמנות</h1>
+                <p className="text-gray-600">רשימת הזמנות לתאריך נבחר - לצורך היערכות יומית</p>
               </div>
             </div>
             <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-3 md:space-x-reverse w-full md:w-auto">
               <button
                 onClick={downloadPDFWithPDFLib}
                 disabled={generatingPDFLib || loading}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white flex items-center space-x-2 space-x-reverse w-full md:w-auto disabled:opacity-50 px-4 py-2 rounded-lg transition-colors font-semibold"
-              >
-                <FileText className="w-4 h-4" />
-                <span>{generatingPDFLib ? 'יוצר PDF...' : '🚀 PDF מושלם בעברית'}</span>
-              </button>
-              <button
-                onClick={downloadPDFWithHebrew}
-                disabled={generatingPDFMake || loading}
                 className="btn-primary flex items-center space-x-2 space-x-reverse w-full md:w-auto disabled:opacity-50"
               >
                 <FileText className="w-4 h-4" />
-                <span>{generatingPDFMake ? 'יוצר PDF...' : 'PDF עברית v1 ✨'}</span>
-              </button>
-              <button
-                onClick={downloadPDF}
-                disabled={generatingPDF || loading}
-                className="btn-secondary flex items-center space-x-2 space-x-reverse w-full md:w-auto disabled:opacity-50"
-              >
-                <FileText className="w-4 h-4" />
-                <span>{generatingPDF ? 'יוצר PDF...' : 'PDF בסיסי 🔧'}</span>
+                <span>{generatingPDFLib ? 'יוצר PDF...' : 'הורד דוח PDF'}</span>
               </button>
               <button
                 onClick={sendReportViaWhatsApp}
                 disabled={sendingWhatsApp || loading}
-                className="bg-green-600 hover:bg-green-700 text-white flex items-center space-x-2 space-x-reverse disabled:opacity-50 w-full md:w-auto px-4 py-2 rounded-lg transition-colors"
+                className="btn-secondary flex items-center space-x-2 space-x-reverse disabled:opacity-50 w-full md:w-auto"
               >
                 <MessageCircle className="w-4 h-4" />
                 <span>{sendingWhatsApp ? 'שולח...' : 'שלח בוואטסאפ'}</span>
@@ -415,14 +350,29 @@ export default function AdminDailyReport() {
                         </div>
                         <div className="mt-3 border-t border-neutral-200 pt-3 space-y-1">
                           {Array.isArray(order.order_items) ? (
-                            order.order_items.map((item: any, index: number) => (
-                              <div key={index} className="text-sm flex justify-between">
-                                <span className="text-neutral-700">{item.fish_name} • {item.cut}</span>
-                                <span className="text-neutral-500">{item.quantity_kg} ק"ג</span>
-                              </div>
-                            ))
+                            order.order_items.map((item: any, index: number) => {
+                              // בדיקה אם הדג ביחידות או בק"ג
+                              const isUnits = !['סלמון', 'טונה', 'טונה אדומה', 'טונה כחולה'].includes(item.fish_name || '')
+                              const quantity = isUnits ? 
+                                `${Math.floor(item.quantity_kg || item.quantity || 0)} יח'` : 
+                                `${(item.quantity_kg || item.quantity || 0).toFixed(1)} ק"ג`
+                              
+                              return (
+                                <div key={index} className="text-sm flex justify-between">
+                                  <span className="text-neutral-700">{item.fish_name} • {item.cut}</span>
+                                  <span className="text-neutral-500">{quantity}</span>
+                                </div>
+                              )
+                            })
                           ) : (
                             <span className="text-sm text-neutral-500">פרטי פריטים לא זמינים</span>
+                          )}
+                          {order.is_holiday_order && (
+                            <div className="mt-2 pt-2 border-t border-neutral-100">
+                              <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                                🎉 הזמנת חג
+                              </span>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -438,7 +388,7 @@ export default function AdminDailyReport() {
                           <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">לקוח</th>
                           <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">טלפון</th>
                           <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">פריטים</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">סה"כ</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">חג</th>
                           <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">איסוף</th>
                         </tr>
                       </thead>
@@ -457,16 +407,30 @@ export default function AdminDailyReport() {
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-900">
                               {Array.isArray(order.order_items) 
-                                ? order.order_items.map((item: any, index: number) => (
-                                    <div key={index} className="text-xs">
-                                      {item.fish_name} ({item.cut}) - {item.quantity_kg}ק"ג
-                                    </div>
-                                  ))
+                                ? order.order_items.map((item: any, index: number) => {
+                                    // בדיקה אם הדג ביחידות או בק"ג
+                                    const isUnits = !['סלמון', 'טונה', 'טונה אדומה', 'טונה כחולה'].includes(item.fish_name || '')
+                                    const quantity = isUnits ? 
+                                      `${Math.floor(item.quantity_kg || item.quantity || 0)} יח'` : 
+                                      `${(item.quantity_kg || item.quantity || 0).toFixed(1)} ק"ג`
+                                    
+                                    return (
+                                      <div key={index} className="text-xs">
+                                        {item.fish_name} ({item.cut}) - {quantity}
+                                      </div>
+                                    )
+                                  })
                                 : 'לא זמין'
                               }
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
-                              ₪{order.total_price}
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                              {order.is_holiday_order ? (
+                                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  🎉 חג
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 text-xs">רגיל</span>
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               {order.delivery_date} {order.delivery_time}

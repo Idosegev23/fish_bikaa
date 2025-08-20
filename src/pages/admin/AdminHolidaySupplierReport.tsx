@@ -136,7 +136,7 @@ export default function AdminHolidaySupplierReport() {
       const filename = `דוח-הזמנות-חג-${selectedHoliday.name}-${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
       
       pdfService.downloadPDF(pdfBlob, filename)
-      alert('✅ דוח הזמנות החג הורד בהצלחה!')
+      alert('דוח הורד בהצלחה')
 
     } catch (error) {
       console.error('Error generating PDF:', error)

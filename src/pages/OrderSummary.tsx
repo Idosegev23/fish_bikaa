@@ -817,7 +817,10 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">🚀</span>
                     <div>
-                      <p className="font-semibold text-orange-800">מעכשיו לעכשיו</p>
+                      <p className="font-semibold text-orange-800">איסוף מיידי</p>
+                      <p className="text-sm text-orange-700">
+                        זמן הזמנה: {orderData.deliveryTime} | תאריך: {orderData.deliveryDate}
+                      </p>
                       <p className="text-sm text-orange-700">ההזמנה תהיה מוכנה בתוך 30-45 דקות</p>
                       <p className="text-xs text-orange-600 mt-1">
                         תקבלו הודעת WhatsApp כשההזמנה מוכנה לאיסוף

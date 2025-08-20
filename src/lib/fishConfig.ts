@@ -2,9 +2,9 @@ export type FishSize = 'S' | 'M' | 'L'
 
 const KG_BY_WEIGHT_FISH: string[] = [
   'סלמון',
-  'טונה אדומה',
+  'טונה אדומה', 
   'טונה כחולה',
-  'ברבוניה'
+  'טונה'
 ]
 
 export function isByWeight(fishName: string): boolean {
