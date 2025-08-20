@@ -105,8 +105,8 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
             showPopup = daysDiff >= 0 && daysDiff <= 3
           }
           
-          // הצג פופאפ רק אם זה לא הזמנת חג (כדי להציע להפוך לחג)
-          if (showPopup && !holidayAlertChecked && !orderData?.isHolidayMode) {
+          // הצג פופאפ רק אם זה לא הזמנת חג ולא "מעכשיו לעכשיו" (כדי להציע להפוך לחג)
+          if (showPopup && !holidayAlertChecked && !orderData?.isHolidayMode && !orderData?.isImmediatePickup) {
             setHolidayAlertOpen(true)
             setHolidayAlertChecked(true)
           }
