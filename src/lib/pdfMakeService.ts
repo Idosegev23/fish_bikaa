@@ -1,9 +1,30 @@
-import * as pdfMake from 'pdfmake/build/pdfmake'
-import * as pdfFonts from 'pdfmake/build/vfs_fonts'
 import type { Order } from './supabase'
 
-// הגדרת הפונטים
-;(pdfMake as any).vfs = (pdfFonts as any).pdfMake.vfs
+// Dynamic import for pdfMake to avoid ESM issues
+let pdfMakeInstance: any = null
+let pdfMakeReady = false
+
+const initPDFMake = async () => {
+  if (pdfMakeReady) return pdfMakeInstance
+  
+  try {
+    const pdfMake = await import('pdfmake/build/pdfmake')
+    const pdfFonts = await import('pdfmake/build/vfs_fonts')
+    
+    pdfMakeInstance = pdfMake.default || pdfMake
+    const fonts = pdfFonts.default || pdfFonts
+    
+    if (pdfMakeInstance && fonts) {
+      pdfMakeInstance.vfs = (fonts as any).pdfMake?.vfs || (fonts as any).vfs
+      pdfMakeReady = true
+    }
+    
+    return pdfMakeInstance
+  } catch (error) {
+    console.error('Failed to load PDFMake:', error)
+    throw new Error('לא ניתן לטעון את PDFMake')
+  }
+}
 
 export interface DailyReportData {
   date: string
@@ -51,6 +72,7 @@ export class PDFMakeService {
 
   async generateDailyReport(data: DailyReportData): Promise<void> {
     const logoBase64 = await this.loadLogo()
+    const pdfMake = await initPDFMake()
     
     const documentDefinition = {
       info: {
@@ -208,11 +230,12 @@ export class PDFMakeService {
       }
     }
 
-    ;(pdfMake as any).createPdf(documentDefinition).download(`דוח-יומי-${new Date(data.date).toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`)
+    pdfMake.createPdf(documentDefinition).download(`דוח-יומי-${new Date(data.date).toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`)
   }
 
   async generateSupplierReport(data: SupplierReportData): Promise<void> {
     const logoBase64 = await this.loadLogo()
+    const pdfMake = await initPDFMake()
     
     const documentDefinition = {
       info: {
@@ -344,7 +367,7 @@ export class PDFMakeService {
       }
     }
 
-    ;(pdfMake as any).createPdf(documentDefinition).download(`דוח-ספקים-${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`)
+    pdfMake.createPdf(documentDefinition).download(`דוח-ספקים-${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`)
   }
 }
 
