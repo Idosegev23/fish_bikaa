@@ -90,6 +90,7 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
                   {...register('password', { required: 'סיסמא היא שדה חובה' })}
                   className="input-field pr-10 pl-10"
                   placeholder="הכנס סיסמא"
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"

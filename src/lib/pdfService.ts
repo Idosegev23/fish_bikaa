@@ -6,8 +6,15 @@ import type { Order } from './supabase'
 declare module 'jspdf' {
   interface jsPDF {
     autoTable: (options: any) => jsPDF
+    lastAutoTable: {
+      finalY: number
+    }
   }
 }
+
+// יבוא נוסף כדי לוודא שautoTable נטען
+// @ts-ignore
+import autoTable from 'jspdf-autotable'
 
 export interface DailyReportData {
   date: string
@@ -45,6 +52,16 @@ export class PDFService {
       unit: 'mm',
       format: 'a4'
     })
+    
+    // וידוא שautoTable נטען כראוי
+    if (typeof this.doc.autoTable !== 'function') {
+      // נסה לטעון שוב אם לא עבד
+      try {
+        require('jspdf-autotable')
+      } catch (e) {
+        console.warn('Failed to load jspdf-autotable:', e)
+      }
+    }
   }
 
   private async addLogo() {
@@ -100,6 +117,11 @@ export class PDFService {
       unit: 'mm',
       format: 'a4'
     })
+
+    // וידוא שautoTable זמין
+    if (typeof this.doc.autoTable !== 'function') {
+      throw new Error('autoTable is not available. Please check jspdf-autotable installation.')
+    }
 
     await this.addLogo()
     this.addHeader('דוח יומי', `תאריך: ${new Date(data.date).toLocaleDateString('he-IL')}`)
@@ -221,6 +243,11 @@ export class PDFService {
       unit: 'mm',
       format: 'a4'
     })
+
+    // וידוא שautoTable זמין
+    if (typeof this.doc.autoTable !== 'function') {
+      throw new Error('autoTable is not available. Please check jspdf-autotable installation.')
+    }
 
     await this.addLogo()
     this.addHeader(
