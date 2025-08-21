@@ -129,14 +129,25 @@ const AdminHolidayOrdersReport: React.FC = () => {
     try {
       const fishSummary = generateHolidayFishSummary()
       
-      console.log('Holiday Orders:', holidayOrders)
-      console.log('Fish Summary:', fishSummary)
-      
       const reportData: HolidayOrdersReportData = {
         holidayName: selectedHoliday.name,
         startDate: selectedHoliday.start_date,
         endDate: selectedHoliday.end_date,
         totalOrders: holidayOrders.length,
+        orders: holidayOrders.map((order, index) => ({
+          orderNumber: `HO-${(index + 1).toString().padStart(3, '0')}`,
+          customerName: order.customer_name,
+          customerPhone: order.phone,
+          orderDate: order.created_at,
+          deliveryDate: order.delivery_date,
+          deliveryTime: order.delivery_time,
+          items: Array.isArray(order.order_items) ? order.order_items.map((item: any) => ({
+            fishName: item.fish_name || 'לא ידוע',
+            cutType: item.cut || 'רגיל',
+            quantity: item.quantity_kg || item.quantity || 0,
+            isUnits: !['סלמון', 'טונה', 'טונה אדומה', 'טונה כחולה'].includes(item.fish_name || '')
+          })) : []
+        })),
         fishOrders: fishSummary.map(fish => ({
           fishName: fish.fishName,
           totalQuantity: fish.isUnits ? fish.totalQuantity : fish.totalWeight,
@@ -144,8 +155,6 @@ const AdminHolidayOrdersReport: React.FC = () => {
           orderCount: fish.orderCount
         }))
       }
-      
-      console.log('Report Data:', reportData)
 
       const pdfBlob = await pdfLibService.generateHolidayOrdersReport(reportData)
       const filename = `דוח-הזמנות-חג-${selectedHoliday.name}-${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`

@@ -44,6 +44,20 @@ export interface HolidayOrdersReportData {
   startDate: string
   endDate: string
   totalOrders: number
+  orders: Array<{
+    orderNumber: string
+    customerName: string
+    customerPhone: string
+    orderDate: string
+    deliveryDate: string
+    deliveryTime: string
+    items: Array<{
+      fishName: string
+      cutType: string
+      quantity: number
+      isUnits: boolean
+    }>
+  }>
   fishOrders: Array<{
     fishName: string
     totalQuantity: number
@@ -922,6 +936,120 @@ export class PDFLibService {
     const noDataWidth = font.widthOfTextAtSize(noDataText, 12)
     page.drawText(noDataText, {
       x: width - noDataWidth - 50,
+      y: yPosition,
+      size: 12,
+      font: font,
+      color: rgb(0.6, 0.6, 0.6),
+    })
+    yPosition -= 30
+  }
+
+  // טבלת פירוט הזמנות - מיושר ימינה
+  yPosition -= 50
+  const ordersTitle = this.reverseHebrewText('פירוט הזמנות')
+  const ordersTitleWidth = font.widthOfTextAtSize(ordersTitle, 18)
+  page.drawText(ordersTitle, {
+    x: width - ordersTitleWidth - 50,
+    y: yPosition,
+    size: 18,
+    font: boldFont,
+    color: rgb(0.1, 0.1, 0.1),
+  })
+
+  yPosition -= 30
+
+  // כותרות טבלת הזמנות - מיושר ימינה (הפוך סדר עבור RTL)
+  const orderHeaders = ['שעה', 'תאריך', 'טלפון', 'לקוח', 'מספר']
+  const orderHeaderXPositions = [width - 450, width - 350, width - 250, width - 150, width - 50] // מימין לשמאל
+
+  // רקע כותרות הזמנות
+  page.drawRectangle({
+    x: 50,
+    y: yPosition - 5,
+    width: width - 100,
+    height: 25,
+    color: rgb(0.95, 0.95, 0.95),
+  })
+
+  // כותרות הזמנות
+  orderHeaders.forEach((header, index) => {
+    const headerText = this.reverseHebrewText(header)
+    page.drawText(headerText, {
+      x: orderHeaderXPositions[index],
+      y: yPosition + 5,
+      size: 12,
+      font: boldFont,
+      color: rgb(0.1, 0.1, 0.1),
+    })
+  })
+
+  yPosition -= 30
+
+  // שורות הזמנות (רק אם יש נתונים)
+  if (data.orders && data.orders.length > 0) {
+    data.orders.forEach((order, index) => {
+      // עצירה אם נגמר המקום
+      if (yPosition < 150) {
+        return
+      }
+
+      // צבע רקע לשורות זוגיות
+      if (index % 2 === 0) {
+        page.drawRectangle({
+          x: 50,
+          y: yPosition - 5,
+          width: width - 100,
+          height: 20,
+          color: rgb(0.98, 0.98, 0.98),
+        })
+      }
+
+      // נתוני השורה (הפוך סדר עבור RTL)
+      const timeText = order.deliveryTime
+      const dateText = new Date(order.deliveryDate).toLocaleDateString('he-IL')
+      const phoneText = order.customerPhone
+      const customerText = this.reverseHebrewText(order.customerName)
+      const orderNumText = order.orderNumber
+
+      const orderRowData = [timeText, dateText, phoneText, customerText, orderNumText]
+
+      orderRowData.forEach((data, colIndex) => {
+        page.drawText(data, {
+          x: orderHeaderXPositions[colIndex],
+          y: yPosition,
+          size: 10,
+          font: font,
+          color: rgb(0.1, 0.1, 0.1),
+        })
+      })
+
+      yPosition -= 20
+
+      // הצגת פריטי ההזמנה (אם יש מקום)
+      if (order.items && order.items.length > 0 && yPosition > 120) {
+        order.items.forEach(item => {
+          if (yPosition > 120) {
+            const itemText = this.reverseHebrewText(`  • ${item.fishName} ${item.cutType} - ${item.isUnits ? Math.floor(item.quantity) + ' יח' : item.quantity.toFixed(1) + ' ק"ג'}`)
+            page.drawText(itemText, {
+              x: width - 400,
+              y: yPosition,
+              size: 9,
+              font: font,
+              color: rgb(0.4, 0.4, 0.4),
+            })
+            yPosition -= 15
+          }
+        })
+      }
+
+      yPosition -= 5 // מרווח בין הזמנות
+    })
+  } else {
+    // אם אין הזמנות - הצגת הודעה
+    const noOrdersText = this.reverseHebrewText('אין הזמנות זמינות לחג זה')
+    const noOrdersWidth = font.widthOfTextAtSize(noOrdersText, 12)
+    page.drawText(noOrdersText, {
+      x: width - noOrdersWidth - 50,
       y: yPosition,
       size: 12,
       font: font,
