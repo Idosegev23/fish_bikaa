@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import type { FishType } from '../../lib/supabase'
 import { pdfLibService } from '../../lib/pdfLibService'
-import type { DailyReportData } from '../../lib/pdfLibService'
+import type { InventoryReportData } from '../../lib/pdfLibService'
 import { sendWhatsAppMessage } from '../../lib/whatsappService'
 import { Package, FileText, MessageCircle, RefreshCw, ArrowLeft } from 'lucide-react'
 
@@ -37,23 +37,29 @@ const AdminInventoryReport: React.FC = () => {
     setGeneratingPDF(true)
     try {
       // יצירת נתוני דוח מלאי
-      const reportData: DailyReportData = {
+      const reportData: InventoryReportData = {
         date: new Date().toISOString(),
-        totalOrders: 0, // דוח מלאי אין צורך במספר הזמנות
-        totalRevenue: 0, // דוח מלאי אין צורך בהכנסות
-        orders: [], // דוח מלאי אין צורך בהזמנות
-        fishSummary: fishTypes.map(fish => {
+        fishInventory: fishTypes.map(fish => {
           const isUnits = !['סלמון', 'טונה', 'טונה אדומה', 'טונה כחולה'].includes(fish.name)
+          const stock = fish.available_kg
+          const isLowStock = stock < (isUnits ? 5 : 2)
+          const isOutOfStock = stock <= 0
+          
+          let status: 'זמין' | 'מלאי נמוך' | 'אזל'
+          if (isOutOfStock) status = 'אזל'
+          else if (isLowStock) status = 'מלאי נמוך'
+          else status = 'זמין'
+          
           return {
             fishName: fish.name,
-            totalQuantity: isUnits ? Math.floor(fish.available_kg) : 0,
-            totalWeight: isUnits ? 0 : fish.available_kg,
-            isUnits
+            availableQuantity: fish.available_kg,
+            isUnits,
+            status
           }
         })
       }
 
-      const pdfBlob = await pdfLibService.generateDailyReport(reportData)
+      const pdfBlob = await pdfLibService.generateInventoryReport(reportData)
       const filename = `דוח-מלאי-${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
       
       pdfLibService.downloadPDF(pdfBlob, filename)
