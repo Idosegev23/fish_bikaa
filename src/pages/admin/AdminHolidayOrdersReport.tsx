@@ -129,6 +129,9 @@ const AdminHolidayOrdersReport: React.FC = () => {
     try {
       const fishSummary = generateHolidayFishSummary()
       
+      console.log('Holiday Orders:', holidayOrders)
+      console.log('Fish Summary:', fishSummary)
+      
       const reportData: HolidayOrdersReportData = {
         holidayName: selectedHoliday.name,
         startDate: selectedHoliday.start_date,
@@ -141,6 +144,8 @@ const AdminHolidayOrdersReport: React.FC = () => {
           orderCount: fish.orderCount
         }))
       }
+      
+      console.log('Report Data:', reportData)
 
       const pdfBlob = await pdfLibService.generateHolidayOrdersReport(reportData)
       const filename = `דוח-הזמנות-חג-${selectedHoliday.name}-${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`

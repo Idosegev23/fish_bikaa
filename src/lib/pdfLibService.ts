@@ -821,7 +821,7 @@ export class PDFLibService {
       color: rgb(0.3, 0.3, 0.3),
     })
 
-    yPosition -= 30
+    yPosition -= 40
 
     // סה"כ הזמנות - מיושר ימינה
     const totalText = this.reverseHebrewText(`סה"כ הזמנות בתקופה: ${data.totalOrders}`)
@@ -834,7 +834,7 @@ export class PDFLibService {
       color: rgb(0.1, 0.1, 0.1),
     })
 
-    yPosition -= 50
+    yPosition -= 60
 
     // כותרת טבלה - מיושר ימינה
     const tableTitle = this.reverseHebrewText('כמויות שהוזמנו בפועל לחג')
@@ -851,7 +851,7 @@ export class PDFLibService {
 
     // כותרות טבלה - מיושר ימינה (הפוך סדר עבור RTL)
     const headers = ['יחידת מדידה', 'כמות שהוזמנה', 'סוג דג']
-    const headerXPositions = [width - 350, width - 200, width - 50] // מימין לשמאל
+    const headerXPositions = [width - 400, width - 250, width - 50] // מימין לשמאל עם רווח גדול יותר
 
     // רקע כותרות
     page.drawRectangle({
@@ -876,8 +876,9 @@ export class PDFLibService {
 
     yPosition -= 30
 
-    // שורות הטבלה
-    data.fishOrders.forEach((item, index) => {
+    // שורות הטבלה (רק אם יש נתונים)
+    if (data.fishOrders && data.fishOrders.length > 0) {
+      data.fishOrders.forEach((item, index) => {
       // צבע רקע לשורות זוגיות
       if (index % 2 === 0) {
         page.drawRectangle({
@@ -915,8 +916,22 @@ export class PDFLibService {
         return
       }
     })
+  } else {
+    // אם אין נתונים - הצגת הודעה
+    const noDataText = this.reverseHebrewText('אין נתוני הזמנות זמינים לחג זה')
+    const noDataWidth = font.widthOfTextAtSize(noDataText, 12)
+    page.drawText(noDataText, {
+      x: width - noDataWidth - 50,
+      y: yPosition,
+      size: 12,
+      font: font,
+      color: rgb(0.6, 0.6, 0.6),
+    })
+    yPosition -= 30
+  }
 
-    // הערות חשובות - מיושר ימינה
+  // הערות חשובות - מיושר ימינה (רק אם יש מקום)
+  if (yPosition > 200) {
     yPosition -= 30
     const notesTitle = this.reverseHebrewText('הערות חשובות:')
     const notesTitleWidth = font.widthOfTextAtSize(notesTitle, 14)
@@ -938,32 +953,35 @@ export class PDFLibService {
     ]
 
     notes.forEach(note => {
-      const noteText = this.reverseHebrewText(`• ${note}`)
-      const noteWidth = font.widthOfTextAtSize(noteText, 10)
-      page.drawText(noteText, {
-        x: width - noteWidth - 50,
-        y: yPosition,
-        size: 10,
-        font: font,
-        color: rgb(0.3, 0.3, 0.3),
-      })
-      yPosition -= 15
+      if (yPosition > 100) {
+        const noteText = this.reverseHebrewText(`• ${note}`)
+        const noteWidth = font.widthOfTextAtSize(noteText, 10)
+        page.drawText(noteText, {
+          x: width - noteWidth - 50,
+          y: yPosition,
+          size: 10,
+          font: font,
+          color: rgb(0.3, 0.3, 0.3),
+        })
+        yPosition -= 15
+      }
     })
-
-    // הערות תחתונות - מיושר ימינה
-    const footerText = this.reverseHebrewText('דוח הזמנות חג אוטומטי ממערכת ההזמנות - דגי בקעת אונו')
-    const footerWidth = font.widthOfTextAtSize(footerText, 10)
-    page.drawText(footerText, {
-      x: width - footerWidth - 50,
-      y: 50,
-      size: 10,
-      font: font,
-      color: rgb(0.6, 0.6, 0.6),
-    })
-
-    const pdfBytes = await pdfDoc.save()
-    return new Blob([pdfBytes], { type: 'application/pdf' })
   }
+
+  // הערות תחתונות - מיושר ימינה
+  const footerText = this.reverseHebrewText('דוח הזמנות חג אוטומטי ממערכת ההזמנות - דגי בקעת אונו')
+  const footerWidth = font.widthOfTextAtSize(footerText, 10)
+  page.drawText(footerText, {
+    x: width - footerWidth - 50,
+    y: 50,
+    size: 10,
+    font: font,
+    color: rgb(0.6, 0.6, 0.6),
+  })
+
+  const pdfBytes = await pdfDoc.save()
+  return new Blob([pdfBytes], { type: 'application/pdf' })
+}
 
   downloadPDF(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob)
