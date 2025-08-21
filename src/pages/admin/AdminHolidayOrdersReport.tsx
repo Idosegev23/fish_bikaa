@@ -5,7 +5,7 @@ import type { Holiday, Order } from '../../lib/supabase'
 import { pdfLibService } from '../../lib/pdfLibService'
 import type { HolidayOrdersReportData } from '../../lib/pdfLibService'
 import { sendWhatsAppMessage } from '../../lib/whatsappService'
-import { Calendar, FileText, MessageCircle, TrendingUp, Users, ArrowLeft } from 'lucide-react'
+import { Calendar, FileText, MessageCircle, TrendingUp, Users, ArrowLeft, ChevronDown, Check } from 'lucide-react'
 
 interface HolidayOrderData {
   fishName: string
@@ -22,10 +22,24 @@ const AdminHolidayOrdersReport: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [generatingPDF, setGeneratingPDF] = useState(false)
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   useEffect(() => {
     fetchHolidays()
   }, [])
+
+  // סגירת dropdown כשלוחצים מחוץ לו
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (dropdownOpen && !target.closest('.relative')) {
+        setDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [dropdownOpen])
 
   const fetchHolidays = async () => {
     try {
@@ -208,21 +222,48 @@ const AdminHolidayOrdersReport: React.FC = () => {
           <h2 className="text-xl font-semibold">בחירת חג</h2>
         </div>
         
-        <select
-          value={selectedHoliday?.id || ''}
-          onChange={(e) => {
-            const holiday = holidays.find(h => h.id === parseInt(e.target.value))
-            if (holiday) handleHolidaySelect(holiday)
-          }}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-        >
-          <option value="">בחר חג...</option>
-          {holidays.map(holiday => (
-            <option key={holiday.id} value={holiday.id}>
-              {holiday.name} - {new Date(holiday.start_date).toLocaleDateString('he-IL')} עד {new Date(holiday.end_date).toLocaleDateString('he-IL')}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white flex items-center justify-between text-right"
+          >
+            <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+            <span className={selectedHoliday ? 'text-gray-900' : 'text-gray-500'}>
+              {selectedHoliday 
+                ? `${selectedHoliday.name} - ${new Date(selectedHoliday.start_date).toLocaleDateString('he-IL')} עד ${new Date(selectedHoliday.end_date).toLocaleDateString('he-IL')}` 
+                : 'בחר חג...'
+              }
+            </span>
+          </button>
+          
+          {dropdownOpen && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {holidays.length === 0 ? (
+                <div className="p-3 text-gray-500 text-center">אין חגים זמינים</div>
+              ) : (
+                holidays.map(holiday => (
+                  <button
+                    key={holiday.id}
+                    onClick={() => {
+                      handleHolidaySelect(holiday)
+                      setDropdownOpen(false)
+                    }}
+                    className="w-full p-3 text-right hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center justify-between"
+                  >
+                    <div className="w-5 h-5 flex items-center justify-center">
+                      {selectedHoliday?.id === holiday.id && (
+                        <Check className="w-4 h-4 text-primary-600" />
+                      )}
+                    </div>
+                    <span className="text-gray-900">
+                      {holiday.name} - {new Date(holiday.start_date).toLocaleDateString('he-IL')} עד {new Date(holiday.end_date).toLocaleDateString('he-IL')}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {loading && (
