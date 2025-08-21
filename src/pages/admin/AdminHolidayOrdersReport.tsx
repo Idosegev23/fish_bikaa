@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import type { Holiday, Order } from '../../lib/supabase'
 import { pdfLibService } from '../../lib/pdfLibService'
-import type { DailyReportData } from '../../lib/pdfLibService'
+import type { HolidayOrdersReportData } from '../../lib/pdfLibService'
 import { sendWhatsAppMessage } from '../../lib/whatsappService'
 import { Calendar, FileText, MessageCircle, TrendingUp, Users, ArrowLeft } from 'lucide-react'
 
@@ -115,20 +115,20 @@ const AdminHolidayOrdersReport: React.FC = () => {
     try {
       const fishSummary = generateHolidayFishSummary()
       
-      const reportData: DailyReportData = {
-        date: new Date().toISOString(),
+      const reportData: HolidayOrdersReportData = {
+        holidayName: selectedHoliday.name,
+        startDate: selectedHoliday.start_date,
+        endDate: selectedHoliday.end_date,
         totalOrders: holidayOrders.length,
-        totalRevenue: holidayOrders.reduce((sum, order) => sum + Number(order.total_price || 0), 0),
-        orders: holidayOrders,
-        fishSummary: fishSummary.map(fish => ({
+        fishOrders: fishSummary.map(fish => ({
           fishName: fish.fishName,
-          totalQuantity: fish.totalQuantity,
-          totalWeight: fish.totalWeight,
-          isUnits: fish.isUnits
+          totalQuantity: fish.isUnits ? fish.totalQuantity : fish.totalWeight,
+          isUnits: fish.isUnits,
+          orderCount: fish.orderCount
         }))
       }
 
-      const pdfBlob = await pdfLibService.generateDailyReport(reportData)
+      const pdfBlob = await pdfLibService.generateHolidayOrdersReport(reportData)
       const filename = `דוח-הזמנות-חג-${selectedHoliday.name}-${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
       
       pdfLibService.downloadPDF(pdfBlob, filename)
