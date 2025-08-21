@@ -166,7 +166,6 @@ const AdminInventoryReport: React.FC = () => {
                 <th className="text-right py-3 px-4 font-semibold">דג</th>
                 <th className="text-right py-3 px-4 font-semibold">מלאי זמין</th>
                 <th className="text-right py-3 px-4 font-semibold">יחידת מדידה</th>
-                <th className="text-right py-3 px-4 font-semibold">מחיר לק"ג</th>
                 <th className="text-right py-3 px-4 font-semibold">סטטוס</th>
               </tr>
             </thead>
@@ -185,9 +184,6 @@ const AdminInventoryReport: React.FC = () => {
                     </td>
                     <td className="py-3 px-4">
                       {isUnits ? 'יחידות' : 'ק"ג'}
-                    </td>
-                    <td className="py-3 px-4">
-                      ₪{fish.price_per_kg.toFixed(2)}
                     </td>
                     <td className="py-3 px-4">
                       {isOutOfStock ? (

@@ -259,7 +259,7 @@ export default function AdminDailyReport() {
         ) : (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="bg-blue-500 p-3 rounded-lg">
@@ -275,23 +275,11 @@ export default function AdminDailyReport() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="bg-green-500 p-3 rounded-lg">
-                    <DollarSign className="w-6 h-6 text-white" />
+                    <Calendar className="w-6 h-6 text-white" />
                   </div>
                   <div className="mr-4">
-                    <p className="text-sm font-medium text-green-600">הכנסות היום</p>
-                    <p className="text-3xl font-bold text-green-900">₪{stats.totalRevenue.toFixed(0)}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="bg-purple-500 p-3 rounded-lg">
-                    <TrendingUp className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="mr-4">
-                    <p className="text-sm font-medium text-purple-600">ממוצע הזמנה</p>
-                    <p className="text-3xl font-bold text-purple-900">₪{stats.averageOrderValue.toFixed(0)}</p>
+                    <p className="text-sm font-medium text-green-600">תאריך דוח</p>
+                    <p className="text-xl font-bold text-green-900">{new Date(selectedDate).toLocaleDateString('he-IL')}</p>
                   </div>
                 </div>
               </div>

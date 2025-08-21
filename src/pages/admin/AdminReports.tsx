@@ -57,13 +57,13 @@ const AdminReports: React.FC = () => {
     },
     {
       id: 'revenue-report',
-      title: 'דוח הכנסות חודשי',
-      description: 'ניתוח עסקי מפורט - הכנסות, פילוחים וגרפים',
-      icon: DollarSign,
+      title: 'דוח פעילות עסקית',
+      description: 'ניתוח עסקי מפורט - הזמנות, מגמות ודגים פופולריים',
+      icon: TrendingUp,
       link: '/admin/revenue-report',
       color: 'emerald',
       timing: 'נשלח כל 1 לחודש',
-      features: ['גרפי הכנסות', 'דגים פופולריים', 'ניתוח מגמות', 'ממוצע הזמנה']
+      features: ['גרפי הזמנות', 'דגים פופולריים', 'ניתוח מגמות', 'לקוחות פעילים']
     }
   ]
 
