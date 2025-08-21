@@ -386,144 +386,182 @@ export class PDFLibService {
 
     let yPosition = height - 50
 
-    // לוגו
+    // לוגו - בצד שמאל
     if (logoImage) {
       page.drawImage(logoImage, {
-        x: width - 100,
+        x: 50, // בצד שמאל
         y: yPosition - 40,
         width: 60,
         height: 60,
       })
     }
 
-    // כותרת ראשית
-    const title = this.reverseHebrewText('דוח הזמנות לחג - דגי בקעת אונו')
+    // כותרת ראשית - מיושר ימינה
+    const title = this.reverseHebrewText('דוח ספקים לחג - דגי בקעת אונו')
+    const titleWidth = font.widthOfTextAtSize(title, 22)
     page.drawText(title, {
-      x: width / 2 - (title.length * 6),
+      x: width - titleWidth - 50,
       y: yPosition,
       size: 22,
       font: boldFont,
-      color: rgb(0.48, 0.23, 0.97), // סגול
+      color: rgb(0.15, 0.25, 0.85), // כחול
     })
 
     yPosition -= 30
 
-    // תאריכים
-    const dateRange = this.reverseHebrewText(
-      `${new Date(data.startDate).toLocaleDateString('he-IL')} - ${new Date(data.endDate).toLocaleDateString('he-IL')}`
-    )
+    // תאריכי החג - מיושר ימינה
+    const dateRange = this.reverseHebrewText(`${new Date(data.endDate).toLocaleDateString('he-IL')} - ${new Date(data.startDate).toLocaleDateString('he-IL')}`)
+    const dateWidth = font.widthOfTextAtSize(dateRange, 14)
     page.drawText(dateRange, {
-      x: width / 2 - (dateRange.length * 4),
+      x: width - dateWidth - 50,
       y: yPosition,
       size: 14,
       font: font,
-      color: rgb(0.4, 0.4, 0.4),
+      color: rgb(0.3, 0.3, 0.3),
     })
 
     yPosition -= 40
 
-    // סיכום הזמנות
-    const summaryText = this.reverseHebrewText(`סה"כ הזמנות בתקופה: ${data.totalOrders}`)
-    page.drawText(summaryText, {
-      x: 50,
+    // סה"כ הזמנות - מיושר ימינה
+    const totalText = this.reverseHebrewText(`סה"כ הזמנות בתקופה: ${data.totalOrders}`)
+    const totalWidth = font.widthOfTextAtSize(totalText, 14)
+    page.drawText(totalText, {
+      x: width - totalWidth - 50,
       y: yPosition,
       size: 14,
-      font: font,
-      color: rgb(0.2, 0.2, 0.2),
+      font: boldFont,
+      color: rgb(0.1, 0.1, 0.1),
     })
 
     yPosition -= 40
 
-    // כותרת טבלה
-    const tableTitle = this.reverseHebrewText('כמויות שהוזמנו בפועל לחג')
+    // כותרת טבלה - מיושר ימינה
+    const tableTitle = this.reverseHebrewText('כמויות נדרשות לחג vs מלאי נוכחי')
+    const tableTitleWidth = font.widthOfTextAtSize(tableTitle, 18)
     page.drawText(tableTitle, {
-      x: 50,
+      x: width - tableTitleWidth - 50,
       y: yPosition,
       size: 18,
       font: boldFont,
-      color: rgb(0.48, 0.23, 0.97),
+      color: rgb(0.1, 0.1, 0.1),
     })
 
     yPosition -= 30
 
-    // כותרות טבלה
-    const headers = ['סוג דג', 'כמות שהוזמנה', 'יחידת מדידה']
-    const xPositions = [50, 250, 450]
-    
+    // כותרות טבלה - מיושר ימינה (הפוך סדר עבור RTL)
+    const headers = ['יחידה', 'חסר במלאי', 'מלאי נוכחי', 'נדרש לחג', 'סוג דג']
+    const headerXPositions = [width - 450, width - 350, width - 250, width - 150, width - 50] // מימין לשמאל
+
+    // רקע כותרות
+    page.drawRectangle({
+      x: 50,
+      y: yPosition - 5,
+      width: width - 100,
+      height: 25,
+      color: rgb(0.95, 0.95, 0.95),
+    })
+
+    // כותרות
     headers.forEach((header, index) => {
-      const reversedHeader = this.reverseHebrewText(header)
-      page.drawText(reversedHeader, {
-        x: xPositions[index],
-        y: yPosition,
+      const headerText = this.reverseHebrewText(header)
+      page.drawText(headerText, {
+        x: headerXPositions[index],
+        y: yPosition + 5,
         size: 12,
         font: boldFont,
-        color: rgb(0, 0, 0),
+        color: rgb(0.1, 0.1, 0.1),
       })
     })
 
-    yPosition -= 15
+    yPosition -= 30
 
-    // קו הפרדה
-    page.drawLine({
-      start: { x: 50, y: yPosition },
-      end: { x: width - 50, y: yPosition },
-      thickness: 1,
-      color: rgb(0.8, 0.8, 0.8),
-    })
+    // שורות הטבלה
+    data.fishRequirements.forEach((fish, index) => {
+      // צבע רקע לשורות זוגיות
+      if (index % 2 === 0) {
+        page.drawRectangle({
+          x: 50,
+          y: yPosition - 5,
+          width: width - 100,
+          height: 20,
+          color: rgb(0.98, 0.98, 0.98),
+        })
+      }
 
-    yPosition -= 10
+      // נתוני השורה (הפוך סדר עבור RTL)
+      const unitText = this.reverseHebrewText(fish.isUnits ? 'יחידות' : 'ק"ג')
+      const deficitText = (fish.deficit && fish.deficit > 0) ? 
+        (fish.isUnits ? Math.ceil(fish.deficit).toString() : fish.deficit.toFixed(1)) : '0'
+      const currentStockText = fish.currentStock ? 
+        (fish.isUnits ? Math.floor(fish.currentStock).toString() : fish.currentStock.toFixed(1)) : '0'
+      const requiredText = fish.isUnits ? 
+        Math.ceil(fish.totalRequired).toString() : 
+        fish.totalRequired.toFixed(1)
+      const fishText = this.reverseHebrewText(fish.fishName)
 
-    // נתוני דרישות דגים
-    data.fishRequirements.forEach(fish => {
-      const quantity = fish.isUnits ? `${fish.totalRequired}` : `${fish.totalRequired.toFixed(1)}`
-      const unit = fish.isUnits ? 'יחידות' : 'קילוגרם'
+      const rowData = [unitText, deficitText, currentStockText, requiredText, fishText]
 
-      const rowData = [
-        this.reverseHebrewText(fish.fishName),
-        quantity,
-        this.reverseHebrewText(unit)
-      ]
+      rowData.forEach((data, colIndex) => {
+        // צבע אדום לחסר במלאי
+        const textColor = colIndex === 1 && parseFloat(data) > 0 ? 
+          rgb(0.8, 0.2, 0.2) : rgb(0.1, 0.1, 0.1)
 
-      rowData.forEach((data, index) => {
         page.drawText(data, {
-          x: xPositions[index],
+          x: headerXPositions[colIndex],
           y: yPosition,
           size: 10,
           font: font,
-          color: rgb(0.1, 0.1, 0.1),
+          color: textColor,
         })
       })
 
+      yPosition -= 20
+
+      // עצירה אם נגמר המקום
+      if (yPosition < 150) {
+        return
+      }
+    })
+
+    // הערות חשובות - מיושר ימינה
+    yPosition -= 30
+    const notesTitle = this.reverseHebrewText('הערות חשובות:')
+    const notesTitleWidth = font.widthOfTextAtSize(notesTitle, 14)
+    page.drawText(notesTitle, {
+      x: width - notesTitleWidth - 50,
+      y: yPosition,
+      size: 14,
+      font: boldFont,
+      color: rgb(0.1, 0.1, 0.1),
+    })
+
+    yPosition -= 20
+
+    const notes = [
+      'דוח מיועד לתכנון הזמנות מספקים',
+      'כמויות מעוגלות כלפי מעלה לביטחון',
+      'טונה וסלמון בק"ג, שאר הדגים ביחידות',
+      'מומלץ להזמין לפי עמודת "חסר במלאי"'
+    ]
+
+    notes.forEach(note => {
+      const noteText = this.reverseHebrewText(`• ${note}`)
+      const noteWidth = font.widthOfTextAtSize(noteText, 10)
+      page.drawText(noteText, {
+        x: width - noteWidth - 50,
+        y: yPosition,
+        size: 10,
+        font: font,
+        color: rgb(0.3, 0.3, 0.3),
+      })
       yPosition -= 15
     })
 
-    yPosition -= 30
-
-    // הערות
-    const notes = [
-      'הערות חשובות:',
-      '• אלה הכמויות שהלקוחות הזמינו בפועל לחג',
-      '• מומלץ להוסיף מרווח בטחון של 10-15% לכמויות',
-      '• משקלים סופיים יתבצעו בקופה לפי משקל בפועל',
-      '• הדוח מתבסס על הזמנות שנקלטו במערכת'
-    ]
-
-    notes.forEach((note, index) => {
-      const reversedNote = this.reverseHebrewText(note)
-      page.drawText(reversedNote, {
-        x: 50,
-        y: yPosition,
-        size: index === 0 ? 14 : 11,
-        font: index === 0 ? boldFont : font,
-        color: index === 0 ? rgb(0.48, 0.23, 0.97) : rgb(0.3, 0.3, 0.3),
-      })
-      yPosition -= index === 0 ? 20 : 15
-    })
-
-    // הערת תחתית
-    const footerText = this.reverseHebrewText('הודעה אוטומטית ממערכת ההזמנות - דגי בקעת אונו')
+    // הערות תחתונות - מיושר ימינה
+    const footerText = this.reverseHebrewText('דוח ספקים אוטומטי ממערכת ההזמנות - דגי בקעת אונו')
+    const footerWidth = font.widthOfTextAtSize(footerText, 10)
     page.drawText(footerText, {
-      x: width / 2 - (footerText.length * 3),
+      x: width - footerWidth - 50,
       y: 50,
       size: 10,
       font: font,
