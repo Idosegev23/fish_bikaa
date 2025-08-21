@@ -47,7 +47,18 @@ const AdminHolidayOrdersReport: React.FC = () => {
         .from('holidays')
         .select('*')
         .order('start_date', { ascending: false })
-      setHolidays(data || [])
+      
+      // סינון חגים - רק חגים שעדיין לא עבר המועד שלהם (לפי end_date)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0) // איפוס השעה לתחילת היום
+      
+      const relevantHolidays = (data || []).filter(holiday => {
+        const endDate = new Date(holiday.end_date)
+        endDate.setHours(23, 59, 59, 999) // סוף היום
+        return endDate >= today // החג עדיין לא הסתיים
+      })
+      
+      setHolidays(relevantHolidays)
     } catch (error) {
       console.error('Error fetching holidays:', error)
     }
@@ -210,6 +221,15 @@ const AdminHolidayOrdersReport: React.FC = () => {
     }
   }
 
+  const isActiveHoliday = (holiday: Holiday): boolean => {
+    const today = new Date()
+    const startDate = new Date(holiday.start_date)
+    const endDate = new Date(holiday.end_date)
+    
+    // חג פעיל אם אנחנו בין תאריך ההתחלה לתאריך הסיום
+    return today >= startDate && today <= endDate && holiday.active
+  }
+
   const handleHolidaySelect = (holiday: Holiday) => {
     setSelectedHoliday(holiday)
     fetchHolidayOrders(holiday)
@@ -243,10 +263,18 @@ const AdminHolidayOrdersReport: React.FC = () => {
           >
             <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
             <span className={selectedHoliday ? 'text-gray-900' : 'text-gray-500'}>
-              {selectedHoliday 
-                ? `${selectedHoliday.name} - ${new Date(selectedHoliday.start_date).toLocaleDateString('he-IL')} עד ${new Date(selectedHoliday.end_date).toLocaleDateString('he-IL')}` 
-                : 'בחר חג...'
-              }
+              {selectedHoliday ? (
+                <span className="flex items-center gap-2">
+                  {isActiveHoliday(selectedHoliday) && (
+                    <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">פעיל</span>
+                  )}
+                  <span>
+                    {selectedHoliday.name} - {new Date(selectedHoliday.start_date).toLocaleDateString('he-IL')} עד {new Date(selectedHoliday.end_date).toLocaleDateString('he-IL')}
+                  </span>
+                </span>
+              ) : (
+                'בחר חג...'
+              )}
             </span>
           </button>
           
@@ -255,25 +283,35 @@ const AdminHolidayOrdersReport: React.FC = () => {
               {holidays.length === 0 ? (
                 <div className="p-3 text-gray-500 text-center">אין חגים זמינים</div>
               ) : (
-                holidays.map(holiday => (
-                  <button
-                    key={holiday.id}
-                    onClick={() => {
-                      handleHolidaySelect(holiday)
-                      setDropdownOpen(false)
-                    }}
-                    className="w-full p-3 text-right hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center justify-between"
-                  >
-                    <div className="w-5 h-5 flex items-center justify-center">
-                      {selectedHoliday?.id === holiday.id && (
-                        <Check className="w-4 h-4 text-primary-600" />
-                      )}
-                    </div>
-                    <span className="text-gray-900">
-                      {holiday.name} - {new Date(holiday.start_date).toLocaleDateString('he-IL')} עד {new Date(holiday.end_date).toLocaleDateString('he-IL')}
-                    </span>
-                  </button>
-                ))
+                holidays.map(holiday => {
+                  const isActive = isActiveHoliday(holiday)
+                  return (
+                    <button
+                      key={holiday.id}
+                      onClick={() => {
+                        handleHolidaySelect(holiday)
+                        setDropdownOpen(false)
+                      }}
+                      className={`w-full p-3 text-right hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center justify-between ${
+                        isActive ? 'bg-green-50' : ''
+                      }`}
+                    >
+                      <div className="w-5 h-5 flex items-center justify-center">
+                        {selectedHoliday?.id === holiday.id && (
+                          <Check className="w-4 h-4 text-primary-600" />
+                        )}
+                      </div>
+                      <span className="flex items-center gap-2">
+                        {isActive && (
+                          <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">פעיל</span>
+                        )}
+                        <span className="text-gray-900">
+                          {holiday.name} - {new Date(holiday.start_date).toLocaleDateString('he-IL')} עד {new Date(holiday.end_date).toLocaleDateString('he-IL')}
+                        </span>
+                      </span>
+                    </button>
+                  )
+                })
               )}
             </div>
           )}
