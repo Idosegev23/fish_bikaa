@@ -39,6 +39,24 @@ export interface InventoryReportData {
   }>
 }
 
+export interface BusinessActivityReportData {
+  month: string
+  totalOrders: number
+  totalCustomers: number
+  averageOrdersPerDay: number
+  bestDay: { date: string; orders: number }
+  topFish: Array<{
+    fishName: string
+    orders: number
+    quantity: number
+    percentage: number
+  }>
+  holidayOrdersCount: number
+  regularOrdersCount: number
+  peakHours: Array<{ hour: string; orders: number }>
+  customerRetention: number
+}
+
 export interface HolidayOrdersReportData {
   holidayName: string
   startDate: string
@@ -1110,6 +1128,238 @@ export class PDFLibService {
   const pdfBytes = await pdfDoc.save()
   return new Blob([pdfBytes], { type: 'application/pdf' })
 }
+
+  async generateBusinessActivityReport(data: BusinessActivityReportData): Promise<Blob> {
+    const pdfDoc = await PDFDocument.create()
+    pdfDoc.registerFontkit(fontkit)
+
+    // טעינת הפונט העברי - עם fallback
+    let font
+    try {
+      const fontBytes = await fetch('/fonts/OpenSans-VariableFont_wdth,wght.ttf').then(res => res.arrayBuffer())
+      font = await pdfDoc.embedFont(fontBytes)
+    } catch (error) {
+      console.warn('Failed to load custom font, using default:', error)
+      font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    }
+
+    const page = pdfDoc.addPage()
+    const { width, height } = page.getSize()
+    let yPosition = height - 80
+
+    // כותרת ראשית
+    const title = this.reverseHebrewText('דוח פעילות עסקית - דגי בקעת אונו')
+    const titleWidth = font.widthOfTextAtSize(title, 24)
+    page.drawText(title, {
+      x: width - titleWidth - 50,
+      y: yPosition,
+      size: 24,
+      font: font,
+      color: rgb(0.2, 0.2, 0.8),
+    })
+    yPosition -= 40
+
+    // חודש הדוח
+    const monthText = this.reverseHebrewText(`חודש: ${data.month}`)
+    const monthWidth = font.widthOfTextAtSize(monthText, 16)
+    page.drawText(monthText, {
+      x: width - monthWidth - 50,
+      y: yPosition,
+      size: 16,
+      font: font,
+      color: rgb(0.3, 0.3, 0.3),
+    })
+    yPosition -= 50
+
+    // סיכום פעילות
+    const summaryTitle = this.reverseHebrewText('סיכום פעילות')
+    const summaryTitleWidth = font.widthOfTextAtSize(summaryTitle, 18)
+    page.drawText(summaryTitle, {
+      x: width - summaryTitleWidth - 50,
+      y: yPosition,
+      size: 18,
+      font: font,
+      color: rgb(0.1, 0.1, 0.1),
+    })
+    yPosition -= 30
+
+    // נתוני סיכום
+    const summaryData = [
+      `סה"כ הזמנות: ${data.totalOrders}`,
+      `לקוחות פעילים: ${data.totalCustomers}`,
+      `ממוצע הזמנות ליום: ${data.averageOrdersPerDay.toFixed(1)}`,
+      `יום עמוס ביותר: ${new Date(data.bestDay.date).toLocaleDateString('he-IL')} (${data.bestDay.orders} הזמנות)`,
+      `שימור לקוחות: ${data.customerRetention.toFixed(1)}%`
+    ]
+
+    summaryData.forEach(item => {
+      const itemText = this.reverseHebrewText(`• ${item}`)
+      const itemWidth = font.widthOfTextAtSize(itemText, 12)
+      page.drawText(itemText, {
+        x: width - itemWidth - 70,
+        y: yPosition,
+        size: 12,
+        font: font,
+        color: rgb(0.2, 0.2, 0.2),
+      })
+      yPosition -= 20
+    })
+
+    yPosition -= 20
+
+    // סוגי הזמנות
+    const ordersTypeTitle = this.reverseHebrewText('סוגי הזמנות')
+    const ordersTypeTitleWidth = font.widthOfTextAtSize(ordersTypeTitle, 18)
+    page.drawText(ordersTypeTitle, {
+      x: width - ordersTypeTitleWidth - 50,
+      y: yPosition,
+      size: 18,
+      font: font,
+      color: rgb(0.1, 0.1, 0.1),
+    })
+    yPosition -= 30
+
+    const ordersData = [
+      `הזמנות רגילות: ${data.regularOrdersCount} (${data.totalOrders > 0 ? ((data.regularOrdersCount / data.totalOrders) * 100).toFixed(1) : 0}%)`,
+      `הזמנות חג: ${data.holidayOrdersCount} (${data.totalOrders > 0 ? ((data.holidayOrdersCount / data.totalOrders) * 100).toFixed(1) : 0}%)`
+    ]
+
+    ordersData.forEach(item => {
+      const itemText = this.reverseHebrewText(`• ${item}`)
+      const itemWidth = font.widthOfTextAtSize(itemText, 12)
+      page.drawText(itemText, {
+        x: width - itemWidth - 70,
+        y: yPosition,
+        size: 12,
+        font: font,
+        color: rgb(0.2, 0.2, 0.2),
+      })
+      yPosition -= 20
+    })
+
+    yPosition -= 20
+
+    // דגים פופולריים - טבלה
+    if (data.topFish && data.topFish.length > 0 && yPosition > 200) {
+      const fishTitle = this.reverseHebrewText('דגים פופולריים')
+      const fishTitleWidth = font.widthOfTextAtSize(fishTitle, 18)
+      page.drawText(fishTitle, {
+        x: width - fishTitleWidth - 50,
+        y: yPosition,
+        size: 18,
+        font: font,
+        color: rgb(0.1, 0.1, 0.1),
+      })
+      yPosition -= 30
+
+      // כותרות טבלה
+      const headers = ['אחוז', 'כמות', 'הזמנות', 'סוג דג']
+      const headerXPositions = [width - 120, width - 200, width - 280, width - 400] // מימין לשמאל
+
+      // רקע כותרות
+      page.drawRectangle({
+        x: width - 500,
+        y: yPosition - 5,
+        width: 450,
+        height: 25,
+        color: rgb(0.95, 0.95, 0.95),
+      })
+
+      headers.forEach((header, index) => {
+        const headerText = this.reverseHebrewText(header)
+        const headerWidth = font.widthOfTextAtSize(headerText, 12)
+        page.drawText(headerText, {
+          x: headerXPositions[index] - headerWidth / 2,
+          y: yPosition,
+          size: 12,
+          font: font,
+          color: rgb(0.1, 0.1, 0.1),
+        })
+      })
+      yPosition -= 25
+
+      // נתוני דגים
+      data.topFish.forEach((fish, index) => {
+        if (yPosition > 100) {
+          // רקע לשורות זוגיות
+          if (index % 2 === 0) {
+            page.drawRectangle({
+              x: width - 500,
+              y: yPosition - 5,
+              width: 450,
+              height: 20,
+              color: rgb(0.98, 0.98, 0.98),
+            })
+          }
+
+          const rowData = [
+            `${fish.percentage.toFixed(1)}%`,
+            fish.quantity.toFixed(1),
+            fish.orders.toString(),
+            fish.fishName
+          ]
+
+          rowData.forEach((cell, cellIndex) => {
+            const cellText = this.reverseHebrewText(cell)
+            const cellWidth = font.widthOfTextAtSize(cellText, 10)
+            page.drawText(cellText, {
+              x: headerXPositions[cellIndex] - cellWidth / 2,
+              y: yPosition,
+              size: 10,
+              font: font,
+              color: rgb(0.3, 0.3, 0.3),
+            })
+          })
+          yPosition -= 20
+        }
+      })
+      yPosition -= 20
+    }
+
+    // שעות שיא
+    if (data.peakHours && data.peakHours.length > 0 && yPosition > 150) {
+      const peakTitle = this.reverseHebrewText('שעות שיא')
+      const peakTitleWidth = font.widthOfTextAtSize(peakTitle, 18)
+      page.drawText(peakTitle, {
+        x: width - peakTitleWidth - 50,
+        y: yPosition,
+        size: 18,
+        font: font,
+        color: rgb(0.1, 0.1, 0.1),
+      })
+      yPosition -= 30
+
+      data.peakHours.forEach((hour, index) => {
+        if (yPosition > 100) {
+          const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'
+          const hourText = this.reverseHebrewText(`${medal} ${hour.hour}: ${hour.orders} הזמנות`)
+          const hourWidth = font.widthOfTextAtSize(hourText, 12)
+          page.drawText(hourText, {
+            x: width - hourWidth - 70,
+            y: yPosition,
+            size: 12,
+            font: font,
+            color: rgb(0.2, 0.2, 0.2),
+          })
+          yPosition -= 20
+        }
+      })
+    }
+
+    // הערות תחתונות
+    const footerText = this.reverseHebrewText('דוח פעילות עסקית אוטומטי ממערכת ההזמנות - דגי בקעת אונו')
+    const footerWidth = font.widthOfTextAtSize(footerText, 10)
+    page.drawText(footerText, {
+      x: width - footerWidth - 50,
+      y: 50,
+      size: 10,
+      font: font,
+      color: rgb(0.6, 0.6, 0.6),
+    })
+
+    const pdfBytes = await pdfDoc.save()
+    return new Blob([pdfBytes], { type: 'application/pdf' })
+  }
 
   downloadPDF(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob)
