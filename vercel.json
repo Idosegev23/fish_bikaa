@@ -15,11 +15,7 @@
       "schedule": "0 9 * * *"
     }
   ],
-  "build": {
-    "env": {
-      "NODE_VERSION": "18.x"
-    }
-  },
+
   "rewrites": [
     {
       "source": "/((?!api).*)",
