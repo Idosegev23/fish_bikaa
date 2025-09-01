@@ -1,11 +1,11 @@
 {
   "functions": {
     "api/send-email.js": {
-      "runtime": "@vercel/node@3.0.7",
+      "runtime": "nodejs18.x",
       "maxDuration": 30
     },
     "api/holiday-scheduler.js": {
-      "runtime": "@vercel/node@3.0.7",
+      "runtime": "nodejs18.x",
       "maxDuration": 60
     }
   },
