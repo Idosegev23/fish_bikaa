@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
 import type { CutType } from '../../lib/supabase'
-import { ArrowLeft, Plus, Edit, Save, X, Scissors } from 'lucide-react'
+import { ArrowLeft, Plus, Edit, Save, X, Scissors, Power, PowerOff } from 'lucide-react'
 
 interface NewCutForm {
   cut_name: string
@@ -188,6 +188,23 @@ export default function AdminCutTypes() {
     }
   }
 
+  const toggleCutTypeStatus = async (id: number, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('cut_types')
+        .update({ is_active: !currentStatus })
+        .eq('id', id)
+
+      if (error) throw error
+      
+      await fetchCutTypes()
+      alert(`סוג החיתוך ${!currentStatus ? 'הופעל' : 'כובה'} בהצלחה!`)
+    } catch (error) {
+      console.error('Error:', error)
+      alert('שגיאה בעדכון סטטוס סוג החיתוך')
+    }
+  }
+
   const deleteCutType = async (cutId: number) => {
     if (!confirm('האם אתה בטוח שרצה למחוק את סוג החיתוך? פעולה זו לא ניתנת לביטול.')) {
       return
@@ -284,13 +301,29 @@ export default function AdminCutTypes() {
               ) : (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="font-semibold text-neutral-900">{cutType.cut_name}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="font-semibold text-neutral-900">{cutType.cut_name}</div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        cutType.is_active 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {cutType.is_active ? 'פעיל' : 'כבוי'}
+                      </span>
+                    </div>
                     <div className="text-sm text-neutral-500">#{cutType.id}</div>
                   </div>
                   <div className="text-sm text-neutral-700">
                     תוספת: {cutType.default_addition === 0 ? 'ללא תוספת' : `+₪${cutType.default_addition}`}
                   </div>
                   <div className="flex justify-end gap-3">
+                    <button 
+                      onClick={() => toggleCutTypeStatus(cutType.id, cutType.is_active)} 
+                      className={`p-1 ${cutType.is_active ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}`} 
+                      title={cutType.is_active ? 'כבה' : 'הפעל'}
+                    >
+                      {cutType.is_active ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
+                    </button>
                     <button onClick={() => startEdit(cutType)} className="text-primary-600 hover:text-primary-700 p-1" title="עריכה">
                       <Edit className="w-4 h-4" />
                     </button>
@@ -318,6 +351,9 @@ export default function AdminCutTypes() {
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     תוספת מחיר (₪)
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    סטטוס
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     מטגי מנות
@@ -354,6 +390,9 @@ export default function AdminCutTypes() {
                             step="0.01"
                             min="0"
                           />
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-xs text-gray-500">לא ניתן לעריכה במצב עריכה</span>
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-xs text-gray-500">עריכה דרך מודל בלבד</span>
@@ -394,6 +433,15 @@ export default function AdminCutTypes() {
                             {cutType.default_addition === 0 ? 'ללא תוספת' : `+₪${cutType.default_addition}`}
                           </span>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            cutType.is_active 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {cutType.is_active ? 'פעיל' : 'כבוי'}
+                          </span>
+                        </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-wrap gap-1">
                             {(cutType as any).meal_tags_list?.length > 0 ? (
@@ -409,6 +457,13 @@ export default function AdminCutTypes() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2 space-x-reverse">
+                            <button
+                              onClick={() => toggleCutTypeStatus(cutType.id, cutType.is_active)}
+                              className={`p-1 ${cutType.is_active ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}`}
+                              title={cutType.is_active ? 'כבה' : 'הפעל'}
+                            >
+                              {cutType.is_active ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
+                            </button>
                             <button
                               onClick={() => startEdit(cutType)}
                               className="text-primary-600 hover:text-primary-700 p-1"

@@ -29,6 +29,7 @@ export interface CutType {
   id: number
   cut_name: string
   default_addition: number
+  is_active: boolean
   created_at: string
 }
 

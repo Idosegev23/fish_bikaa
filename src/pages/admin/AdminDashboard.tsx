@@ -385,17 +385,21 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Kitchen Display Button - Special (Disabled) */}
+        {/* Kitchen Display Button - Disabled */}
         <div className="mb-8">
-          <div className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white font-bold py-6 px-8 rounded-2xl shadow-lg flex items-center justify-center gap-4 text-xl opacity-60 cursor-not-allowed">
+          <button 
+            disabled
+            className="w-full bg-gray-400 cursor-not-allowed text-white font-bold py-6 px-8 rounded-2xl shadow-lg opacity-60 flex items-center justify-center gap-4 text-xl"
+            title="תכונה זו עדיין לא זמינה"
+          >
             <Monitor className="w-8 h-8" />
             <div className="text-center">
               <div className="text-2xl font-bold">📺 מסך מטבח</div>
-              <div className="text-lg opacity-90">תכונה זו תהיה זמינה בקרוב</div>
-              <div className="text-sm opacity-75 mt-1">💰 עדכון בתשלום</div>
+              <div className="text-lg opacity-90">ניהול שקילות והזמנות</div>
+              <div className="text-sm opacity-90 mt-1">🚧 בקרוב</div>
             </div>
             <Scale className="w-8 h-8" />
-          </div>
+          </button>
         </div>
 
         {/* Quick Actions (condensed) */}

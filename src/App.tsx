@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
 import FishCatalog from './pages/FishCatalog'
+import CatalogCategories from './pages/CatalogCategories'
+import AdditionalProducts from './pages/AdditionalProducts'
 import CustomerDetails from './pages/CustomerDetails'
 import OrderSummary from './pages/OrderSummary'
 import AdminLogin from './pages/admin/AdminLogin'
@@ -74,6 +76,18 @@ function App() {
           <Route path="/" element={
             <Layout cart={cart}>
               <HomePage />
+            </Layout>
+          } />
+          
+          <Route path="/categories" element={
+            <Layout cart={cart}>
+              <CatalogCategories />
+            </Layout>
+          } />
+          
+          <Route path="/additional-products" element={
+            <Layout cart={cart}>
+              <AdditionalProducts onAddToCart={addToCart} />
             </Layout>
           } />
           
@@ -154,29 +168,13 @@ function App() {
             isAdmin ? <AdminDailyOrders /> : <AdminLogin onLogin={setIsAdmin} />
           } />
           
-          {/* מסך מטבח מכובה זמנית - תכונה בתשלום */}
-          <Route path="/admin/kitchen-weighing" element={
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-              <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md">
-                <div className="text-6xl mb-4">🔒</div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">תכונה בתשלום</h2>
-                <p className="text-gray-600 mb-4">מסך המטבח יהיה זמין לאחר רכישת העדכון</p>
-                <p className="text-sm text-gray-500">צרו קשר לפרטים נוספים</p>
-              </div>
-            </div>
-          } />
+          {/* מסך מטבח אדמין - כבוי זמנית */}
+          {/* <Route path="/admin/kitchen-weighing" element={
+            isAdmin ? <AdminKitchenWeighing /> : <AdminLogin onLogin={setIsAdmin} />
+          } /> */}
           
-          {/* נתיב ציבורי למסך מטבח - מכובה זמנית */}
-          <Route path="/kitchen" element={
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-              <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md">
-                <div className="text-6xl mb-4">🔒</div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">מסך מטבח</h2>
-                <p className="text-gray-600 mb-4">תכונה זו עדיין לא זמינה</p>
-                <p className="text-sm text-gray-500">תהיה זמינה בקרוב</p>
-              </div>
-            </div>
-          } />
+          {/* נתיב ציבורי למסך מטבח - כבוי זמנית */}
+          {/* <Route path="/kitchen" element={<KitchenDisplay />} /> */}
         </Routes>
       </div>
     </Router>

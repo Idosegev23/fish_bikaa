@@ -151,6 +151,12 @@
 - `src/pages/CustomerDetails.tsx` - עגלת קניות עם תמונות + mobile responsive
 - `src/lib/supabase.ts` - הוספת טיפוס `available_cuts` ל-FishType
 
+## 🆕 תכונות חדשות שהופעלו ✅
+1. ✅ **מסך המטבח פעיל** - אפשרות שקילה וניהול הזמנות
+2. ✅ **נתיב ציבורי למטבח** - `/kitchen` זמין לעובדי המטבח
+3. ✅ **נתיב אדמין למטבח** - `/admin/kitchen-weighing` עם הרשאות אדמין
+4. ✅ **כפתור מטבח בדשבורד** - עודכן להיות פעיל ונגיש
+
 ## השלבים הבאים (אופציונליים)
 1. מערכת מיילים - אישורי הזמנה אוטומטיים
 2. דוח יומי אוטומטי עם Edge Function  
@@ -165,6 +171,8 @@
 - **אדמין**: http://localhost:5175/admin
 - **ניהול דגים**: http://localhost:5175/admin/fish
 - **ניהול חיתוכים**: http://localhost:5175/admin/cut-types
+- **🆕 מסך מטבח ציבורי**: http://localhost:5175/kitchen
+- **🆕 מסך מטבח אדמין**: http://localhost:5175/admin/kitchen-weighing
 
 ## פרטי גישה
 - **אדמין**: admin / 123456

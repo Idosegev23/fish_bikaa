@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import type { FishType, CutType } from '../lib/supabase'
 import type { CartItem } from '../App'
 import { isByWeight, isSizeableFish, getAverageWeightKg, computeMaxUnits } from '../lib/fishConfig'
-import { Plus, Filter, Image as ImageIcon, CheckCircle, AlertCircle, Fish, Search, SlidersHorizontal, ArrowUpDown, X } from 'lucide-react'
+import { Plus, Minus, Filter, Image as ImageIcon, CheckCircle, AlertCircle, Fish, Search, SlidersHorizontal, ArrowUpDown, X } from 'lucide-react'
 
 interface FishCatalogProps {
   onAddToCart: (item: CartItem) => void
@@ -14,6 +14,7 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
   const [searchParams] = useSearchParams()
   const [fish, setFish] = useState<FishType[]>([])
   const [cutTypes, setCutTypes] = useState<CutType[]>([])
+  const [fishPopularity, setFishPopularity] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [selectedWaterType, setSelectedWaterType] = useState<string>(searchParams.get('type') || 'all')
   const holidayParam = searchParams.get('holiday')
@@ -22,13 +23,14 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
   
   // חיפוש וסינון
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState<'name' | 'price_asc' | 'price_desc' | 'popularity'>('name')
+  const [sortBy, setSortBy] = useState<'name' | 'price_asc' | 'price_desc' | 'popularity'>('popularity')
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 500])
   const [showFilters, setShowFilters] = useState(false)
   const [availableOnly, setAvailableOnly] = useState(false)
 
   useEffect(() => {
     fetchFishAndCuts()
+    fetchFishPopularity()
   }, [])
 
   useEffect(() => {
@@ -43,6 +45,26 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
     }
     loadHoliday()
   }, [])
+
+  const fetchFishPopularity = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('fish_popularity')
+        .select('fish_name, total_quantity, order_count')
+
+      if (error) throw error
+
+      // יצירת מפה של פופולאריות דגים
+      const popularityMap: Record<string, number> = {}
+      data?.forEach(item => {
+        popularityMap[item.fish_name] = parseFloat(item.total_quantity) || 0
+      })
+      
+      setFishPopularity(popularityMap)
+    } catch (error) {
+      console.error('Error fetching fish popularity:', error)
+    }
+  }
 
   const fetchFishAndCuts = async () => {
     try {
@@ -60,16 +82,17 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
 
       if (fishError) throw fishError
 
-      // המרת הנתונים לפורמט הנוח יותר
+      // המרת הנתונים לפורמט הנוח יותר - רק חיתוכים פעילים
       const fishData = fishWithCuts?.map(fish => ({
         ...fish,
-        available_cuts: fish.fish_cut_prices?.map((fcp: any) => fcp.cut_types).filter(Boolean) || []
+        available_cuts: fish.fish_cut_prices?.map((fcp: any) => fcp.cut_types).filter((cut: any) => cut && cut.is_active) || []
       })) || []
 
-      // טעינת כל סוגי החיתוכים (להצגה כללית)
+      // טעינת כל סוגי החיתוכים הפעילים (להצגה כללית)
       const { data: allCuts, error: cutsError } = await supabase
         .from('cut_types')
         .select('*')
+        .eq('is_active', true)
 
       if (cutsError) throw cutsError
 
@@ -121,7 +144,13 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
         case 'price_desc':
           return b.price_per_kg - a.price_per_kg
         case 'popularity':
-          // מיון לפי כמות זמינה (יותר זמין = פופולרי יותר)
+          // מיון לפי פופולאריות אמיתית מההזמנות
+          const aPopularity = fishPopularity[a.name] || 0
+          const bPopularity = fishPopularity[b.name] || 0
+          if (bPopularity !== aPopularity) {
+            return bPopularity - aPopularity
+          }
+          // אם אין נתוני פופולאריות, מיון לפי כמות זמינה
           return b.available_kg - a.available_kg
         default:
           return 0
@@ -237,10 +266,10 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/90 backdrop-blur-sm text-neutral-800 min-w-[160px]"
               >
+                <option value="popularity">פופולאריות</option>
                 <option value="name">מיון לפי שם</option>
                 <option value="price_asc">מחיר: נמוך לגבוה</option>
                 <option value="price_desc">מחיר: גבוה לנמוך</option>
-                <option value="popularity">פופולאריות</option>
               </select>
             </div>
             
@@ -323,7 +352,7 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
                       setSelectedWaterType('all')
                       setPriceRange([0, 500])
                       setAvailableOnly(false)
-                      setSortBy('name')
+                      setSortBy('popularity')
                     }}
                     className="w-full px-3 py-2 bg-neutral-100 text-neutral-700 rounded-lg hover:bg-neutral-200 transition-colors text-sm font-medium"
                   >
@@ -358,6 +387,7 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
             fish={fishItem}
               cutTypes={fishItem.available_cuts || []}
               onAdd={addCartItem}
+              popularity={fishPopularity[fishItem.name] || 0}
           />
           </div>
         ))}
@@ -380,9 +410,10 @@ interface FishCardProps {
   fish: FishType
   cutTypes: CutType[]
   onAdd: (item: CartItem) => void
+  popularity?: number
 }
 
-function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
+function FishCard({ fish, cutTypes, onAdd, popularity = 0 }: FishCardProps) {
   const [selectedCut, setSelectedCut] = useState<number>(cutTypes[0]?.id || 1)
   const [quantity, setQuantity] = useState<number>(1)
   const [size, setSize] = useState<'S' | 'M' | 'L' | undefined>(undefined)
@@ -506,6 +537,15 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
           )}
         </div>
 
+        {/* תג פופולאריות */}
+        {popularity > 5 && (
+          <div className="absolute top-3 right-3 z-10">
+            <span className="px-2.5 py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold rounded-full shadow-lg animate-pulse">
+              פופולרי
+            </span>
+          </div>
+        )}
+
         {/* תג סוג מים */}
         <div className="absolute top-3 left-3 z-10">
           <span className="px-2.5 py-1 bg-primary-500 text-white text-xs font-medium rounded-full shadow-md">
@@ -521,9 +561,9 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-accent-500 group-hover:scale-105 transition-transform duration-500">
-            <ImageIcon className="w-16 h-16 mb-3 opacity-50" />
-            <span className="text-6xl opacity-70">{getWaterTypeIcon(fish.water_type)}</span>
+          <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-50 to-cyan-50 text-blue-400 group-hover:scale-105 transition-transform duration-500">
+            <Fish className="w-16 h-16 mb-2 opacity-60" />
+            <span className="text-sm font-medium opacity-70">{fish.name}</span>
           </div>
         )}
       </div>
@@ -535,9 +575,17 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold text-primary-600">₪{finalPrice}</span>
             <span className="text-sm text-neutral-500">
-              {unitsBased ? 'ליחידה' : 'לק"ג'}
+              לק"ג (ברוטו)
             </span>
           </div>
+          {unitsBased && averageWeight && (
+            <div className="text-sm text-neutral-600 bg-blue-50 border border-blue-100 rounded-lg p-2 mt-2">
+              <div className="flex justify-between items-center">
+                <span>מחיר ליחידה (≈{averageWeight}ק"ג):</span>
+                <span className="font-semibold text-blue-700">₪{(finalPrice * averageWeight).toFixed(2)}</span>
+              </div>
+            </div>
+          )}
           {fish.description && (
             <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
               {fish.description}
@@ -548,6 +596,7 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
               )}
             </p>
           )}
+          
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -592,7 +641,22 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
             <label className="block text-sm font-medium text-neutral-700 mb-2">
               {unitsBased ? 'כמות (יחידות):' : 'כמות (ק"ג):'}
             </label>
-            <div className="relative">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (unitsBased) {
+                    setQuantity(Math.max(1, quantity - 1))
+                  } else {
+                    setQuantity(Math.max(0.5, quantity - 0.5))
+                  }
+                }}
+                disabled={isOutOfStock || (unitsBased ? quantity <= 1 : quantity <= 0.5)}
+                className="w-8 h-8 rounded-lg border border-neutral-200 flex items-center justify-center bg-white hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Minus className="w-3 h-3" />
+              </button>
+              
               {unitsBased ? (
                 <input
                   type="number"
@@ -600,26 +664,53 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
                   max={maxUnits}
                   step={1}
                   value={quantity}
+                  onFocus={(e) => e.target.select()}
                   onChange={(e) => {
-                    const newQuantity = Number(e.target.value)
-                    setQuantity(Math.max(1, Math.min(newQuantity, maxUnits || 0)))
+                    const value = e.target.value
+                    if (value === '') {
+                      setQuantity(1)
+                    } else {
+                      const newQuantity = Number(value)
+                      setQuantity(Math.max(1, Math.min(newQuantity, maxUnits || 0)))
+                    }
                   }}
-                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm"
+                  className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm text-center"
                 />
               ) : (
-              <input
-                type="number"
-                min="0.5"
+                <input
+                  type="number"
+                  min="0.5"
                   max={fish.available_kg}
-                step="0.5"
-                value={quantity}
-                onChange={(e) => {
-                  const newQuantity = Number(e.target.value)
-                  setQuantity(Math.min(newQuantity, fish.available_kg))
-                }}
-                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm"
+                  step="0.5"
+                  value={quantity}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    if (value === '') {
+                      setQuantity(0.5)
+                    } else {
+                      const newQuantity = Number(value)
+                      setQuantity(Math.min(newQuantity, fish.available_kg))
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm text-center"
                 />
               )}
+              
+              <button
+                type="button"
+                onClick={() => {
+                  if (unitsBased) {
+                    setQuantity(Math.min(maxUnits || 0, quantity + 1))
+                  } else {
+                    setQuantity(Math.min(fish.available_kg, quantity + 0.5))
+                  }
+                }}
+                disabled={isOutOfStock || (unitsBased ? quantity >= (maxUnits || 0) : quantity >= fish.available_kg)}
+                className="w-8 h-8 rounded-lg border border-neutral-200 flex items-center justify-center bg-white hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Plus className="w-3 h-3" />
+              </button>
             </div>
             <p className="text-xs text-neutral-500 mt-1 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
