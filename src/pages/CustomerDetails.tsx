@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { Trash2, ShoppingCart, Image as ImageIcon, ArrowRight, Package, Clock, User, Mail, Phone, MapPin } from 'lucide-react'
+import { Trash2, ShoppingCart, Image as ImageIcon, ArrowRight, Package, Clock, User, Mail, Phone, MapPin, Tag, Check, X, Sparkles, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import AvailableTimeSelector from '../components/AvailableTimeSelector'
 
@@ -26,6 +26,28 @@ interface CartItemWithFish extends CartItem {
   fishDescription?: string
 }
 
+interface Coupon {
+  id: number
+  code: string
+  description?: string
+  discount_type: 'percentage' | 'fixed'
+  discount_value: number
+  min_order_amount: number
+  max_uses?: number
+  current_uses: number
+  valid_from: string
+  valid_until?: string
+  active: boolean
+}
+
+interface RecommendedProduct {
+  id: number
+  name: string
+  price: number
+  image_url?: string
+  category?: string
+}
+
 export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDetailsProps) {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
@@ -33,6 +55,15 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
   const [loadingImages, setLoadingImages] = useState(true)
   const [activeHoliday, setActiveHoliday] = useState<{ name: string; start_date: string; end_date: string } | null>(null)
   const [isImmediatePickup, setIsImmediatePickup] = useState(false)
+  
+  // קופונים
+  const [couponCode, setCouponCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null)
+  const [couponError, setCouponError] = useState('')
+  const [checkingCoupon, setCheckingCoupon] = useState(false)
+  
+  // מוצרים מומלצים
+  const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([])
   
   const { register, handleSubmit, formState: { errors }, setValue, trigger, watch } = useForm<FormData>()
 
@@ -79,6 +110,21 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
     fetchFishData()
   }, [cart])
 
+  // טעינת מוצרים מומלצים
+  useEffect(() => {
+    const fetchRecommended = async () => {
+      const { data } = await supabase
+        .from('additional_products')
+        .select('id, name, price, image_url, category')
+        .eq('active', true)
+        .gt('available_units', 0)
+        .limit(6)
+      
+      if (data) setRecommendedProducts(data)
+    }
+    fetchRecommended()
+  }, [])
+
   useEffect(() => {
     const loadHoliday = async () => {
       const { data } = await supabase
@@ -96,7 +142,6 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
   const computePreHolidayDate = (startISO: string) => {
     const d = new Date(startISO)
     d.setDate(d.getDate() - 1)
-    // הימנעות משבת (6)
     while (d.getDay() === 6) {
       d.setDate(d.getDate() - 1)
     }
@@ -105,10 +150,8 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
     return toISODate(d < today ? today : d)
   }
 
-  // Check if we're in holiday mode based on URL params
   const isHolidayMode = new URLSearchParams(window.location.search).has('holiday')
   
-  // Calculate date constraints for holiday mode
   const getDateConstraints = () => {
     if (isHolidayMode && activeHoliday) {
       return {
@@ -124,37 +167,98 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
   
   const dateConstraints = getDateConstraints()
 
-  // פונקציה למעבר ל"מעכשיו לעכשיו"
   const handleImmediatePickup = async () => {
     const now = new Date()
     const today = now.toISOString().split('T')[0]
     
-    // הגדרת תאריך היום ושעה "מעכשיו לעכשיו"
     setValue('deliveryDate', today, { shouldDirty: true, shouldValidate: true })
     setValue('deliveryTime', 'immediate', { shouldDirty: true, shouldValidate: true })
     
     setIsImmediatePickup(true)
-    
-    // ואליציה של השדות
     await trigger(['deliveryDate', 'deliveryTime'])
   }
 
-  // פונקציה לביטול "מעכשיו לעכשיו"
   const handleCancelImmediate = () => {
     setValue('deliveryTime', '', { shouldDirty: true, shouldValidate: true })
     setIsImmediatePickup(false)
   }
 
-  const totalPrice = cart.reduce((sum, item) => sum + item.totalPrice, 0)
+  // חישוב מחיר עם קופון
+  const subtotalPrice = cart.reduce((sum, item) => sum + item.totalPrice, 0)
+  
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0
+    if (appliedCoupon.discount_type === 'percentage') {
+      return (subtotalPrice * appliedCoupon.discount_value) / 100
+    }
+    return appliedCoupon.discount_value
+  }
+  
+  const discountAmount = calculateDiscount()
+  const totalPrice = Math.max(0, subtotalPrice - discountAmount)
 
-  const showNotification = (message: string, type: 'error' | 'warning' = 'error') => {
+  // בדיקת קופון
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) return
+    
+    setCheckingCoupon(true)
+    setCouponError('')
+    
+    try {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', couponCode.toUpperCase())
+        .eq('active', true)
+        .single()
+      
+      if (error || !data) {
+        setCouponError('קוד קופון לא תקין')
+        return
+      }
+      
+      const coupon = data as Coupon
+      
+      // בדיקת תוקף
+      if (coupon.valid_until && new Date(coupon.valid_until) < new Date()) {
+        setCouponError('פג תוקף הקופון')
+        return
+      }
+      
+      // בדיקת מינימום הזמנה
+      if (coupon.min_order_amount && subtotalPrice < coupon.min_order_amount) {
+        setCouponError(`הזמנה מינימלית לקופון זה: ₪${coupon.min_order_amount}`)
+        return
+      }
+      
+      // בדיקת מקסימום שימושים
+      if (coupon.max_uses && coupon.current_uses >= coupon.max_uses) {
+        setCouponError('הקופון נוצל עד תומו')
+        return
+      }
+      
+      setAppliedCoupon(coupon)
+      setCouponCode('')
+    } catch (err) {
+      setCouponError('שגיאה בבדיקת הקופון')
+    } finally {
+      setCheckingCoupon(false)
+    }
+  }
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponError('')
+  }
+
+  const showNotification = (message: string, type: 'error' | 'warning' | 'success' = 'error') => {
     const notification = document.createElement('div')
-    const bgColor = type === 'error' ? 'bg-red-500' : 'bg-amber-500'
+    const bgColor = type === 'error' ? 'bg-red-500' : type === 'warning' ? 'bg-amber-500' : 'bg-green-500'
     notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-2xl shadow-depth z-50 animate-slide-up`
     notification.innerHTML = `
       <div class="flex items-center gap-3">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.36 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${type === 'success' ? 'M5 13l4 4L19 7' : 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L5.36 16.5c-.77.833.192 2.5 1.732 2.5z'}"></path>
         </svg>
         <span>${message}</span>
       </div>
@@ -169,13 +273,11 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
       return
     }
 
-    // בדיקת שדות חובה (אימייל אופציונלי)
     if (!data.customerName || !data.phone || !data.deliveryDate || !data.deliveryTime) {
       showNotification('יש למלא את כל השדות הנדרשים', 'warning')
       return
     }
 
-    // בדיקת תאריך במצב חג
     if (isHolidayMode && activeHoliday) {
       const selectedDate = new Date(data.deliveryDate)
       const startDate = new Date(activeHoliday.start_date)
@@ -190,8 +292,6 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
     setLoading(true)
     
     try {
-      // עיבוד נתוני הזמנה
-      // אם זה מעכשיו לעכשיו, נגדיר שעה נוכחית אמיתית
       const currentTime = new Date().toLocaleTimeString('he-IL', { 
         hour: '2-digit', 
         minute: '2-digit',
@@ -201,16 +301,21 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
       const orderData = {
         ...data,
         cart,
+        subtotalPrice,
+        discountAmount,
         totalPrice,
+        appliedCoupon: appliedCoupon ? {
+          code: appliedCoupon.code,
+          discount_type: appliedCoupon.discount_type,
+          discount_value: appliedCoupon.discount_value,
+          id: appliedCoupon.id
+        } : null,
         isHolidayMode,
         isImmediatePickup,
-        // אם זה "מעכשיו לעכשיו", נשמור שעה נוכחית אמיתית
         deliveryTime: data.deliveryTime === 'immediate' ? currentTime : data.deliveryTime
       }
       
-      // שמירת נתונים בLocal Storage
       localStorage.setItem('orderData', JSON.stringify(orderData))
-      
       navigate('/order-summary')
     } catch (error) {
       console.error('Error saving order data:', error)
@@ -226,15 +331,6 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
       case 'freshwater': return '💧'
       case 'other': return '⭐'
       default: return '🐟'
-    }
-  }
-
-  const getWaterTypeLabel = (waterType: string) => {
-    switch(waterType) {
-      case 'saltwater': return 'מים מלוחים'
-      case 'freshwater': return 'מים מתוקים'
-      case 'other': return 'מיוחד'
-      default: return 'לא ידוע'
     }
   }
 
@@ -254,8 +350,8 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
               עדיין לא הוספתם דגים טריים לסל הקניות שלכם
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-        <button 
-          onClick={() => navigate('/catalog')}
+              <button 
+                onClick={() => navigate('/catalog')}
                 className="btn-primary text-2xl py-6 px-12 shadow-2xl hover:shadow-3xl"
               >
                 <div className="flex items-center gap-4">
@@ -271,7 +367,7 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                   <span>🏠</span>
                   <span>חזרה לעמוד הבית</span>
                 </div>
-        </button>
+              </button>
             </div>
           </div>
         </div>
@@ -280,16 +376,16 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
   }
 
   return (
-    <div className="container max-w-7xl mx-auto space-y-10 fade-in px-4 sm:px-6 lg:px-8">
-      {/* Header קטן ונקי */}
+    <div className="container max-w-7xl mx-auto space-y-8 fade-in px-4 sm:px-6 lg:px-8">
+      {/* Header */}
       <div className="text-center">
         <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">פרטי הזמנה</h1>
         <p className="text-sm text-neutral-600">מלאו פרטי קשר ובחרו מועד איסוף</p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-10">
-        {/* Cart Summary קומפקטי */}
-        <div className="xl:col-span-3 space-y-5">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
+        {/* Cart Summary */}
+        <div className="xl:col-span-3 space-y-6">
           <div className="card">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold">סיכום הזמנה</h2>
@@ -326,19 +422,139 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                 ))}
               </div>
             )}
-            <div className="mt-3 flex items-center justify-between text-base font-semibold">
-              <span>סה"כ:</span>
-              <span className="text-primary-700">₪{totalPrice.toFixed(2)}</span>
+            
+            {/* מערכת קופונים */}
+            <div className="mt-4 pt-4 border-t border-neutral-200">
+              <div className="flex items-center gap-2 mb-3">
+                <Tag className="w-4 h-4 text-gold-600" />
+                <span className="font-medium text-neutral-700">יש לכם קופון?</span>
+              </div>
+              
+              {appliedCoupon ? (
+                <div className="coupon-card flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-gold-500 to-amber-500 rounded-full flex items-center justify-center">
+                      <Check className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-gold-700">{appliedCoupon.code}</div>
+                      <div className="text-sm text-gold-600">
+                        {appliedCoupon.discount_type === 'percentage' 
+                          ? `${appliedCoupon.discount_value}% הנחה` 
+                          : `₪${appliedCoupon.discount_value} הנחה`}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={removeCoupon}
+                    className="p-2 hover:bg-gold-200 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gold-700" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={e => { setCouponCode(e.target.value); setCouponError(''); }}
+                    placeholder="הזן קוד קופון"
+                    className="input-field flex-1 text-sm"
+                    style={{ textTransform: 'uppercase' }}
+                  />
+                  <button
+                    onClick={applyCoupon}
+                    disabled={checkingCoupon || !couponCode.trim()}
+                    className="btn-accent px-4 py-2 text-sm disabled:opacity-50"
+                  >
+                    {checkingCoupon ? '...' : 'הפעל'}
+                  </button>
+                </div>
+              )}
+              
+              {couponError && (
+                <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
+                  <X className="w-4 h-4" />
+                  {couponError}
+                </p>
+              )}
+            </div>
+            
+            {/* סיכום מחירים */}
+            <div className="mt-4 pt-4 border-t border-neutral-200 space-y-2">
+              <div className="flex items-center justify-between text-sm text-neutral-600">
+                <span>סכום ביניים:</span>
+                <span>₪{subtotalPrice.toFixed(2)}</span>
+              </div>
+              
+              {appliedCoupon && (
+                <div className="flex items-center justify-between text-sm text-green-600">
+                  <span className="flex items-center gap-1">
+                    <Tag className="w-3 h-3" />
+                    הנחה ({appliedCoupon.code}):
+                  </span>
+                  <span>-₪{discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+              
+              <div className="flex items-center justify-between text-lg font-bold pt-2 border-t border-neutral-200">
+                <span>סה"כ לתשלום:</span>
+                <span className="text-primary-700">₪{totalPrice.toFixed(2)}</span>
+              </div>
             </div>
           </div>
+
+          {/* מוצרים מומלצים */}
+          {recommendedProducts.length > 0 && (
+            <div className="card">
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-5 h-5 text-gold-500" />
+                <h3 className="font-semibold text-neutral-800">מוצרים נוספים שאולי תאהבו</h3>
+              </div>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {recommendedProducts.map(product => (
+                  <div key={product.id} className="bg-neutral-50 rounded-xl p-3 border border-neutral-100 hover:border-gold-200 transition-all">
+                    <div className="aspect-square rounded-lg bg-white overflow-hidden mb-2">
+                      {product.image_url ? (
+                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="w-8 h-8 text-neutral-300" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-sm font-medium text-neutral-800 truncate">{product.name}</div>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-gold-600 font-bold">₪{product.price}</span>
+                      <Link
+                        to="/additional-products"
+                        className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" />
+                        הוסף
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <Link
+                to="/additional-products"
+                className="mt-4 text-center block text-primary-600 hover:text-primary-700 font-medium text-sm"
+              >
+                צפייה בכל המוצרים הנוספים →
+              </Link>
+            </div>
+          )}
         </div>
 
-        {/* Enhanced Customer Form */}
+        {/* Customer Form */}
         <div className="xl:col-span-2">
           <div className="form-section sticky top-8 overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-neutral-200 rounded-t-3xl"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gold-400 to-amber-400 rounded-t-3xl"></div>
             <div className="form-header relative z-10">
-              <div className="form-icon-container bg-gradient-to-br from-accent-500 to-pink-500">
+              <div className="form-icon-container">
                 <User className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
@@ -347,227 +563,181 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
               </div>
             </div>
             
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">
-                <label className="text-xl font-bold text-slate-700 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
+                <label className="text-base font-bold text-slate-700 flex items-center gap-2">
+                  <User className="w-4 h-4 text-primary-500" />
                   <span>שם מלא *</span>
-              </label>
-              <input
-                type="text"
-                {...register('customerName', { required: 'שם מלא הוא שדה חובה' })}
-                   className="input-field text-base"
-                   placeholder="שם מלא"
-              />
-              {errors.customerName && (
-                  <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
-                    <span className="text-2xl">⚠️</span>
-                    <span className="text-red-700 font-semibold">{errors.customerName.message}</span>
-                  </div>
-              )}
-            </div>
+                </label>
+                <input
+                  type="text"
+                  {...register('customerName', { required: 'שם מלא הוא שדה חובה' })}
+                  className="input-field"
+                  placeholder="שם מלא"
+                />
+                {errors.customerName && (
+                  <p className="text-red-600 text-sm">{errors.customerName.message}</p>
+                )}
+              </div>
 
               <div className="space-y-4">
-                <label className="text-xl font-bold text-slate-700 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                    <Mail className="w-4 h-4 text-white" />
-                  </div>
+                <label className="text-base font-bold text-slate-700 flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-primary-500" />
                   <span>דוא"ל</span>
                   <span className="text-sm text-neutral-500 font-normal">(אופציונלי)</span>
-              </label>
-              <input
-                type="email"
-                {...register('email', { 
-                  validate: (value) => !value || /^\S+@\S+$/i.test(value) || 'כתובת דוא"ל לא תקינה'
-                })}
-                   className="input-field text-base"
-                   placeholder="your@email.com"
-              />
-              {errors.email && (
-                  <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
-                    <span className="text-2xl">⚠️</span>
-                    <span className="text-red-700 font-semibold">{errors.email.message}</span>
-                  </div>
-              )}
-            </div>
+                </label>
+                <input
+                  type="email"
+                  {...register('email', { 
+                    validate: (value) => !value || /^\S+@\S+$/i.test(value) || 'כתובת דוא"ל לא תקינה'
+                  })}
+                  className="input-field"
+                  placeholder="your@email.com"
+                />
+                {errors.email && (
+                  <p className="text-red-600 text-sm">{errors.email.message}</p>
+                )}
+              </div>
 
               <div className="space-y-4">
-                <label className="text-xl font-bold text-slate-700 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <Phone className="w-4 h-4 text-white" />
-                  </div>
+                <label className="text-base font-bold text-slate-700 flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-primary-500" />
                   <span>טלפון *</span>
-              </label>
-              <input
-                type="tel"
-                {...register('phone', { required: 'מספר טלפון הוא שדה חובה' })}
-                   className="input-field text-base"
-                   placeholder="050-1234567"
-              />
-              {errors.phone && (
-                  <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
-                    <span className="text-2xl">⚠️</span>
-                    <span className="text-red-700 font-semibold">{errors.phone.message}</span>
-                  </div>
-              )}
-            </div>
+                </label>
+                <input
+                  type="tel"
+                  {...register('phone', { required: 'מספר טלפון הוא שדה חובה' })}
+                  className="input-field"
+                  placeholder="050-1234567"
+                />
+                {errors.phone && (
+                  <p className="text-red-600 text-sm">{errors.phone.message}</p>
+                )}
+              </div>
 
               <div className="space-y-4">
-                <label className="text-xl font-bold text-slate-700 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
-                    <MapPin className="w-4 h-4 text-white" />
-                  </div>
+                <label className="text-base font-bold text-slate-700 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary-500" />
                   <span>הערות נוספות</span>
-              </label>
-              <textarea
-                {...register('deliveryAddress')}
-                  className="input-field text-base resize-none"
-                  rows={4}
+                </label>
+                <textarea
+                  {...register('deliveryAddress')}
+                  className="input-field resize-none"
+                  rows={3}
                   placeholder="הערות או בקשות מיוחדות (אופציונלי)"
-              />
-            </div>
+                />
+              </div>
 
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 border border-blue-200 space-y-8">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 space-y-6">
                 <div className="text-center">
                   <h3 className="text-lg font-bold text-neutral-900 mb-1">פרטי איסוף</h3>
                   <p className="text-neutral-600 text-sm">בחרו תאריך ושעה לאיסוף</p>
                 </div>
                 
                 <div className="space-y-4">
-                <label className="text-xl font-bold text-slate-700 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-white" />
-                    </div>
+                  <label className="text-base font-bold text-slate-700 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-primary-500" />
                     <span>תאריך איסוף *</span>
-                </label>
-                <div className="space-y-3">
+                  </label>
+                  
                   {isHolidayMode && activeHoliday && (
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                       <p className="text-sm text-amber-800 font-medium">
                         🎉 הזמנה לחג {activeHoliday.name}
                       </p>
                       <p className="text-xs text-amber-700 mt-1">
-                        ניתן לבחור רק תאריכים בטווח החג: {new Date(activeHoliday.start_date).toLocaleDateString('he-IL')} - {new Date(activeHoliday.end_date).toLocaleDateString('he-IL')}
+                        טווח: {new Date(activeHoliday.start_date).toLocaleDateString('he-IL')} - {new Date(activeHoliday.end_date).toLocaleDateString('he-IL')}
                       </p>
                     </div>
                   )}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input
-                      type="date"
-                      {...register('deliveryDate', { required: 'תאריך איסוף הוא שדה חובה' })}
-                      min={dateConstraints.min}
-                      max={dateConstraints.max}
-                      className="input-field text-base"
-                    />
-                    {isHolidayMode && activeHoliday && (
+                  
+                  <input
+                    type="date"
+                    {...register('deliveryDate', { required: 'תאריך איסוף הוא שדה חובה' })}
+                    min={dateConstraints.min}
+                    max={dateConstraints.max}
+                    className="input-field"
+                  />
+                  {errors.deliveryDate && (
+                    <p className="text-red-600 text-sm">{errors.deliveryDate.message}</p>
+                  )}
+                </div>
+
+                {/* כפתור מעכשיו לעכשיו */}
+                <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold text-orange-800">🚀 צריך מיד?</h4>
+                      <p className="text-orange-700 text-xs">30-45 דקות</p>
+                    </div>
+                    {!isImmediatePickup ? (
                       <button
                         type="button"
-                        className="btn-secondary text-sm"
-                        onClick={async () => {
-                          setValue('deliveryDate', activeHoliday.start_date, { shouldDirty: true, shouldValidate: true })
-                          await trigger('deliveryDate')
-                        }}
+                        onClick={handleImmediatePickup}
+                        disabled={isHolidayMode}
+                        className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                          isHolidayMode 
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                            : 'bg-orange-500 hover:bg-orange-600 text-white'
+                        }`}
                       >
-                        בחר יום ראשון של {activeHoliday.name}
+                        מעכשיו לעכשיו
                       </button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-green-700 font-semibold text-sm">✅ נבחר</span>
+                        <button
+                          type="button"
+                          onClick={handleCancelImmediate}
+                          className="text-orange-600 hover:text-orange-800 underline text-xs"
+                        >
+                          ביטול
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
-                {errors.deliveryDate && (
-                    <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
-                      <span className="text-2xl">⚠️</span>
-                      <span className="text-red-700 font-semibold">{errors.deliveryDate.message}</span>
-                    </div>
+
+                {!isImmediatePickup && (
+                  <AvailableTimeSelector 
+                    selectedDate={watch('deliveryDate')}
+                    register={register}
+                    errors={errors}
+                  />
                 )}
               </div>
 
-              {/* כפתור "מעכשיו לעכשיו" */}
-              <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-semibold text-orange-800 text-lg">🚀 צריך מיד?</h4>
-                    <p className="text-orange-700 text-sm">קבלו את ההזמנה בתוך 30-45 דקות</p>
-                  </div>
-                  {!isImmediatePickup ? (
-                    <button
-                      type="button"
-                      onClick={handleImmediatePickup}
-                      disabled={isHolidayMode} // לא זמין במצב חג
-                      className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                        isHolidayMode 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                          : 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-                      }`}
-                    >
-                      מעכשיו לעכשיו
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-3">
-                      <span className="text-green-700 font-semibold flex items-center gap-1">
-                        ✅ מעכשיו לעכשיו
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleCancelImmediate}
-                        className="text-orange-600 hover:text-orange-800 underline text-sm"
-                      >
-                        ביטול
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {isHolidayMode && (
-                  <p className="text-amber-600 text-xs mt-2">
-                    * "מעכשיו לעכשיו" לא זמין בהזמנות חג
-                  </p>
-                )}
-              </div>
-
-              {/* בורר שעות - מוסתר במצב "מעכשיו לעכשיו" */}
-              {!isImmediatePickup && (
-                <AvailableTimeSelector 
-                  selectedDate={watch('deliveryDate')}
-                  register={register}
-                  errors={errors}
-                />
-              )}
-            </div>
-
-              <div className="bg-white rounded-2xl p-5 border border-neutral-200 space-y-4">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-bold text-neutral-900 mb-1">המשך להזמנה</h3>
-                  <p className="text-neutral-600 text-sm">כל הפרטים נראים טוב? המשיכו לסיכום</p>
-                </div>
-                
-              <button
-                type="submit"
-                disabled={loading}
-                  className="w-full btn-primary text-base py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
+              <div className="space-y-3">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full btn-primary py-3 font-semibold disabled:opacity-50"
                 >
-                  {loading ? 'שולח...' : 'המשך לסיכום והשליחה'}
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => navigate('/catalog')}
-                  className="w-full btn-secondary text-base py-3 font-semibold"
-              >
+                  {loading ? 'שולח...' : `המשך לסיכום • ₪${totalPrice.toFixed(2)}`}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => navigate('/catalog')}
+                  className="w-full btn-secondary py-3"
+                >
                   חזרה לקטלוג
-              </button>
-            </div>
-          </form>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
 
-      {/* סרגל תחתון צף - מובייל לצמצום גלילה */}
+      {/* Mobile Footer */}
       <div className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur border-t border-neutral-200 p-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="text-sm">
             <div className="text-neutral-500">סה"כ</div>
             <div className="text-lg font-bold text-primary-700">₪{totalPrice.toFixed(2)}</div>
+            {appliedCoupon && (
+              <div className="text-xs text-green-600">כולל הנחה</div>
+            )}
           </div>
           <button
             onClick={() => (document.querySelector('form') as HTMLFormElement)?.requestSubmit()}
@@ -580,4 +750,4 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
       </div>
     </div>
   )
-} 
+}

@@ -3,8 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom'
 import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
 import type { FishType } from '../../lib/supabase'
-import { ArrowLeft, Plus, Edit, Save, X, Upload, Image } from 'lucide-react'
-import { isByWeight, computeMaxUnits } from '../../lib/fishConfig'
+import { ArrowLeft, Plus, Edit, Save, X, Upload, Image, Images, Check } from 'lucide-react'
+import { isByWeight, computeMaxUnits, getAverageWeightKg, hasKnownAverageWeight } from '../../lib/fishConfig'
 
 interface NewFishForm {
   name: string
@@ -13,6 +13,12 @@ interface NewFishForm {
   available_kg: number
   description: string
   image_file?: File
+  image_url?: string
+}
+
+interface BucketImage {
+  name: string
+  url: string
 }
 
 export default function AdminFishManagement() {
@@ -31,6 +37,12 @@ export default function AdminFishManagement() {
     description: '',
   })
   const [uploading, setUploading] = useState(false)
+  
+  // בורר תמונות מהבאקט
+  const [bucketImages, setBucketImages] = useState<BucketImage[]>([])
+  const [showImagePicker, setShowImagePicker] = useState(false)
+  const [imagePickerMode, setImagePickerMode] = useState<'edit' | 'add'>('edit')
+  const [loadingImages, setLoadingImages] = useState(false)
 
   useEffect(() => {
     fetchFish()
@@ -90,6 +102,71 @@ export default function AdminFishManagement() {
     }
   }
 
+  // טעינת תמונות מהבאקט
+  const fetchBucketImages = async () => {
+    setLoadingImages(true)
+    try {
+      const { data, error } = await supabase.storage
+        .from('fish-images')
+        .list('fish-images', {
+          limit: 100,
+          sortBy: { column: 'created_at', order: 'desc' }
+        })
+
+      if (error) {
+        // אם התיקייה לא קיימת, ננסה את השורש
+        const { data: rootData, error: rootError } = await supabase.storage
+          .from('fish-images')
+          .list('', {
+            limit: 100,
+            sortBy: { column: 'created_at', order: 'desc' }
+          })
+        
+        if (rootError) throw rootError
+        
+        const images = (rootData || [])
+          .filter(file => file.name && !file.name.startsWith('.'))
+          .map(file => ({
+            name: file.name,
+            url: supabase.storage.from('fish-images').getPublicUrl(file.name).data.publicUrl
+          }))
+        
+        setBucketImages(images)
+      } else {
+        const images = (data || [])
+          .filter(file => file.name && !file.name.startsWith('.'))
+          .map(file => ({
+            name: file.name,
+            url: supabase.storage.from('fish-images').getPublicUrl(`fish-images/${file.name}`).data.publicUrl
+          }))
+        
+        setBucketImages(images)
+      }
+    } catch (error) {
+      console.error('Error fetching bucket images:', error)
+    } finally {
+      setLoadingImages(false)
+    }
+  }
+
+  const openImagePicker = (mode: 'edit' | 'add') => {
+    setImagePickerMode(mode)
+    setShowImagePicker(true)
+    if (bucketImages.length === 0) {
+      fetchBucketImages()
+    }
+  }
+
+  const selectBucketImage = (url: string) => {
+    if (imagePickerMode === 'edit') {
+      setEditForm({ ...editForm, image_url: url })
+      setEditImageFile(null)
+    } else {
+      setNewFishForm({ ...newFishForm, image_url: url, image_file: undefined })
+    }
+    setShowImagePicker(false)
+  }
+
   const handleAddFish = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newFishForm.name || newFishForm.price_per_kg <= 0) {
@@ -99,8 +176,9 @@ export default function AdminFishManagement() {
 
     setUploading(true)
     try {
-      let imageUrl = null
+      let imageUrl = newFishForm.image_url || null // קודם בדוק אם נבחרה תמונה מהגלריה
       
+      // אם יש קובץ חדש להעלאה, העלה אותו (יחליף את התמונה מהגלריה)
       if (newFishForm.image_file) {
         imageUrl = await uploadImage(newFishForm.image_file)
       }
@@ -244,11 +322,18 @@ export default function AdminFishManagement() {
                 <span>רענן</span>
               </button>
               <Link 
+                to="/admin/fish-cuts" 
+                className="btn-primary bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 flex items-center space-x-2 space-x-reverse w-full sm:w-auto"
+              >
+                <Edit className="w-4 h-4" />
+                <span>חיתוכים לכל דג</span>
+              </Link>
+              <Link 
                 to="/admin/cut-types" 
                 className="btn-secondary flex items-center space-x-2 space-x-reverse w-full sm:w-auto"
               >
                 <Edit className="w-4 h-4" />
-                <span>ניהול חיתוכים</span>
+                <span>סוגי חיתוכים</span>
               </Link>
               <button 
                 onClick={() => setShowAddModal(true)}
@@ -329,6 +414,25 @@ export default function AdminFishManagement() {
                       </select>
                     </div>
                   </div>
+                  
+                  {/* תמונה - מובייל */}
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">תמונה</label>
+                    <div className="flex items-center gap-3">
+                      {editForm.image_url && (
+                        <img src={editForm.image_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => openImagePicker('edit')}
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 text-sm"
+                      >
+                        <Images className="w-4 h-4" />
+                        בחר מהגלריה
+                      </button>
+                    </div>
+                  </div>
+                  
                   <div className="flex justify-end gap-3">
                     <button onClick={saveEdit} disabled={uploading} className="btn-primary text-sm disabled:opacity-50">שמור</button>
                     <button onClick={cancelEdit} disabled={uploading} className="btn-secondary text-sm disabled:opacity-50">ביטול</button>
@@ -349,10 +453,22 @@ export default function AdminFishManagement() {
                       <div className="text-sm text-neutral-600 truncate">{fishItem.water_type === 'saltwater' ? 'מים מלוחים' : fishItem.water_type === 'freshwater' ? 'מים מתוקים' : 'אחר'}</div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3">
                       <div className="text-neutral-500">מחיר/ק"ג</div>
                       <div className="font-semibold text-neutral-900">₪{fishItem.price_per_kg}</div>
+                    </div>
+                    <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3">
+                      <div className="text-neutral-500">משקל ממוצע</div>
+                      <div className="font-semibold">
+                        {isByWeight(fishItem.name) ? (
+                          <span className="text-amber-600">לפי משקל</span>
+                        ) : hasKnownAverageWeight(fishItem.name) ? (
+                          <span className="text-blue-600">~{getAverageWeightKg(fishItem.name)} ק"ג</span>
+                        ) : (
+                          <span className="text-neutral-400">-</span>
+                        )}
+                      </div>
                     </div>
                     <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3">
                       <div className="text-neutral-500">מלאי</div>
@@ -399,6 +515,9 @@ export default function AdminFishManagement() {
                     מחיר/ק"ג
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    משקל ממוצע
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     מלאי זמין
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -418,38 +537,50 @@ export default function AdminFishManagement() {
                         <td className="px-6 py-4">
                           <div className="space-y-2">
                             {/* תמונה נוכחית */}
-                            <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
                               {editForm.image_url ? (
                                 <img 
                                   src={editForm.image_url} 
                                   alt={editForm.name}
-                                  className="w-full h-full object-cover rounded-lg"
+                                  className="w-full h-full object-cover"
                                 />
                               ) : (
                                 <Image className="w-6 h-6 text-gray-400" />
                               )}
                             </div>
                             
-                            {/* העלאת תמונה חדשה */}
-                            <div>
-                              <label className="block text-xs text-gray-600 mb-1">שנה תמונה:</label>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0]
-                                  if (file) {
-                                    setEditImageFile(file)
-                                  }
-                                }}
-                                className="text-xs w-full"
-                              />
-                              {editImageFile && (
-                                <p className="text-xs text-green-600 mt-1">
-                                  נבחרה תמונה חדשה: {editImageFile.name}
-                                </p>
-                              )}
+                            {/* כפתורי בחירת תמונה */}
+                            <div className="flex gap-1">
+                              <button
+                                type="button"
+                                onClick={() => openImagePicker('edit')}
+                                className="flex-1 text-xs px-2 py-1 bg-primary-100 text-primary-700 rounded hover:bg-primary-200 transition-colors"
+                                title="בחר מהגלריה"
+                              >
+                                <Images className="w-3 h-3 inline ml-1" />
+                                גלריה
+                              </button>
+                              <label className="flex-1 text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors cursor-pointer text-center">
+                                <Upload className="w-3 h-3 inline ml-1" />
+                                העלה
+                                <input
+                                  type="file"
+                                  className="sr-only"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0]
+                                    if (file) {
+                                      setEditImageFile(file)
+                                    }
+                                  }}
+                                />
+                              </label>
                             </div>
+                            {editImageFile && (
+                              <p className="text-xs text-green-600">
+                                ✓ {editImageFile.name.substring(0, 15)}...
+                              </p>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -479,6 +610,17 @@ export default function AdminFishManagement() {
                             className="input-field text-sm"
                             step="0.01"
                           />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-neutral-600">
+                            {isByWeight(editForm.name || '') ? (
+                              <span className="text-amber-600">לפי משקל</span>
+                            ) : hasKnownAverageWeight(editForm.name || '') ? (
+                              <span>~{getAverageWeightKg(editForm.name || '')} ק"ג</span>
+                            ) : (
+                              <span className="text-neutral-400">-</span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <input
@@ -554,6 +696,15 @@ export default function AdminFishManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           ₪{fishItem.price_per_kg}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {isByWeight(fishItem.name) ? (
+                            <span className="text-amber-600 bg-amber-50 px-2 py-1 rounded-full text-xs">לפי משקל</span>
+                          ) : hasKnownAverageWeight(fishItem.name) ? (
+                            <span className="text-blue-600">~{getAverageWeightKg(fishItem.name)} ק"ג</span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {isByWeight(fishItem.name) ? (
@@ -694,33 +845,54 @@ export default function AdminFishManagement() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     תמונת הדג
                   </label>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                    <div className="space-y-1 text-center">
-                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                      <div className="flex text-sm text-gray-600">
-                        <label htmlFor="fish-image" className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none">
-                          <span>העלה תמונה</span>
-                          <input
-                            id="fish-image"
-                            type="file"
-                            className="sr-only"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0]
-                              if (file) {
-                                setNewFishForm({...newFishForm, image_file: file})
-                              }
-                            }}
-                          />
-                        </label>
-                        <p className="pr-1">או גרור ושחרר</p>
-                      </div>
-                      <p className="text-xs text-gray-500">PNG, JPG, GIF עד 10MB</p>
-                      {newFishForm.image_file && (
-                        <p className="text-sm text-green-600">נבחר קובץ: {newFishForm.image_file.name}</p>
-                      )}
+                  
+                  {/* תצוגה מקדימה של תמונה שנבחרה */}
+                  {(newFishForm.image_url || newFishForm.image_file) && (
+                    <div className="mb-3 relative inline-block">
+                      <img 
+                        src={newFishForm.image_file ? URL.createObjectURL(newFishForm.image_file) : newFishForm.image_url} 
+                        alt="תצוגה מקדימה" 
+                        className="w-32 h-32 object-cover rounded-lg border-2 border-primary-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setNewFishForm({...newFishForm, image_url: undefined, image_file: undefined})}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
+                  )}
+                  
+                  <div className="flex gap-3">
+                    {/* כפתור בחירה מהגלריה */}
+                    <button
+                      type="button"
+                      onClick={() => openImagePicker('add')}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-primary-300 border-dashed rounded-lg hover:bg-primary-50 transition-colors"
+                    >
+                      <Images className="w-5 h-5 text-primary-600" />
+                      <span className="text-primary-600 font-medium">בחר מהגלריה</span>
+                    </button>
+                    
+                    {/* כפתור העלאה */}
+                    <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-gray-300 border-dashed rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                      <Upload className="w-5 h-5 text-gray-400" />
+                      <span className="text-gray-600 font-medium">העלה תמונה</span>
+                      <input
+                        type="file"
+                        className="sr-only"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            setNewFishForm({...newFishForm, image_file: file, image_url: undefined})
+                          }
+                        }}
+                      />
+                    </label>
                   </div>
+                  <p className="text-xs text-gray-500 mt-2">PNG, JPG, WEBP עד 10MB</p>
                 </div>
 
                 <div className="flex justify-end space-x-3 space-x-reverse pt-4">
@@ -741,6 +913,86 @@ export default function AdminFishManagement() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* מודאל בחירת תמונה מהגלריה */}
+      {showImagePicker && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[85vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Images className="w-6 h-6 text-primary-600" />
+                בחר תמונה מהגלריה
+              </h3>
+              <button
+                onClick={() => setShowImagePicker(false)}
+                className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {loadingImages ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-200 border-t-primary-600"></div>
+                </div>
+              ) : bucketImages.length === 0 ? (
+                <div className="text-center py-12">
+                  <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">לא נמצאו תמונות בגלריה</p>
+                  <p className="text-sm text-gray-400 mt-2">העלה תמונות דרך כפתור "העלה תמונה"</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                  {bucketImages.map((img) => {
+                    const isSelected = imagePickerMode === 'edit' 
+                      ? editForm.image_url === img.url 
+                      : newFishForm.image_url === img.url
+                    
+                    return (
+                      <button
+                        key={img.name}
+                        onClick={() => selectBucketImage(img.url)}
+                        className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
+                          isSelected 
+                            ? 'border-primary-500 ring-2 ring-primary-300' 
+                            : 'border-gray-200 hover:border-primary-300'
+                        }`}
+                      >
+                        <img 
+                          src={img.url} 
+                          alt={img.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                        {isSelected && (
+                          <div className="absolute inset-0 bg-primary-500/20 flex items-center justify-center">
+                            <div className="bg-primary-500 rounded-full p-1">
+                              <Check className="w-5 h-5 text-white" />
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+              <span className="text-sm text-gray-500">
+                {bucketImages.length} תמונות בגלריה
+              </span>
+              <button
+                onClick={fetchBucketImages}
+                className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+              >
+                🔄 רענן גלריה
+              </button>
             </div>
           </div>
         </div>

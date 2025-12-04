@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Fish, ShoppingCart, DollarSign, TrendingUp, Package, Users, Scissors, Scale, Monitor, Calendar, FileText } from 'lucide-react'
+import { Fish, ShoppingCart, DollarSign, TrendingUp, Package, Users, Scissors, Scale, Monitor, Calendar, FileText, Tag } from 'lucide-react'
 import {
   BarChart,
   Bar,
@@ -457,6 +457,14 @@ export default function AdminDashboard() {
               <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
               <h3 className="text-lg font-semibold mb-2">זמני איסוף</h3>
               <p className="text-gray-600 text-sm">ניהול שעות וכמויות איסוף יומיות</p>
+            </div>
+          </Link>
+
+          <Link to="/admin/coupons" className="card hover:shadow-lg transition-shadow group bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
+            <div className="text-center p-4">
+              <Tag className="w-12 h-12 text-amber-600 mx-auto mb-4 group-hover:text-amber-700" />
+              <h3 className="text-lg font-semibold mb-2 text-amber-900">קופונים והנחות</h3>
+              <p className="text-amber-700 text-sm">ניהול קודי הנחה ומבצעים</p>
             </div>
           </Link>
         </div>

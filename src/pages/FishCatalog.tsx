@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { FishType, CutType } from '../lib/supabase'
 import type { CartItem } from '../App'
-import { isByWeight, isSizeableFish, getAverageWeightKg, computeMaxUnits } from '../lib/fishConfig'
+import { isByWeight, isSizeableFish, getAverageWeightKg, computeMaxUnits, getWeightDisplayText, hasKnownAverageWeight } from '../lib/fishConfig'
 import { Plus, Minus, Filter, Image as ImageIcon, CheckCircle, AlertCircle, Fish, Search, SlidersHorizontal, ArrowUpDown, X } from 'lucide-react'
 
 interface FishCatalogProps {
@@ -68,13 +68,15 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
 
   const fetchFishAndCuts = async () => {
     try {
-      // טעינת דגים עם החיתוכים המתאימים להם
+      // טעינת דגים עם החיתוכים המתאימים להם מטבלת fish_available_cuts
       const { data: fishWithCuts, error: fishError } = await supabase
         .from('fish_types')
         .select(`
           *,
-          fish_cut_prices(
+          fish_available_cuts(
             cut_type_id,
+            is_active,
+            price_addition,
             cut_types(*)
           )
         `)
@@ -85,7 +87,12 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
       // המרת הנתונים לפורמט הנוח יותר - רק חיתוכים פעילים
       const fishData = fishWithCuts?.map(fish => ({
         ...fish,
-        available_cuts: fish.fish_cut_prices?.map((fcp: any) => fcp.cut_types).filter((cut: any) => cut && cut.is_active) || []
+        available_cuts: fish.fish_available_cuts
+          ?.filter((fac: any) => fac.is_active && fac.cut_types && fac.cut_types.is_active)
+          .map((fac: any) => ({
+            ...fac.cut_types,
+            price_addition: fac.price_addition // תוספת מחיר ספציפית לדג אם יש
+          })) || []
       })) || []
 
       // טעינת כל סוגי החיתוכים הפעילים (להצגה כללית)
@@ -578,22 +585,34 @@ function FishCard({ fish, cutTypes, onAdd, popularity = 0 }: FishCardProps) {
               לק"ג (ברוטו)
             </span>
           </div>
-          {unitsBased && averageWeight && (
-            <div className="text-sm text-neutral-600 bg-blue-50 border border-blue-100 rounded-lg p-2 mt-2">
-              <div className="flex justify-between items-center">
-                <span>מחיר ליחידה (≈{averageWeight}ק"ג):</span>
-                <span className="font-semibold text-blue-700">₪{(finalPrice * averageWeight).toFixed(2)}</span>
+          {/* הצגת משקל ממוצע */}
+          {hasKnownAverageWeight(fish.name) && !isByWeight(fish.name) && (
+            <div className="text-sm bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-100 rounded-lg p-2.5 mt-2">
+              <div className="flex items-center gap-2 text-blue-700">
+                <span className="text-lg">⚖️</span>
+                {isSizeableFish(fish.name) ? (
+                  <span className="font-medium">{getWeightDisplayText(fish.name)}</span>
+                ) : (
+                  <div className="flex justify-between items-center flex-1">
+                    <span>{getWeightDisplayText(fish.name)}</span>
+                    <span className="font-bold">~₪{(finalPrice * getAverageWeightKg(fish.name)).toFixed(0)} ליחידה</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          {/* דגים לפי משקל */}
+          {isByWeight(fish.name) && (
+            <div className="text-sm bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-2.5 mt-2">
+              <div className="flex items-center gap-2 text-amber-700">
+                <span className="text-lg">📏</span>
+                <span className="font-medium">נמכר לפי משקל שתבחר</span>
               </div>
             </div>
           )}
           {fish.description && (
             <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
               {fish.description}
-              {isSizeableFish(fish.name) && (
-                <span className="block mt-2 text-xs text-neutral-500">
-                  משקל ממוצע: S≈{getAverageWeightKg(fish.name, 'S')}ק"ג | M≈{getAverageWeightKg(fish.name, 'M')}ק"ג | L≈{getAverageWeightKg(fish.name, 'L')}ק"ג
-                </span>
-              )}
             </p>
           )}
           
@@ -630,7 +649,7 @@ function FishCard({ fish, cutTypes, onAdd, popularity = 0 }: FishCardProps) {
             >
               {cutTypes.map((cut) => (
                 <option key={cut.id} value={cut.id}>
-                  {cut.cut_name} (+₪{cut.default_addition})
+                  {cut.cut_name}{cut.default_addition > 0 ? ` (+₪${cut.default_addition})` : ''}
                 </option>
               ))}
             </select>

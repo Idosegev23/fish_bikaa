@@ -23,6 +23,8 @@ export interface FishType {
   updated_at: string
   available_cuts?: CutType[]
   sale_unit?: 'units' | 'kg'
+  average_weight_kg?: number | null
+  sold_by_customer_weight?: boolean
 }
 
 export interface CutType {
@@ -93,6 +95,23 @@ export interface AdditionalProduct {
   active: boolean
   meal_tags?: string[]
   suggest_tags?: string[]
+  category?: string
+}
+
+export interface Coupon {
+  id: number
+  code: string
+  description?: string
+  discount_type: 'percentage' | 'fixed'
+  discount_value: number
+  min_order_amount: number
+  max_uses?: number
+  current_uses: number
+  valid_from: string
+  valid_until?: string
+  active: boolean
+  created_at: string
+  updated_at: string
 }
 
 export interface MealRecommendation {

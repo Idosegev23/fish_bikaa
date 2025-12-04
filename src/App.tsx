@@ -29,6 +29,8 @@ import AdminHolidays from './pages/admin/AdminHolidays'
 import AdminDailyOrders from './pages/admin/AdminDailyOrders'
 import AdminKitchenWeighing from './pages/admin/AdminKitchenWeighing'
 import KitchenDisplay from './pages/KitchenDisplay'
+import AdminCoupons from './pages/admin/AdminCoupons'
+import AdminFishCuts from './pages/admin/AdminFishCuts'
 
 export interface CartItem {
   fishId: number
@@ -175,6 +177,14 @@ function App() {
           
           {/* נתיב ציבורי למסך מטבח - כבוי זמנית */}
           {/* <Route path="/kitchen" element={<KitchenDisplay />} /> */}
+          
+          <Route path="/admin/coupons" element={
+            isAdmin ? <AdminCoupons /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
+          
+          <Route path="/admin/fish-cuts" element={
+            isAdmin ? <AdminFishCuts /> : <AdminLogin onLogin={setIsAdmin} />
+          } />
         </Routes>
       </div>
     </Router>
