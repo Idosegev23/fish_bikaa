@@ -61,6 +61,9 @@ export default function AdditionalProducts({ onAddToCart }: AdditionalProductsPr
   const getFilteredProducts = () => {
     let filtered = products
 
+    // סינון מוצרים ללא מלאי - מציג רק מה שיש
+    filtered = filtered.filter(product => product.available_units > 0)
+
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim()
       filtered = filtered.filter(product => 

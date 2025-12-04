@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { FishType, CutType } from '../lib/supabase'
 import type { CartItem } from '../App'
-import { isByWeight, isSizeableFish, getAverageWeightKg, computeMaxUnits, getWeightDisplayText, hasKnownAverageWeight } from '../lib/fishConfig'
+import { isByWeight, getAverageWeightKg, computeMaxUnits, getWeightDisplayText, hasKnownAverageWeight } from '../lib/fishConfig'
 import { Plus, Minus, Fish, Search, X, ChevronDown } from 'lucide-react'
 
 interface FishCatalogProps {
@@ -106,6 +106,9 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
 
   const getFilteredAndSortedFish = () => {
     let filtered = fish
+    
+    // סינון דגים ללא מלאי - מציג רק מה שיש
+    filtered = filtered.filter(f => f.available_kg > 0)
     
     if (selectedWaterType !== 'all') {
       filtered = filtered.filter(f => f.water_type === selectedWaterType)
@@ -392,8 +395,8 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* מידה לדגים מסוימים */}
-          {isSizeableFish(fish.name) && (
+          {/* מידה לדגים שהוגדרו עם מידות */}
+          {fish.has_sizes && (
             <div>
               <label className="form-label">מידה</label>
               <select

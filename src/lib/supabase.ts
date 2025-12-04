@@ -25,6 +25,7 @@ export interface FishType {
   sale_unit?: 'units' | 'kg'
   average_weight_kg?: number | null
   sold_by_customer_weight?: boolean
+  has_sizes?: boolean  // האם לדג יש אפשרות לבחור מידות S/M/L
 }
 
 export interface CutType {
