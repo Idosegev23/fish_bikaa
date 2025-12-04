@@ -120,39 +120,38 @@ export default function HomePage() {
 
   return (
     <div className="bg-white">
-      {/* Hero Section - Clean Ocean Theme */}
-      <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-b from-white via-[#F5F9FA] to-[#B4D2D9]/30">
-        {/* Decorative Wave Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-[#B4D2D9]/20 rounded-full blur-3xl transform translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#6FA8BF]/15 rounded-full blur-3xl transform -translate-x-1/2" />
+      {/* Hero Section - Full Image Background */}
+      <section className="relative min-h-[85vh] flex items-center overflow-hidden">
+        {/* Hero Background Image */}
+        <div className="absolute inset-0">
+          <img 
+            src="/fish_img/hero.png" 
+            alt="דגי בקעת אונו" 
+            className="w-full h-full object-cover"
+          />
+          {/* Dark Overlay for Text Readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/30" />
         </div>
         
-        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-16">
-          <div className="flex flex-col items-center text-center">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-16 w-full">
+          <div className="flex flex-col items-center text-center mt-32 md:mt-40">
             {/* Holiday Badge */}
             {activeHoliday && (
-              <div className="inline-flex items-center gap-2 bg-[#026873]/10 border border-[#026873]/20 text-[#026873] px-5 py-2.5 rounded-full text-sm mb-8 animate-fade-in">
-                <span className="w-2 h-2 bg-[#026873] rounded-full animate-pulse" />
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white px-5 py-2.5 rounded-full text-sm mb-8 animate-fade-in">
+                <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
                 הזמנות ל{activeHoliday.name} פתוחות
                 {daysUntilHoliday && daysUntilHoliday <= 3 && (
-                  <span className="bg-[#026873] text-white px-2.5 py-0.5 rounded-full text-xs font-bold mr-2">
+                  <span className="bg-white text-[#023859] px-2.5 py-0.5 rounded-full text-xs font-bold mr-2">
                     {daysUntilHoliday === 1 ? 'מחר!' : `עוד ${daysUntilHoliday} ימים`}
                   </span>
                 )}
               </div>
             )}
-
-            {/* Logo */}
-              <img 
-                src="/logo.png" 
-                alt="דגי בקעת אונו" 
-              className="h-24 md:h-36 w-auto mb-8 drop-shadow-lg animate-fade-in"
-            />
             
-            {/* Subtitle */}
-            <p className="text-[#013440]/70 text-lg md:text-xl font-light mb-10 max-w-lg leading-relaxed animate-slide-up">
+            {/* Subtitle - White Text */}
+            <p className="text-white text-xl md:text-2xl font-light mb-10 max-w-xl leading-relaxed animate-slide-up drop-shadow-lg">
               דגים טריים מהים התיכון, חתוכים בדיוק כמו שאתם אוהבים. 
+              <br />
               הזמינו מראש ואספו מוכן.
             </p>
 
@@ -162,13 +161,13 @@ export default function HomePage() {
              <>
                <Link
                  to={`/catalog?holiday=${encodeURIComponent(slugify(activeHoliday.name))}`}
-                    className="inline-flex items-center justify-center gap-2 bg-[#026873] hover:bg-[#013440] text-white font-semibold px-8 py-4 rounded-lg transition-all duration-300 shadow-ocean hover:shadow-lg hover:-translate-y-1"
+                    className="inline-flex items-center justify-center gap-2 bg-white hover:bg-[#F5F9FA] text-[#023859] font-semibold px-8 py-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1"
                >
                     {getHolidayButtonText()}
                </Link>
                <Link 
                  to="/catalog" 
-                    className="inline-flex items-center justify-center gap-2 border-2 border-[#023859] text-[#023859] hover:bg-[#023859] hover:text-white font-medium px-8 py-4 rounded-lg transition-all duration-300"
+                    className="inline-flex items-center justify-center gap-2 border-2 border-white text-white hover:bg-white hover:text-[#023859] font-medium px-8 py-4 rounded-lg transition-all duration-300"
                >
                  הזמנה רגילה
                </Link>
@@ -176,7 +175,7 @@ export default function HomePage() {
            ) : (
              <Link 
                to="/catalog" 
-                  className="inline-flex items-center justify-center gap-2 bg-[#026873] hover:bg-[#013440] text-white font-semibold px-10 py-4 rounded-lg transition-all duration-300 shadow-ocean hover:shadow-lg hover:-translate-y-1"
+                  className="inline-flex items-center justify-center gap-2 bg-white hover:bg-[#F5F9FA] text-[#023859] font-semibold px-10 py-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1"
              >
                   לקטלוג הדגים
                   <ArrowLeft className="w-5 h-5" />
@@ -185,10 +184,10 @@ export default function HomePage() {
             </div>
 
             {/* Wave Icon Decoration */}
-            <div className="mt-16 flex items-center gap-3 text-[#6FA8BF]">
-              <div className="w-12 h-px bg-[#B4D2D9]" />
+            <div className="mt-16 flex items-center gap-3 text-white/70">
+              <div className="w-12 h-px bg-white/50" />
               <Waves className="w-6 h-6 animate-wave" />
-              <div className="w-12 h-px bg-[#B4D2D9]" />
+              <div className="w-12 h-px bg-white/50" />
             </div>
           </div>
         </div>
