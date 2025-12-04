@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { ArrowLeft, Waves, Fish, Clock, Award, Truck, ShieldCheck, Scissors, Package } from 'lucide-react'
+import { ArrowLeft, Waves, Clock, Truck, ShieldCheck, Scissors } from 'lucide-react'
 
 interface Holiday {
   id: number
@@ -122,10 +122,20 @@ export default function HomePage() {
     <div className="bg-white">
       {/* Hero Section - Full Image Background */}
       <section className="relative min-h-[85vh] flex items-center overflow-hidden">
-        {/* Hero Background Image */}
-        <div className="absolute inset-0">
+        {/* Hero Background Image - Desktop */}
+        <div className="absolute inset-0 hidden md:block">
           <img 
             src="/fish_img/hero.png" 
+            alt="דגי בקעת אונו" 
+            className="w-full h-full object-cover"
+          />
+          {/* Dark Overlay for Text Readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/30" />
+        </div>
+        {/* Hero Background Image - Mobile */}
+        <div className="absolute inset-0 md:hidden">
+          <img 
+            src="/fish_img/heromobile.png" 
             alt="דגי בקעת אונו" 
             className="w-full h-full object-cover"
           />
@@ -207,9 +217,6 @@ export default function HomePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#013440]/90 via-[#013440]/40 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6">
-                <div className="bg-[#6FA8BF]/20 backdrop-blur-sm w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <Waves className="w-6 h-6 text-white" />
-                </div>
                 <h3 className="font-serif text-xl md:text-2xl text-white mb-1">דגי ים</h3>
                 <p className="text-sm text-white/70 mb-3">דניס, לברק, מוסר ים</p>
                 <span className="text-sm text-[#B4D2D9] flex items-center gap-1 group-hover:gap-2 transition-all font-medium">
@@ -230,9 +237,6 @@ export default function HomePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#013440]/90 via-[#013440]/40 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6">
-                <div className="bg-[#6FA8BF]/20 backdrop-blur-sm w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <Fish className="w-6 h-6 text-white" />
-                </div>
                 <h3 className="font-serif text-xl md:text-2xl text-white mb-1">מים מתוקים</h3>
                 <p className="text-sm text-white/70 mb-3">קרפיון, אמנון, פורל</p>
                 <span className="text-sm text-[#B4D2D9] flex items-center gap-1 group-hover:gap-2 transition-all font-medium">
@@ -253,9 +257,6 @@ export default function HomePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#013440]/90 via-[#013440]/40 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6">
-                <div className="bg-[#6FA8BF]/20 backdrop-blur-sm w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <Award className="w-6 h-6 text-white" />
-                </div>
                 <h3 className="font-serif text-xl md:text-2xl text-white mb-1">פרימיום</h3>
                 <p className="text-sm text-white/70 mb-3">סלמון, טונה, אינטיאס</p>
                 <span className="text-sm text-[#B4D2D9] flex items-center gap-1 group-hover:gap-2 transition-all font-medium">
@@ -276,9 +277,6 @@ export default function HomePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#013440]/90 via-[#013440]/40 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6">
-                <div className="bg-[#6FA8BF]/20 backdrop-blur-sm w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <Package className="w-6 h-6 text-white" />
-                </div>
                 <h3 className="font-serif text-xl md:text-2xl text-white mb-1">מוצרים נלווים</h3>
                 <p className="text-sm text-white/70 mb-3">תבלינים, רטבים, ציפויים</p>
                 <span className="text-sm text-[#B4D2D9] flex items-center gap-1 group-hover:gap-2 transition-all font-medium">
