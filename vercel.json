@@ -1,12 +1,8 @@
 {
   "functions": {
-    "api/send-email.js": {
-      "runtime": "@vercel/node@3.0.7",
+    "api/*.js": {
+      "runtime": "@vercel/node@3.2.0",
       "maxDuration": 30
-    },
-    "api/holiday-scheduler.js": {
-      "runtime": "@vercel/node@3.0.7",
-      "maxDuration": 60
     }
   },
   "crons": [
@@ -15,15 +11,10 @@
       "schedule": "0 9 * * *"
     }
   ],
-  "build": {
-    "env": {
-      "NODE_VERSION": "18"
-    }
-  },
   "rewrites": [
     {
       "source": "/((?!api).*)",
       "destination": "/index.html"
     }
   ]
-} 
+}
