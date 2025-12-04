@@ -129,8 +129,6 @@ export default function HomePage() {
             alt="דגי בקעת אונו" 
             className="w-full h-full object-cover"
           />
-          {/* Dark Overlay for Text Readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/30" />
         </div>
         {/* Hero Background Image - Mobile */}
         <div className="absolute inset-0 md:hidden">
@@ -139,8 +137,6 @@ export default function HomePage() {
             alt="דגי בקעת אונו" 
             className="w-full h-full object-cover"
           />
-          {/* Dark Overlay for Text Readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/30" />
         </div>
         
         <div className="absolute bottom-0 left-0 right-0 z-10 px-4 md:px-6 lg:px-8 pb-8 md:pb-16">
