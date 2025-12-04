@@ -5,7 +5,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base Styles - בוטיקי מינימליסטי */
+/* CSS Variables - Ocean Forces Theme */
+:root {
+  --ocean-primary: #023859;
+  --ocean-secondary: #6FA8BF;
+  --ocean-dark: #013440;
+  --ocean-light: #B4D2D9;
+  --ocean-accent: #026873;
+  --white: #FFFFFF;
+  --offwhite: #FAFCFD;
+  --cream: #F5F9FA;
+}
+
+/* Base Styles - Ocean Theme */
 html {
   direction: rtl;
   scroll-behavior: smooth;
@@ -13,8 +25,8 @@ html {
 
 body {
   font-family: 'Heebo', sans-serif;
-  background-color: #FAFAF9;
-  color: #1A1A1A;
+  background-color: var(--white);
+  color: var(--ocean-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -38,89 +50,127 @@ html, body {
 }
 
 @layer components {
-  /* כפתורים בוטיקיים */
+  /* כפתורים Ocean Theme */
   .btn-primary {
-    @apply bg-charcoal text-white font-medium py-3 px-8 transition-all duration-300;
-    border: 1px solid #1A1A1A;
+    @apply font-medium py-3 px-8 transition-all duration-300 rounded-lg;
+    background-color: var(--ocean-primary);
+    color: white;
+    border: 2px solid var(--ocean-primary);
   }
   .btn-primary:hover {
-    @apply bg-stone-800;
+    background-color: var(--ocean-dark);
+    border-color: var(--ocean-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(2, 56, 89, 0.25);
   }
-
+  
   .btn-secondary {
-    @apply bg-transparent text-charcoal font-medium py-3 px-8 transition-all duration-300;
-    border: 1px solid #1A1A1A;
+    @apply bg-transparent font-medium py-3 px-8 transition-all duration-300 rounded-lg;
+    color: var(--ocean-primary);
+    border: 2px solid var(--ocean-primary);
   }
   .btn-secondary:hover {
-    @apply bg-charcoal text-white;
+    background-color: var(--ocean-primary);
+    color: white;
+    transform: translateY(-2px);
+  }
+  
+  .btn-accent {
+    @apply font-medium py-3 px-8 transition-all duration-300 rounded-lg;
+    background-color: var(--ocean-accent);
+    color: white;
+    border: 2px solid var(--ocean-accent);
+  }
+  .btn-accent:hover {
+    background-color: var(--ocean-dark);
+    border-color: var(--ocean-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(2, 104, 115, 0.25);
   }
 
-  .btn-gold {
-    @apply bg-gold-600 text-white font-medium py-3 px-8 transition-all duration-300;
-    border: 1px solid #836841;
+  .btn-light {
+    @apply font-medium py-3 px-8 transition-all duration-300 rounded-lg;
+    background-color: var(--ocean-light);
+    color: var(--ocean-dark);
+    border: 2px solid var(--ocean-light);
   }
-  .btn-gold:hover {
-    @apply bg-gold-700;
+  .btn-light:hover {
+    background-color: var(--ocean-secondary);
+    border-color: var(--ocean-secondary);
+    transform: translateY(-2px);
   }
 
-  /* כרטיסי מוצר בוטיקיים */
+  /* כרטיסי מוצר */
   .card {
-    @apply bg-white transition-all duration-300;
-    border: 1px solid #E7E5E4;
+    @apply bg-white transition-all duration-300 rounded-lg;
+    border: 1px solid var(--ocean-light);
   }
   .card:hover {
-    @apply shadow-soft;
-    border-color: #D6D3D1;
+    @apply shadow-medium;
+    border-color: var(--ocean-secondary);
+    transform: translateY(-4px);
   }
 
-  /* שדות קלט מינימליסטיים */
+  /* שדות קלט */
   .input-field {
-    @apply w-full px-4 py-3 bg-white transition-all duration-200;
-    border: 1px solid #D6D3D1;
+    @apply w-full px-4 py-3 bg-white transition-all duration-200 rounded-lg;
+    border: 2px solid var(--ocean-light);
     font-size: 1rem;
   }
   .input-field:focus {
     outline: none;
-    border-color: #1A1A1A;
+    border-color: var(--ocean-accent);
+    box-shadow: 0 0 0 3px rgba(2, 104, 115, 0.1);
   }
   .input-field::placeholder {
-    color: #A8A29E;
+    color: #94A3B8;
   }
 
   /* תגיות */
   .badge {
-    @apply inline-flex items-center px-3 py-1 text-tiny font-medium tracking-wide uppercase;
-    background: #F5F5F4;
-    color: #57534E;
-    border: 1px solid #E7E5E4;
+    @apply inline-flex items-center px-3 py-1 text-tiny font-medium tracking-wide uppercase rounded-full;
+    background: var(--ocean-light);
+    color: var(--ocean-dark);
   }
 
-  .badge-gold {
-    @apply inline-flex items-center px-3 py-1 text-tiny font-medium tracking-wide uppercase;
-    background: #FAF8F5;
-    color: #836841;
-    border: 1px solid #E8DCC8;
+  .badge-primary {
+    @apply inline-flex items-center px-3 py-1 text-tiny font-medium tracking-wide uppercase rounded-full;
+    background: var(--ocean-primary);
+    color: white;
+  }
+  
+  .badge-accent {
+    @apply inline-flex items-center px-3 py-1 text-tiny font-medium tracking-wide uppercase rounded-full;
+    background: var(--ocean-accent);
+    color: white;
   }
 
   /* ניווט */
   .nav-link {
-    @apply text-stone-600 font-medium transition-colors duration-200;
+    @apply font-medium transition-colors duration-200;
+    color: var(--ocean-primary);
     position: relative;
   }
   .nav-link:hover {
-    @apply text-charcoal;
+    color: var(--ocean-accent);
   }
   .nav-link::after {
     content: '';
     position: absolute;
-    bottom: -2px;
+    bottom: -4px;
     left: 0;
     width: 0;
-    height: 1px;
-    background: #1A1A1A;
+    height: 2px;
+    background: var(--ocean-accent);
     transition: width 0.3s ease;
   }
   .nav-link:hover::after {
+    width: 100%;
+  }
+  .nav-link.active {
+    color: var(--ocean-accent);
+  }
+  .nav-link.active::after {
     width: 100%;
   }
 
@@ -130,15 +180,18 @@ html, body {
     border-collapse: collapse;
   }
   .table-modern th {
-    @apply text-right text-tiny font-medium tracking-wide uppercase text-stone-500 py-4 px-4;
-    border-bottom: 1px solid #E7E5E4;
+    @apply text-right text-tiny font-medium tracking-wide uppercase py-4 px-4;
+    color: var(--ocean-primary);
+    border-bottom: 2px solid var(--ocean-light);
+    background: var(--cream);
   }
   .table-modern td {
-    @apply py-4 px-4 text-stone-700;
-    border-bottom: 1px solid #F5F5F4;
+    @apply py-4 px-4;
+    color: var(--ocean-dark);
+    border-bottom: 1px solid var(--ocean-light);
   }
   .table-modern tr:hover td {
-    background: #FAFAF9;
+    background: var(--cream);
   }
 
   /* סקשנים */
@@ -147,31 +200,36 @@ html, body {
   }
 
   .section-title {
-    @apply font-serif text-h2 md:text-h1 text-charcoal mb-4;
+    @apply font-serif text-h2 md:text-h1 mb-4;
+    color: var(--ocean-primary);
   }
 
   .section-subtitle {
-    @apply text-stone-500 text-body mb-12;
+    @apply text-body mb-12;
+    color: var(--ocean-dark);
+    opacity: 0.8;
   }
 
   /* כרטיס מוצר דג */
   .fish-card {
-    @apply bg-white transition-all duration-300;
-    border: 1px solid #E7E5E4;
+    @apply bg-white transition-all duration-300 rounded-xl overflow-hidden;
+    border: 1px solid var(--ocean-light);
   }
   .fish-card:hover {
-    transform: translateY(-4px);
-    @apply shadow-medium;
+    transform: translateY(-6px);
+    @apply shadow-ocean;
+    border-color: var(--ocean-secondary);
   }
 
   .fish-card-image {
-    @apply aspect-[4/3] overflow-hidden bg-stone-100;
+    @apply aspect-[4/3] overflow-hidden;
+    background: var(--cream);
   }
   .fish-card-image img {
     @apply w-full h-full object-cover transition-transform duration-500;
   }
   .fish-card:hover .fish-card-image img {
-    transform: scale(1.03);
+    transform: scale(1.05);
   }
 
   .fish-card-content {
@@ -179,20 +237,25 @@ html, body {
   }
 
   .fish-card-title {
-    @apply font-serif text-h4 text-charcoal mb-2;
+    @apply font-serif text-h4 mb-2;
+    color: var(--ocean-primary);
   }
 
   .fish-card-price {
-    @apply text-h3 font-medium text-charcoal;
+    @apply text-h3 font-bold;
+    color: var(--ocean-accent);
   }
 
   .fish-card-unit {
-    @apply text-small text-stone-500;
+    @apply text-small;
+    color: var(--ocean-dark);
+    opacity: 0.7;
   }
 
   /* מחיר בולט */
   .price-display {
-    @apply font-medium text-charcoal;
+    @apply font-bold;
+    color: var(--ocean-accent);
   }
   .price-currency {
     @apply text-small;
@@ -200,39 +263,43 @@ html, body {
 
   /* סטטוס מלאי */
   .stock-available {
-    @apply text-tiny text-emerald-700 bg-emerald-50 px-2 py-1;
-    border: 1px solid #D1FAE5;
+    @apply text-tiny px-3 py-1 rounded-full;
+    background: #D1FAE5;
+    color: #065F46;
   }
   .stock-low {
-    @apply text-tiny text-amber-700 bg-amber-50 px-2 py-1;
-    border: 1px solid #FEF3C7;
+    @apply text-tiny px-3 py-1 rounded-full;
+    background: #FEF3C7;
+    color: #92400E;
   }
   .stock-out {
-    @apply text-tiny text-red-700 bg-red-50 px-2 py-1;
-    border: 1px solid #FEE2E2;
+    @apply text-tiny px-3 py-1 rounded-full;
+    background: #FEE2E2;
+    color: #991B1B;
   }
 
   /* קטגוריות */
   .category-card {
-    @apply relative overflow-hidden bg-white transition-all duration-300 cursor-pointer;
-    border: 1px solid #E7E5E4;
-    aspect-ratio: 1;
+    @apply relative overflow-hidden bg-white transition-all duration-300 cursor-pointer rounded-xl;
+    border: 1px solid var(--ocean-light);
   }
   .category-card:hover {
-    @apply shadow-soft;
-    border-color: #D6D3D1;
+    @apply shadow-ocean;
+    border-color: var(--ocean-secondary);
+    transform: translateY(-4px);
   }
   .category-card-overlay {
-    @apply absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent;
+    @apply absolute inset-0;
+    background: linear-gradient(to top, rgba(1, 52, 63, 0.7) 0%, transparent 60%);
   }
   .category-card-title {
-    @apply absolute bottom-6 left-6 right-6 font-serif text-h3 text-white;
+    @apply absolute bottom-4 left-4 right-4 font-serif text-h4 text-white;
   }
 
   /* עגלת קניות */
   .cart-item {
     @apply flex gap-4 py-6;
-    border-bottom: 1px solid #F5F5F4;
+    border-bottom: 1px solid var(--ocean-light);
   }
   .cart-item:last-child {
     border-bottom: none;
@@ -240,7 +307,8 @@ html, body {
 
   /* טופס */
   .form-label {
-    @apply block text-small font-medium text-stone-600 mb-2;
+    @apply block text-small font-medium mb-2;
+    color: var(--ocean-primary);
   }
 
   .form-group {
@@ -249,7 +317,7 @@ html, body {
 
   /* הודעות */
   .alert {
-    @apply p-4 text-small;
+    @apply p-4 text-small rounded-lg;
     border: 1px solid;
   }
   .alert-success {
@@ -261,21 +329,27 @@ html, body {
   .alert-error {
     @apply bg-red-50 text-red-800 border-red-200;
   }
+  .alert-info {
+    background: var(--cream);
+    color: var(--ocean-primary);
+    border-color: var(--ocean-light);
+  }
 
   /* Divider */
   .divider {
-    @apply h-px bg-stone-200 my-8;
+    @apply h-px my-8;
+    background: var(--ocean-light);
   }
 
   /* Container */
-  .container-boutique {
+  .container-ocean {
     @apply max-w-6xl mx-auto px-4 md:px-6 lg:px-8;
   }
 
-  /* Hero בוטיקי */
-  .hero-boutique {
+  /* Hero Ocean */
+  .hero-ocean {
     @apply relative min-h-[70vh] flex items-center justify-center;
-    background: linear-gradient(to bottom, #FAFAF9, #F5F5F4);
+    background: linear-gradient(180deg, var(--white) 0%, var(--cream) 100%);
   }
 
   /* Grid מוצרים */
@@ -284,49 +358,88 @@ html, body {
   }
 
   /* Select מותאם */
-  .select-boutique {
-    @apply w-full px-4 py-3 bg-white appearance-none cursor-pointer transition-all duration-200;
-    border: 1px solid #D6D3D1;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2378716C'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  .select-ocean {
+    @apply w-full px-4 py-3 bg-white appearance-none cursor-pointer transition-all duration-200 rounded-lg;
+    border: 2px solid var(--ocean-light);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23026873'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: left 12px center;
     background-size: 20px;
     padding-left: 40px;
   }
-  .select-boutique:focus {
+  .select-ocean:focus {
     outline: none;
-    border-color: #1A1A1A;
+    border-color: var(--ocean-accent);
+    box-shadow: 0 0 0 3px rgba(2, 104, 115, 0.1);
   }
 
   /* Quantity selector */
   .quantity-selector {
-    @apply flex items-center;
-    border: 1px solid #D6D3D1;
+    @apply flex items-center rounded-lg overflow-hidden;
+    border: 2px solid var(--ocean-light);
   }
   .quantity-btn {
-    @apply w-10 h-10 flex items-center justify-center text-stone-600 transition-colors;
+    @apply w-10 h-10 flex items-center justify-center transition-colors;
+    color: var(--ocean-primary);
   }
   .quantity-btn:hover {
-    @apply bg-stone-100;
+    background: var(--ocean-light);
   }
   .quantity-input {
     @apply w-16 h-10 text-center border-0 focus:ring-0;
+    color: var(--ocean-primary);
   }
 
   /* אנימציות */
   .fade-in {
-    animation: fadeIn 0.4s ease-out;
+    animation: fadeIn 0.5s ease-out;
   }
   .slide-up {
-    animation: slideUp 0.4s ease-out;
+    animation: slideUp 0.5s ease-out;
   }
 
   /* Hover effects */
   .hover-lift {
-    @apply transition-transform duration-300;
+    @apply transition-all duration-300;
   }
   .hover-lift:hover {
     transform: translateY(-4px);
+  }
+
+  /* Ocean specific utilities */
+  .text-ocean-primary { color: var(--ocean-primary); }
+  .text-ocean-secondary { color: var(--ocean-secondary); }
+  .text-ocean-dark { color: var(--ocean-dark); }
+  .text-ocean-light { color: var(--ocean-light); }
+  .text-ocean-accent { color: var(--ocean-accent); }
+
+  .bg-ocean-primary { background-color: var(--ocean-primary); }
+  .bg-ocean-secondary { background-color: var(--ocean-secondary); }
+  .bg-ocean-dark { background-color: var(--ocean-dark); }
+  .bg-ocean-light { background-color: var(--ocean-light); }
+  .bg-ocean-accent { background-color: var(--ocean-accent); }
+
+  .border-ocean-primary { border-color: var(--ocean-primary); }
+  .border-ocean-secondary { border-color: var(--ocean-secondary); }
+  .border-ocean-dark { border-color: var(--ocean-dark); }
+  .border-ocean-light { border-color: var(--ocean-light); }
+  .border-ocean-accent { border-color: var(--ocean-accent); }
+
+  /* Icon styles */
+  .icon-ocean {
+    color: var(--ocean-accent);
+    width: 24px;
+    height: 24px;
+  }
+  .icon-ocean-lg {
+    color: var(--ocean-accent);
+    width: 32px;
+    height: 32px;
+  }
+  .icon-ocean-xl {
+    color: var(--ocean-accent);
+    width: 48px;
+    height: 48px;
   }
 }
 
@@ -339,7 +452,7 @@ html, body {
 @keyframes slideUp {
   from { 
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(20px);
   }
   to { 
     opacity: 1;
@@ -350,7 +463,7 @@ html, body {
 @keyframes slideDown {
   from { 
     opacity: 0;
-    transform: translateY(-12px);
+    transform: translateY(-20px);
   }
   to { 
     opacity: 1;
@@ -358,27 +471,37 @@ html, body {
   }
 }
 
+@keyframes wave {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
 .animate-slide-down {
   animation: slideDown 0.3s ease-out;
 }
 
-/* Scrollbar מינימליסטי */
+.animate-wave {
+  animation: wave 3s ease-in-out infinite;
+}
+
+/* Scrollbar Ocean Theme */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--cream);
 }
 ::-webkit-scrollbar-thumb {
-  background: #D6D3D1;
+  background: var(--ocean-light);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #A8A29E;
+  background: var(--ocean-secondary);
 }
 
 /* Focus styles */
 :focus {
-  outline: 2px solid #1A1A1A;
+  outline: 2px solid var(--ocean-accent);
   outline-offset: 2px;
 }
 :focus:not(:focus-visible) {
@@ -387,6 +510,6 @@ html, body {
 
 /* Selection */
 ::selection {
-  background: #1A1A1A;
+  background: var(--ocean-primary);
   color: white;
 }

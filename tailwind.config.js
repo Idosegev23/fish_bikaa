@@ -12,60 +12,50 @@ export default {
         'hebrew': ['Heebo', 'Arial', 'sans-serif'],
       },
       colors: {
-        // פלטת צבעים בוטיקית-מינימליסטית
-        cream: '#F8F6F3',
-        sand: '#E8E4DE',
-        charcoal: '#1A1A1A',
-        stone: {
-          50: '#FAFAF9',
-          100: '#F5F5F4',
-          200: '#E7E5E4',
-          300: '#D6D3D1',
-          400: '#A8A29E',
-          500: '#78716C',
-          600: '#57534E',
-          700: '#44403C',
-          800: '#292524',
-          900: '#1C1917',
+        // פלטת צבעים ימית - Ocean Forces
+        ocean: {
+          // Primary - כחול כהה עמוק
+          primary: '#023859',
+          // Secondary - תכלת בהיר
+          secondary: '#6FA8BF',
+          // Dark - כחול-ירוק כהה
+          dark: '#013440',
+          // Light - תכלת בהיר מאוד
+          light: '#B4D2D9',
+          // Accent - טורקיז כהה
+          accent: '#026873',
         },
-        // אקסנט זהב מושתק
-        gold: {
-          50: '#FAF8F5',
-          100: '#F5EFE6',
-          200: '#E8DCC8',
-          300: '#D4C4A8',
-          400: '#B8A07A',
-          500: '#9C7C52',
-          600: '#836841',
-          700: '#6B5536',
-          800: '#54432B',
-          900: '#3D3120',
-        },
-        // כחול ים כהה
-        navy: {
-          50: '#F0F4F8',
-          100: '#D9E2EC',
-          200: '#BCCCDC',
-          300: '#9FB3C8',
-          400: '#829AB1',
-          500: '#627D98',
-          600: '#486581',
-          700: '#334E68',
-          800: '#243B53',
-          900: '#102A43',
+        // רקעים בהירים
+        white: '#FFFFFF',
+        offwhite: '#FAFCFD',
+        cream: '#F5F9FA',
+        // גווני אפור-כחול
+        slate: {
+          50: '#F8FAFC',
+          100: '#F1F5F9',
+          200: '#E2E8F0',
+          300: '#CBD5E1',
+          400: '#94A3B8',
+          500: '#64748B',
+          600: '#475569',
+          700: '#334155',
+          800: '#1E293B',
+          900: '#0F172A',
         },
       },
       boxShadow: {
-        'subtle': '0 1px 2px rgba(0, 0, 0, 0.04)',
-        'soft': '0 2px 8px rgba(0, 0, 0, 0.06)',
-        'medium': '0 4px 16px rgba(0, 0, 0, 0.08)',
-        'elegant': '0 8px 32px rgba(0, 0, 0, 0.08)',
+        'subtle': '0 1px 2px rgba(2, 56, 89, 0.04)',
+        'soft': '0 2px 8px rgba(2, 56, 89, 0.08)',
+        'medium': '0 4px 16px rgba(2, 56, 89, 0.12)',
+        'elegant': '0 8px 32px rgba(2, 56, 89, 0.12)',
+        'ocean': '0 4px 20px rgba(2, 104, 115, 0.15)',
       },
       borderRadius: {
-        'sm': '2px',
-        'DEFAULT': '4px',
-        'md': '6px',
-        'lg': '8px',
+        'sm': '4px',
+        'DEFAULT': '8px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '24px',
       },
       fontSize: {
         'display': ['3.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
@@ -82,8 +72,11 @@ export default {
         '22': '5.5rem',
       },
       animation: {
-        'fade-in': 'fadeIn 0.4s ease-out',
-        'slide-up': 'slideUp 0.4s ease-out',
+        'fade-in': 'fadeIn 0.5s ease-out',
+        'slide-up': 'slideUp 0.5s ease-out',
+        'slide-down': 'slideDown 0.3s ease-out',
+        'wave': 'wave 3s ease-in-out infinite',
+        'float': 'float 6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -91,12 +84,29 @@ export default {
           '100%': { opacity: '1' },
         },
         slideUp: {
-          '0%': { transform: 'translateY(12px)', opacity: '0' },
+          '0%': { transform: 'translateY(20px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        slideDown: {
+          '0%': { transform: 'translateY(-20px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        wave: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-5px)' },
         },
       },
       transitionTimingFunction: {
         'elegant': 'cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+      backgroundImage: {
+        'ocean-gradient': 'linear-gradient(135deg, #023859 0%, #026873 50%, #6FA8BF 100%)',
+        'ocean-light': 'linear-gradient(180deg, #FFFFFF 0%, #F5F9FA 50%, #B4D2D9 100%)',
+        'ocean-subtle': 'linear-gradient(180deg, #FAFCFD 0%, #F5F9FA 100%)',
       },
     },
   },
