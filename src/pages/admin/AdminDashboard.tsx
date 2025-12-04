@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Fish, ShoppingCart, DollarSign, TrendingUp, Package, Users, Scissors, Scale, Monitor, Calendar, FileText, Tag } from 'lucide-react'
+import { Fish, ShoppingCart, DollarSign, TrendingUp, Package, Scissors, Scale, Monitor, Calendar, FileText, Tag, Settings, Clock, Waves } from 'lucide-react'
 import {
   BarChart,
   Bar,
@@ -49,7 +49,7 @@ interface OrderStatusStats {
   color: string
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
+const COLORS = ['#023859', '#026873', '#6FA8BF', '#B4D2D9', '#013440', '#82CA9D']
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
@@ -94,7 +94,6 @@ export default function AdminDashboard() {
       const totalOrders = ordersResult.data.length
       const totalRevenue = ordersResult.data.reduce((sum, order) => sum + Number(order.total_price), 0)
       
-      // הזמנות היום האחרון
       const yesterday = new Date()
       yesterday.setDate(yesterday.getDate() - 1)
       const pendingOrders = ordersResult.data.filter(
@@ -146,11 +145,9 @@ export default function AdminDashboard() {
         if (popularFishData.length > 0) {
           setPopularFish(popularFishData)
         } else {
-          // אם אין נתונים, הצג הודעה מתאימה
           setPopularFish([{ name: 'אין נתונים זמינים', orders: 0, revenue: 0 }])
         }
       } else {
-        // אין הזמנות במערכת
         setPopularFish([{ name: 'אין הזמנות עדיין', orders: 0, revenue: 0 }])
       }
     } catch (error) {
@@ -187,7 +184,7 @@ export default function AdminDashboard() {
             revenue: Math.round(data.revenue),
             orders: data.orders
           }))
-          .slice(-6) // 6 חודשים אחרונים
+          .slice(-6)
 
         if (monthlyRevenueData.length > 0) {
           setMonthlyRevenue(monthlyRevenueData)
@@ -195,7 +192,6 @@ export default function AdminDashboard() {
           setMonthlyRevenue([{ month: 'אין נתונים', revenue: 0, orders: 0 }])
         }
       } else {
-        // אין הזמנות במערכת
         setMonthlyRevenue([{ month: 'אין הזמנות עדיין', revenue: 0, orders: 0 }])
       }
     } catch (error) {
@@ -238,7 +234,6 @@ export default function AdminDashboard() {
           setCutTypeStats([{ name: 'אין נתונים זמינים', count: 0, percentage: 0 }])
         }
       } else {
-        // אין הזמנות במערכת
         setCutTypeStats([{ name: 'אין הזמנות עדיין', count: 0, percentage: 0 }])
       }
     } catch (error) {
@@ -265,15 +260,14 @@ export default function AdminDashboard() {
         const olderOrders = orders.length - monthOrders
 
         setOrderStatusStats([
-          { status: 'היום', count: todayOrders, color: '#FF6B6B' },
-          { status: 'השבוע', count: weekOrders - todayOrders, color: '#4ECDC4' },
-          { status: 'החודש', count: monthOrders - weekOrders, color: '#45B7D1' },
-          { status: 'ישנות יותר', count: olderOrders, color: '#96CEB4' }
+          { status: 'היום', count: todayOrders, color: '#026873' },
+          { status: 'השבוע', count: weekOrders - todayOrders, color: '#6FA8BF' },
+          { status: 'החודש', count: monthOrders - weekOrders, color: '#B4D2D9' },
+          { status: 'ישנות יותר', count: olderOrders, color: '#023859' }
         ])
       } else {
-        // אין הזמנות במערכת
         setOrderStatusStats([
-          { status: 'אין הזמנות עדיין', count: 0, color: '#CCCCCC' }
+          { status: 'אין הזמנות עדיין', count: 0, color: '#B4D2D9' }
         ])
       }
     } catch (error) {
@@ -295,23 +289,34 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex justify-center items-center min-h-screen bg-[#F5F9FA]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#026873] mx-auto mb-4"></div>
+          <p className="text-[#023859]">טוען נתונים...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F5F9FA]">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-[#023859] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">דשבורד אדמין</h1>
-              <p className="text-gray-600">ברוכים הבאים למערכת ניהול דגי בקעת אונו</p>
+          <div className="flex justify-between items-center py-5">
+            <div className="flex items-center gap-3">
+              <div className="bg-[#026873] p-2 rounded-lg">
+                <Waves className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">לוח בקרה</h1>
+                <p className="text-[#B4D2D9] text-sm">דגי בקעת אונו - מערכת ניהול</p>
+              </div>
             </div>
-            <Link to="/" className="btn-secondary">
+            <Link 
+              to="/" 
+              className="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2 rounded-lg transition-colors border border-white/20"
+            >
               לאתר הראשי
             </Link>
           </div>
@@ -319,211 +324,216 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
-        {/* Mobile quick actions (condensed) */}
+        {/* Mobile quick actions */}
         <div className="md:hidden grid grid-cols-2 gap-3 mb-6">
-          <button
-            disabled
-            className="bg-gray-400 cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg text-sm flex items-center justify-center gap-2 opacity-60"
-            title="תכונה זו עדיין לא זמינה"
-          >
-            <Scale className="w-4 h-4" />
-            מסך מטבח
-            <span className="text-xs">(בקרוב)</span>
-          </button>
-          <Link to="/admin/orders" className="btn-secondary w-full text-sm">הזמנות</Link>
-          <Link to="/admin/fish" className="btn-secondary w-full text-sm">דגים</Link>
-          <Link to="/admin/additional-products" className="btn-secondary w-full text-sm">מוצרים משלימים</Link>
+          <Link to="/admin/orders" className="bg-white border border-[#B4D2D9] text-[#023859] font-medium py-3 px-4 rounded-lg text-sm text-center hover:bg-[#B4D2D9]/10 transition-colors">
+            הזמנות
+          </Link>
+          <Link to="/admin/fish" className="bg-white border border-[#B4D2D9] text-[#023859] font-medium py-3 px-4 rounded-lg text-sm text-center hover:bg-[#B4D2D9]/10 transition-colors">
+            דגים
+          </Link>
+          <Link to="/admin/additional-products" className="bg-white border border-[#B4D2D9] text-[#023859] font-medium py-3 px-4 rounded-lg text-sm text-center hover:bg-[#B4D2D9]/10 transition-colors">
+            מוצרים משלימים
+          </Link>
+          <Link to="/admin/reports" className="bg-white border border-[#B4D2D9] text-[#023859] font-medium py-3 px-4 rounded-lg text-sm text-center hover:bg-[#B4D2D9]/10 transition-colors">
+            דוחות
+          </Link>
         </div>
+
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="card bg-blue-50 border-blue-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          <div className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 shadow-soft hover:shadow-medium transition-shadow">
             <div className="flex items-center">
-              <div className="bg-blue-500 p-3 rounded-lg">
+              <div className="bg-[#023859] p-3 rounded-xl">
                 <ShoppingCart className="w-6 h-6 text-white" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-blue-600">סה"כ הזמנות</p>
-                <p className="text-2xl font-bold text-blue-900">{stats.totalOrders}</p>
+                <p className="text-sm font-medium text-[#023859]/60">סה"כ הזמנות</p>
+                <p className="text-2xl font-bold text-[#023859]">{stats.totalOrders}</p>
               </div>
             </div>
           </div>
 
-          <div className="card bg-green-50 border-green-200">
+          <div className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 shadow-soft hover:shadow-medium transition-shadow">
             <div className="flex items-center">
-              <div className="bg-green-500 p-3 rounded-lg">
+              <div className="bg-[#026873] p-3 rounded-xl">
                 <DollarSign className="w-6 h-6 text-white" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-green-600">הכנסות כוללות</p>
-                <p className="text-2xl font-bold text-green-900">₪{stats.totalRevenue.toFixed(0)}</p>
+                <p className="text-sm font-medium text-[#023859]/60">הכנסות כוללות</p>
+                <p className="text-2xl font-bold text-[#026873]">₪{stats.totalRevenue.toFixed(0)}</p>
               </div>
             </div>
           </div>
 
-          <div className="card bg-purple-50 border-purple-200">
+          <div className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 shadow-soft hover:shadow-medium transition-shadow">
             <div className="flex items-center">
-              <div className="bg-purple-500 p-3 rounded-lg">
+              <div className="bg-[#6FA8BF] p-3 rounded-xl">
                 <Fish className="w-6 h-6 text-white" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-purple-600">סוגי דגים פעילים</p>
-                <p className="text-2xl font-bold text-purple-900">{stats.totalFishTypes}</p>
+                <p className="text-sm font-medium text-[#023859]/60">סוגי דגים פעילים</p>
+                <p className="text-2xl font-bold text-[#023859]">{stats.totalFishTypes}</p>
               </div>
             </div>
           </div>
 
-          <div className="card bg-orange-50 border-orange-200">
+          <div className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 shadow-soft hover:shadow-medium transition-shadow">
             <div className="flex items-center">
-              <div className="bg-orange-500 p-3 rounded-lg">
+              <div className="bg-[#013440] p-3 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div className="mr-4">
-                <p className="text-sm font-medium text-orange-600">הזמנות 24 שעות</p>
-                <p className="text-2xl font-bold text-orange-900">{stats.pendingOrders}</p>
+                <p className="text-sm font-medium text-[#023859]/60">הזמנות 24 שעות</p>
+                <p className="text-2xl font-bold text-[#023859]">{stats.pendingOrders}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Kitchen Display Button - Disabled */}
+        {/* Quick Actions Grid */}
         <div className="mb-8">
-          <button 
-            disabled
-            className="w-full bg-gray-400 cursor-not-allowed text-white font-bold py-6 px-8 rounded-2xl shadow-lg opacity-60 flex items-center justify-center gap-4 text-xl"
-            title="תכונה זו עדיין לא זמינה"
-          >
-            <Monitor className="w-8 h-8" />
-            <div className="text-center">
-              <div className="text-2xl font-bold">📺 מסך מטבח</div>
-              <div className="text-lg opacity-90">ניהול שקילות והזמנות</div>
-              <div className="text-sm opacity-90 mt-1">🚧 בקרוב</div>
-            </div>
-            <Scale className="w-8 h-8" />
-          </button>
-        </div>
+          <h2 className="text-lg font-semibold text-[#023859] mb-4">פעולות מהירות</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <Link to="/admin/fish" className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 hover:border-[#6FA8BF] hover:shadow-medium transition-all group">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#B4D2D9]/30 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
+                  <Fish className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-[#023859] mb-1">ניהול דגים</h3>
+                <p className="text-xs text-[#023859]/60">הוספה ועריכה</p>
+              </div>
+            </Link>
 
-        {/* Quick Actions (condensed) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
-          <Link to="/admin/fish" className="card hover:shadow-lg transition-shadow group">
-            <div className="text-center p-4">
-            <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
-              <h3 className="text-lg font-semibold mb-2">ניהול דגים</h3>
-              <p className="text-gray-600 text-sm">הוספה, עריכה ומחיקה של דגים במערכת</p>
-            </div>
-          </Link>
+            <Link to="/admin/orders" className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 hover:border-[#6FA8BF] hover:shadow-medium transition-all group">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#B4D2D9]/30 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
+                  <ShoppingCart className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-[#023859] mb-1">הזמנות</h3>
+                <p className="text-xs text-[#023859]/60">צפייה וניהול</p>
+              </div>
+            </Link>
 
-          <Link to="/admin/orders" className="card hover:shadow-lg transition-shadow group">
-            <div className="text-center p-4">
-            <ShoppingCart className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
-              <h3 className="text-lg font-semibold mb-2">רשימת הזמנות</h3>
-              <p className="text-gray-600 text-sm">צפייה וניהול הזמנות לקוחות</p>
-            </div>
-          </Link>
+            <Link to="/admin/reports" className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 hover:border-[#6FA8BF] hover:shadow-medium transition-all group">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#B4D2D9]/30 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
+                  <FileText className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-[#023859] mb-1">דוחות</h3>
+                <p className="text-xs text-[#023859]/60">יומי, מלאי, הכנסות</p>
+              </div>
+            </Link>
 
-          <Link to="/admin/reports" className="card hover:shadow-lg transition-shadow group">
-            <div className="text-center p-4">
-              <FileText className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
-              <h3 className="text-lg font-semibold mb-2">דוחות המערכת</h3>
-              <p className="text-gray-600 text-sm">כל הדוחות במקום אחד - יומי, מלאי, חגים, הכנסות</p>
-            </div>
-          </Link>
+            <Link to="/admin/holidays" className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 hover:border-[#6FA8BF] hover:shadow-medium transition-all group">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#B4D2D9]/30 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
+                  <Calendar className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-[#023859] mb-1">חגים</h3>
+                <p className="text-xs text-[#023859]/60">ניהול הזמנות חג</p>
+              </div>
+            </Link>
 
-          <Link to="/admin/holidays" className="card hover:shadow-lg transition-shadow group">
-            <div className="text-center p-4">
-              <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
-              <h3 className="text-lg font-semibold mb-2">ניהול חגים</h3>
-              <p className="text-gray-600 text-sm">פתיחת הזמנות לחגים והיערכות מלאי</p>
-            </div>
-          </Link>
+            <Link to="/admin/additional-products" className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 hover:border-[#6FA8BF] hover:shadow-medium transition-all group">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#B4D2D9]/30 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
+                  <Package className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-[#023859] mb-1">מוצרים נלווים</h3>
+                <p className="text-xs text-[#023859]/60">ניהול מלאי</p>
+              </div>
+            </Link>
 
-          <Link to="/admin/additional-products" className="card hover:shadow-lg transition-shadow group">
-            <div className="text-center p-4">
-              <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
-              <h3 className="text-lg font-semibold mb-2">מוצרים משלימים</h3>
-              <p className="text-gray-600 text-sm">ניהול מלאי מוצרים נלווים</p>
-            </div>
-          </Link>
+            <Link to="/admin/fish-cuts" className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 hover:border-[#6FA8BF] hover:shadow-medium transition-all group">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#B4D2D9]/30 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
+                  <Scissors className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-[#023859] mb-1">חיתוכים לדגים</h3>
+                <p className="text-xs text-[#023859]/60">שיוך חיתוכים</p>
+              </div>
+            </Link>
 
-          <Link to="/admin/meal-recommendations" className="card hover:shadow-lg transition-shadow group">
-            <div className="text-center p-4">
-              <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
-              <h3 className="text-lg font-semibold mb-2">המלצות מנות</h3>
-              <p className="text-gray-600 text-sm">שיוך דג+חיתוך למוצרים מומלצים</p>
-            </div>
-          </Link>
+            <Link to="/admin/availability" className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 hover:border-[#6FA8BF] hover:shadow-medium transition-all group">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#B4D2D9]/30 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
+                  <Clock className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-[#023859] mb-1">זמני איסוף</h3>
+                <p className="text-xs text-[#023859]/60">שעות וכמויות</p>
+              </div>
+            </Link>
 
-          <Link to="/admin/availability" className="card hover:shadow-lg transition-shadow group">
-            <div className="text-center p-4">
-              <Package className="w-12 h-12 text-primary-600 mx-auto mb-4 group-hover:text-primary-700" />
-              <h3 className="text-lg font-semibold mb-2">זמני איסוף</h3>
-              <p className="text-gray-600 text-sm">ניהול שעות וכמויות איסוף יומיות</p>
-            </div>
-          </Link>
-
-          <Link to="/admin/coupons" className="card hover:shadow-lg transition-shadow group bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200">
-            <div className="text-center p-4">
-              <Tag className="w-12 h-12 text-amber-600 mx-auto mb-4 group-hover:text-amber-700" />
-              <h3 className="text-lg font-semibold mb-2 text-amber-900">קופונים והנחות</h3>
-              <p className="text-amber-700 text-sm">ניהול קודי הנחה ומבצעים</p>
-            </div>
-          </Link>
+            <Link to="/admin/coupons" className="bg-white rounded-xl p-5 border border-[#026873]/30 hover:border-[#026873] hover:shadow-medium transition-all group">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#026873]/20 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
+                  <Tag className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-[#026873] mb-1">קופונים</h3>
+                <p className="text-xs text-[#026873]/60">הנחות ומבצעים</p>
+              </div>
+            </Link>
+          </div>
         </div>
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Popular Fish Chart */}
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-4">דגים פופולריים</h3>
+          <div className="bg-white rounded-xl p-6 border border-[#B4D2D9]/30 shadow-soft">
+            <h3 className="text-lg font-semibold text-[#023859] mb-4">דגים פופולריים</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={popularFish}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#B4D2D9" />
                   <XAxis 
                     dataKey="name" 
-                    tick={{ fontSize: 12 }}
+                    tick={{ fontSize: 12, fill: '#023859' }}
                     angle={-45}
                     textAnchor="end"
                     height={60}
                   />
-                  <YAxis />
+                  <YAxis tick={{ fill: '#023859' }} />
                   <Tooltip 
                     labelStyle={{ direction: 'rtl' }}
                     formatter={(value, name) => [value, name === 'orders' ? 'הזמנות' : 'הכנסות (₪)']}
+                    contentStyle={{ backgroundColor: 'white', border: '1px solid #B4D2D9', borderRadius: '8px' }}
                   />
                   <Legend 
                     formatter={(value) => value === 'orders' ? 'הזמנות' : 'הכנסות (₪)'}
                   />
-                  <Bar dataKey="orders" fill="#8884d8" />
-                  <Bar dataKey="revenue" fill="#82ca9d" />
+                  <Bar dataKey="orders" fill="#023859" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" fill="#6FA8BF" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Monthly Revenue Chart */}
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-4">הכנסות חודשיות</h3>
+          <div className="bg-white rounded-xl p-6 border border-[#B4D2D9]/30 shadow-soft">
+            <h3 className="text-lg font-semibold text-[#023859] mb-4">הכנסות חודשיות</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={monthlyRevenue}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#B4D2D9" />
                   <XAxis 
                     dataKey="month" 
-                    tick={{ fontSize: 12 }}
+                    tick={{ fontSize: 12, fill: '#023859' }}
                     angle={-45}
                     textAnchor="end"
                     height={60}
                   />
-                  <YAxis />
+                  <YAxis tick={{ fill: '#023859' }} />
                   <Tooltip 
                     labelStyle={{ direction: 'rtl' }}
                     formatter={(value, name) => [value, name === 'revenue' ? 'הכנסות (₪)' : 'הזמנות']}
+                    contentStyle={{ backgroundColor: 'white', border: '1px solid #B4D2D9', borderRadius: '8px' }}
                   />
                   <Legend 
                     formatter={(value) => value === 'revenue' ? 'הכנסות (₪)' : 'הזמנות'}
                   />
-                  <Line type="monotone" dataKey="revenue" stroke="#8884d8" strokeWidth={2} />
-                  <Line type="monotone" dataKey="orders" stroke="#82ca9d" strokeWidth={2} />
+                  <Line type="monotone" dataKey="revenue" stroke="#023859" strokeWidth={2} dot={{ fill: '#023859' }} />
+                  <Line type="monotone" dataKey="orders" stroke="#026873" strokeWidth={2} dot={{ fill: '#026873' }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -533,8 +543,8 @@ export default function AdminDashboard() {
         {/* Additional Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Cut Types Distribution */}
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-4">התפלגות חיתוכים</h3>
+          <div className="bg-white rounded-xl p-6 border border-[#B4D2D9]/30 shadow-soft">
+            <h3 className="text-lg font-semibold text-[#023859] mb-4">התפלגות חיתוכים</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -545,30 +555,36 @@ export default function AdminDashboard() {
                     labelLine={false}
                     label={({ name, percentage }) => `${name} (${percentage}%)`}
                     outerRadius={80}
-                    fill="#8884d8"
+                    fill="#023859"
                     dataKey="count"
                   >
                     {cutTypeStats.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [value, 'הזמנות']} />
+                  <Tooltip 
+                    formatter={(value) => [value, 'הזמנות']} 
+                    contentStyle={{ backgroundColor: 'white', border: '1px solid #B4D2D9', borderRadius: '8px' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Orders by Time Period */}
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-4">הזמנות לפי תקופה</h3>
+          <div className="bg-white rounded-xl p-6 border border-[#B4D2D9]/30 shadow-soft">
+            <h3 className="text-lg font-semibold text-[#023859] mb-4">הזמנות לפי תקופה</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={orderStatusStats} layout="horizontal">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis dataKey="status" type="category" width={80} />
-                  <Tooltip formatter={(value) => [value, 'הזמנות']} />
-                  <Bar dataKey="count" fill="#8884d8">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#B4D2D9" />
+                  <XAxis type="number" tick={{ fill: '#023859' }} />
+                  <YAxis dataKey="status" type="category" width={80} tick={{ fill: '#023859' }} />
+                  <Tooltip 
+                    formatter={(value) => [value, 'הזמנות']} 
+                    contentStyle={{ backgroundColor: 'white', border: '1px solid #B4D2D9', borderRadius: '8px' }}
+                  />
+                  <Bar dataKey="count" fill="#023859" radius={[0, 4, 4, 0]}>
                     {orderStatusStats.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -580,18 +596,33 @@ export default function AdminDashboard() {
         </div>
       </main>
 
-      {/* ניווט תחתון - מובייל (אדמין) */}
-      <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-white/95 backdrop-blur border-t border-neutral-200">
+      {/* ניווט תחתון - מובייל */}
+      <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-[#B4D2D9]/30">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-5 text-center text-sm">
-            <Link to="/admin/dashboard" className="py-3 text-primary-700 font-semibold">דשבורד</Link>
-            <Link to="/admin/orders" className="py-3 text-neutral-600">הזמנות</Link>
-            <Link to="/admin/fish" className="py-3 text-neutral-600">דגים</Link>
-            <Link to="/admin/daily-report" className="py-3 text-neutral-600">דוח יומי</Link>
-            <Link to="/admin/holidays" className="py-3 text-neutral-600">חגים</Link>
+          <div className="grid grid-cols-5 text-center text-xs">
+            <Link to="/admin/dashboard" className="py-3 text-[#026873] font-semibold flex flex-col items-center gap-1">
+              <Settings className="w-5 h-5" />
+              <span>דשבורד</span>
+            </Link>
+            <Link to="/admin/orders" className="py-3 text-[#023859]/60 flex flex-col items-center gap-1">
+              <ShoppingCart className="w-5 h-5" />
+              <span>הזמנות</span>
+            </Link>
+            <Link to="/admin/fish" className="py-3 text-[#023859]/60 flex flex-col items-center gap-1">
+              <Fish className="w-5 h-5" />
+              <span>דגים</span>
+            </Link>
+            <Link to="/admin/daily-report" className="py-3 text-[#023859]/60 flex flex-col items-center gap-1">
+              <FileText className="w-5 h-5" />
+              <span>דוח יומי</span>
+            </Link>
+            <Link to="/admin/holidays" className="py-3 text-[#023859]/60 flex flex-col items-center gap-1">
+              <Calendar className="w-5 h-5" />
+              <span>חגים</span>
+            </Link>
           </div>
         </div>
       </nav>
     </div>
   )
-} 
+}
