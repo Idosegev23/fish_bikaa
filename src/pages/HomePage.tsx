@@ -133,11 +133,11 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/30" />
         </div>
         
-        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-16 w-full">
-          <div className="flex flex-col items-center text-center mt-32 md:mt-40">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-16 w-full h-full flex items-end">
+          <div className="flex flex-col items-center text-center w-full pb-12 md:pb-20">
             {/* Holiday Badge */}
             {activeHoliday && (
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white px-5 py-2.5 rounded-full text-sm mb-8 animate-fade-in">
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white px-5 py-2.5 rounded-full text-sm mb-6 animate-fade-in">
                 <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
                 הזמנות ל{activeHoliday.name} פתוחות
                 {daysUntilHoliday && daysUntilHoliday <= 3 && (
@@ -149,7 +149,7 @@ export default function HomePage() {
             )}
             
             {/* Subtitle - White Text */}
-            <p className="text-white text-xl md:text-2xl font-light mb-10 max-w-xl leading-relaxed animate-slide-up drop-shadow-lg">
+            <p className="text-white text-xl md:text-2xl font-light mb-8 max-w-xl leading-relaxed animate-slide-up drop-shadow-lg">
               דגים טריים מהים התיכון, חתוכים בדיוק כמו שאתם אוהבים. 
               <br />
               הזמינו מראש ואספו מוכן.
@@ -181,13 +181,6 @@ export default function HomePage() {
                   <ArrowLeft className="w-5 h-5" />
              </Link>
            )}
-            </div>
-
-            {/* Wave Icon Decoration */}
-            <div className="mt-16 flex items-center gap-3 text-white/70">
-              <div className="w-12 h-px bg-white/50" />
-              <Waves className="w-6 h-6 animate-wave" />
-              <div className="w-12 h-px bg-white/50" />
             </div>
           </div>
         </div>
