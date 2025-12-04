@@ -133,8 +133,8 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/30" />
         </div>
         
-        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-16 w-full h-full flex items-end">
-          <div className="flex flex-col items-center text-center w-full pb-12 md:pb-20">
+        <div className="absolute bottom-0 left-0 right-0 z-10 px-4 md:px-6 lg:px-8 pb-8 md:pb-16">
+          <div className="max-w-6xl mx-auto flex flex-col items-center text-center">
             {/* Holiday Badge */}
             {activeHoliday && (
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white px-5 py-2.5 rounded-full text-sm mb-6 animate-fade-in">
@@ -145,7 +145,7 @@ export default function HomePage() {
                     {daysUntilHoliday === 1 ? 'מחר!' : `עוד ${daysUntilHoliday} ימים`}
                   </span>
                 )}
-              </div>
+            </div>
             )}
             
             {/* Subtitle - White Text */}
@@ -181,9 +181,9 @@ export default function HomePage() {
                   <ArrowLeft className="w-5 h-5" />
              </Link>
            )}
-            </div>
-          </div>
+         </div>
         </div>
+      </div>
       </section>
 
       {/* Categories Section */}
@@ -286,7 +286,7 @@ export default function HomePage() {
                 </span>
               </div>
             </Link>
-          </div>
+            </div>
             </div>
       </section>
 
@@ -302,7 +302,7 @@ export default function HomePage() {
             <div className="bg-white p-6 rounded-xl border border-[#B4D2D9]/30 hover:border-[#6FA8BF] hover:shadow-soft transition-all duration-300 text-center group">
               <div className="w-14 h-14 bg-[#B4D2D9]/30 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#026873] transition-colors duration-300">
                 <ShieldCheck className="w-7 h-7 text-[#026873] group-hover:text-white transition-colors duration-300" />
-              </div>
+        </div>
               <h3 className="font-semibold text-[#023859] mb-2">טריות מובטחת</h3>
               <p className="text-sm text-[#013440]/60">דגים טריים שמגיעים ישירות מהים כל יום</p>
             </div>
@@ -326,7 +326,7 @@ export default function HomePage() {
             <div className="bg-white p-6 rounded-xl border border-[#B4D2D9]/30 hover:border-[#6FA8BF] hover:shadow-soft transition-all duration-300 text-center group">
               <div className="w-14 h-14 bg-[#B4D2D9]/30 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#026873] transition-colors duration-300">
                 <Truck className="w-7 h-7 text-[#026873] group-hover:text-white transition-colors duration-300" />
-              </div>
+          </div>
               <h3 className="font-semibold text-[#023859] mb-2">מוכן לאיסוף</h3>
               <p className="text-sm text-[#013440]/60">ההזמנה שלכם תחכה ארוזה ומוכנה</p>
             </div>
