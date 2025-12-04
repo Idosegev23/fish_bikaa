@@ -101,30 +101,33 @@ export default function AdminOrders() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex justify-center items-center min-h-screen bg-[#F5F9FA]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#026873] mx-auto mb-4"></div>
+          <p className="text-[#023859]">טוען הזמנות...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F5F9FA]">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-[#023859] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 py-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 py-5">
             <div className="flex items-center space-x-4 space-x-reverse">
-              <Link to="/admin/dashboard" className="text-primary-600 hover:text-primary-700">
+              <Link to="/admin/dashboard" className="text-[#6FA8BF] hover:text-white transition-colors">
                 <ArrowLeft className="w-6 h-6" />
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">רשימת הזמנות</h1>
-                <p className="text-gray-600">צפייה וניהול הזמנות לקוחות</p>
+                <h1 className="text-2xl font-bold text-white">רשימת הזמנות</h1>
+                <p className="text-[#B4D2D9] text-sm">צפייה וניהול הזמנות לקוחות</p>
               </div>
             </div>
             <button 
               onClick={exportToCSV}
-              className="btn-primary flex items-center space-x-2 space-x-reverse w-full md:w-auto"
+              className="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2 rounded-lg transition-colors border border-white/20 flex items-center space-x-2 space-x-reverse w-full md:w-auto justify-center"
             >
               <Download className="w-4 h-4" />
               <span>ייצוא לCSV</span>
@@ -135,7 +138,7 @@ export default function AdminOrders() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-soft border border-[#B4D2D9]/30 p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -224,20 +227,20 @@ export default function AdminOrders() {
         </div>
 
         {/* Desktop table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden hidden md:block">
+        <div className="bg-white rounded-xl shadow-soft border border-[#B4D2D9]/30 overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-[#B4D2D9]/30">
+              <thead className="bg-[#F5F9FA]">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">תאריך הזמנה</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">לקוח</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">איסוף</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">פריטים</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">סכום</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">פעולות</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-[#023859] uppercase tracking-wider">תאריך הזמנה</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-[#023859] uppercase tracking-wider">לקוח</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-[#023859] uppercase tracking-wider">איסוף</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-[#023859] uppercase tracking-wider">פריטים</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-[#023859] uppercase tracking-wider">סכום</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-[#023859] uppercase tracking-wider">פעולות</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-[#B4D2D9]/20">
                 {filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

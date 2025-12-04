@@ -180,28 +180,28 @@ export default function AdminCoupons() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-amber-50">
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+    <div className="min-h-screen bg-[#F5F9FA]">
+      <header className="bg-[#023859] shadow-lg sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-gold-500 to-amber-500 rounded-xl flex items-center justify-center shadow-gold">
+              <div className="w-10 h-10 bg-[#026873] rounded-xl flex items-center justify-center">
                 <Tag className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">ניהול קופונים</h1>
-                <p className="text-sm text-gray-600">צור והפעל קודי הנחה</p>
+                <h1 className="text-2xl font-bold text-white">ניהול קופונים</h1>
+                <p className="text-sm text-[#B4D2D9]">צור והפעל קודי הנחה</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => { setShowForm(true); setEditingCoupon(null); resetForm(); }}
-                className="btn-accent flex items-center gap-2"
+                className="bg-[#026873] hover:bg-[#013440] text-white font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 קופון חדש
               </button>
-              <Link to="/admin/dashboard" className="btn-secondary text-sm">
+              <Link to="/admin/dashboard" className="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2 rounded-lg transition-colors border border-white/20 text-sm">
                 חזרה לדשבורד
               </Link>
             </div>

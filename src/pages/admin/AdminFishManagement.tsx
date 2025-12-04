@@ -288,26 +288,28 @@ export default function AdminFishManagement() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex justify-center items-center min-h-screen bg-[#F5F9FA]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#026873] mx-auto mb-4"></div>
+          <p className="text-[#023859]">טוען נתונים...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F5F9FA]">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-[#023859] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center py-5">
             <div className="flex items-center space-x-4 space-x-reverse">
-              <Link to="/admin/dashboard" className="text-primary-600 hover:text-primary-700">
+              <Link to="/admin/dashboard" className="text-[#6FA8BF] hover:text-white transition-colors">
                 <ArrowLeft className="w-6 h-6" />
               </Link>
               <div>
-                              <h1 className="text-3xl font-bold text-gray-900">ניהול דגים</h1>
-              <p className="text-gray-600">עריכת מחירים, מלאי וזמינות דגים</p>
-              <p className="text-xs text-gray-500">המלאי מתעדכן אוטומטיט עם הזמנות חדשות</p>
+                <h1 className="text-2xl font-bold text-white">ניהול דגים</h1>
+                <p className="text-[#B4D2D9] text-sm">עריכת מחירים, מלאי וזמינות דגים</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-3 md:gap-4 items-stretch">

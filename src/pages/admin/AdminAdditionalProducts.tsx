@@ -224,20 +224,20 @@ export default function AdminAdditionalProducts() {
   }, {} as Record<string, AdditionalProduct[]>)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+    <div className="min-h-screen bg-[#F5F9FA]">
+      <header className="bg-[#023859] shadow-lg sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-[#026873] rounded-xl flex items-center justify-center">
                 <Package className="w-5 h-5 text-white" />
               </div>
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">מוצרים משלימים</h1>
-                <p className="text-sm text-gray-600">ניהול מלאי והצעות מוצרים נלווים</p>
+              <div>
+                <h1 className="text-2xl font-bold text-white">מוצרים משלימים</h1>
+                <p className="text-sm text-[#B4D2D9]">ניהול מלאי והצעות מוצרים נלווים</p>
               </div>
             </div>
-            <Link to="/admin/dashboard" className="btn-secondary text-sm">חזרה לדשבורד</Link>
+            <Link to="/admin/dashboard" className="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2 rounded-lg transition-colors border border-white/20 text-sm">חזרה לדשבורד</Link>
           </div>
         </div>
       </header>

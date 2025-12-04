@@ -21,7 +21,7 @@ const AdminReports: React.FC = () => {
       description: 'רשימת הזמנות לתאריך נבחר - לצורך היערכות יומית',
       icon: FileText,
       link: '/admin/daily-report',
-      color: 'blue',
+      color: 'ocean',
       timing: 'נשלח כל בוקר בשעה 08:00',
       features: ['רשימת הזמנות', 'פרטי לקוח', 'סימון חג', 'יחידות נכונות']
     },
@@ -31,7 +31,7 @@ const AdminReports: React.FC = () => {
       description: 'בדיקת כמויות זמינות עם התראות צבע למלאי נמוך',
       icon: Package,
       link: '/admin/inventory-report',
-      color: 'green',
+      color: 'teal',
       timing: 'בלחיצה - בלייב',
       features: ['מלאי זמין', 'התראות צבע', 'סטטיסטיקות', 'רענון אוטומטי']
     },
@@ -41,7 +41,7 @@ const AdminReports: React.FC = () => {
       description: 'הזמנות שסומנו כהזמנות חג עם סיכומים מפורטים',
       icon: Calendar,
       link: '/admin/holiday-orders-report',
-      color: 'purple',
+      color: 'light',
       timing: 'נשלח 7-10 ימים לפני החג',
       features: ['הזמנות חג בלבד', 'סיכום דגים', 'רשימת לקוחות', 'ספירת ימים']
     },
@@ -51,7 +51,7 @@ const AdminReports: React.FC = () => {
       description: 'סכימה לפי סוג דג - כמויות נדרשות vs מלאי נוכחי',
       icon: TrendingUp,
       link: '/admin/supplier-report',
-      color: 'orange',
+      color: 'dark',
       timing: 'נשלח לפי תאריך deadline',
       features: ['סכימה לפי דג', 'מלאי vs ביקוש', 'חסרים במלאי', 'הזמנה מספקים']
     },
@@ -61,43 +61,50 @@ const AdminReports: React.FC = () => {
       description: 'ניתוח עסקי מפורט - הזמנות, מגמות ודגים פופולריים',
       icon: TrendingUp,
       link: '/admin/revenue-report',
-      color: 'emerald',
+      color: 'accent',
       timing: 'נשלח כל 1 לחודש',
       features: ['גרפי הזמנות', 'דגים פופולריים', 'ניתוח מגמות', 'לקוחות פעילים']
     }
   ]
 
   const getColorClasses = (color: string) => {
-    const colors = {
-      blue: {
-        bg: 'bg-blue-50',
-        border: 'border-blue-200',
-        icon: 'bg-blue-500',
-        text: 'text-blue-800',
-        badge: 'bg-blue-100 text-blue-700'
+    const colors: Record<string, any> = {
+      ocean: {
+        bg: 'bg-[#023859]/5',
+        border: 'border-[#023859]/20',
+        icon: 'bg-[#023859]',
+        text: 'text-[#023859]',
+        badge: 'bg-[#023859]/10 text-[#023859]'
       },
-      green: {
-        bg: 'bg-green-50',
-        border: 'border-green-200',
-        icon: 'bg-green-500',
-        text: 'text-green-800',
-        badge: 'bg-green-100 text-green-700'
+      teal: {
+        bg: 'bg-[#026873]/5',
+        border: 'border-[#026873]/20',
+        icon: 'bg-[#026873]',
+        text: 'text-[#026873]',
+        badge: 'bg-[#026873]/10 text-[#026873]'
       },
-      purple: {
-        bg: 'bg-purple-50',
-        border: 'border-purple-200',
-        icon: 'bg-purple-500',
-        text: 'text-purple-800',
-        badge: 'bg-purple-100 text-purple-700'
+      light: {
+        bg: 'bg-[#6FA8BF]/10',
+        border: 'border-[#6FA8BF]/30',
+        icon: 'bg-[#6FA8BF]',
+        text: 'text-[#023859]',
+        badge: 'bg-[#6FA8BF]/20 text-[#023859]'
       },
-      orange: {
-        bg: 'bg-orange-50',
-        border: 'border-orange-200',
-        icon: 'bg-orange-500',
-        text: 'text-orange-800',
-        badge: 'bg-orange-100 text-orange-700'
+      dark: {
+        bg: 'bg-[#013440]/5',
+        border: 'border-[#013440]/20',
+        icon: 'bg-[#013440]',
+        text: 'text-[#013440]',
+        badge: 'bg-[#013440]/10 text-[#013440]'
       },
-      emerald: {
+      accent: {
+        bg: 'bg-[#B4D2D9]/20',
+        border: 'border-[#B4D2D9]/40',
+        icon: 'bg-[#026873]',
+        text: 'text-[#023859]',
+        badge: 'bg-[#B4D2D9]/30 text-[#023859]'
+      },
+      placeholder: {
         bg: 'bg-emerald-50',
         border: 'border-emerald-200',
         icon: 'bg-emerald-500',
@@ -105,26 +112,26 @@ const AdminReports: React.FC = () => {
         badge: 'bg-emerald-100 text-emerald-700'
       }
     }
-    return colors[color as keyof typeof colors] || colors.blue
+    return colors[color as keyof typeof colors] || colors.ocean
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F5F9FA]">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-[#023859] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
+          <div className="flex items-center justify-between py-5">
             <div className="flex items-center space-x-4 space-x-reverse">
-              <Link to="/admin/dashboard" className="text-primary-600 hover:text-primary-700">
+              <Link to="/admin/dashboard" className="text-[#6FA8BF] hover:text-white transition-colors">
                 <ArrowLeft className="w-6 h-6" />
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">דוחות המערכת</h1>
-                <p className="text-gray-600">מרכז הדוחות - כל הדוחות במקום אחד</p>
+                <h1 className="text-2xl font-bold text-white">דוחות המערכת</h1>
+                <p className="text-[#B4D2D9] text-sm">מרכז הדוחות - כל הדוחות במקום אחד</p>
               </div>
             </div>
             <div className="flex items-center space-x-3 space-x-reverse">
-              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+              <div className="bg-white/10 border border-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">
                 5 דוחות זמינים
               </div>
             </div>
@@ -134,27 +141,27 @@ const AdminReports: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* הסבר כללי */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
+        <div className="bg-white p-6 rounded-xl shadow-soft border border-[#B4D2D9]/30 mb-8">
           <div className="flex items-start space-x-4 space-x-reverse">
-            <div className="bg-blue-500 p-3 rounded-lg">
+            <div className="bg-[#026873] p-3 rounded-xl">
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">אודות הדוחות</h2>
-              <p className="text-gray-600 mb-4">
+              <h2 className="text-xl font-semibold text-[#023859] mb-2">אודות הדוחות</h2>
+              <p className="text-[#013440]/70 mb-4">
                 מערכת הדוחות מספקת מידע מפורט על פעילות העסק, מלאי, הזמנות וביצועים כספיים. 
                 כל דוח ניתן להורדה כ-PDF או לשליחה בוואטסאפ.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center space-x-2 space-x-reverse text-green-700">
+                <div className="flex items-center space-x-2 space-x-reverse text-[#026873]">
                   <Zap className="w-4 h-4" />
                   <span>תמיכה מלאה בעברית RTL</span>
                 </div>
-                <div className="flex items-center space-x-2 space-x-reverse text-blue-700">
+                <div className="flex items-center space-x-2 space-x-reverse text-[#023859]">
                   <Clock className="w-4 h-4" />
                   <span>דוחות אוטומטיים לפי לוח זמנים</span>
                 </div>
-                <div className="flex items-center space-x-2 space-x-reverse text-purple-700">
+                <div className="flex items-center space-x-2 space-x-reverse text-[#6FA8BF]">
                   <Users className="w-4 h-4" />
                   <span>שליחה בוואטסאפ ו-PDF</span>
                 </div>
