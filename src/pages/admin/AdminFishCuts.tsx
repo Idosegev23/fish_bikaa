@@ -329,7 +329,7 @@ export default function AdminFishCuts() {
                             {isEnabled ? (
                               <Check className="w-4 h-4 flex-shrink-0 mr-1" />
                             ) : (
-                              {cut.default_addition > 0 && <span className="text-xs text-gray-400 flex-shrink-0 mr-1">+₪{cut.default_addition}</span>}
+                              cut.default_addition > 0 ? <span className="text-xs text-gray-400 flex-shrink-0 mr-1">+₪{cut.default_addition}</span> : null
                             )}
                           </button>
                         )
