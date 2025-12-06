@@ -435,22 +435,22 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
             <div className="flex items-center border-2 border-[#B4D2D9] rounded-lg overflow-hidden">
               <button
                 type="button"
-                onClick={() => setQuantity(Math.max(unitsBased ? 1 : 0.5, quantity - (unitsBased ? 1 : 0.5)))}
-                disabled={isOutOfStock || (unitsBased ? quantity <= 1 : quantity <= 0.5)}
+                onClick={() => setQuantity(Math.max(unitsBased ? 1 : 0.1, quantity - (unitsBased ? 1 : 0.1)))}
+                disabled={isOutOfStock || (unitsBased ? quantity <= 1 : quantity <= 0.1)}
                 className="w-12 h-11 flex items-center justify-center text-[#023859] hover:bg-[#F5F9FA] transition-colors disabled:opacity-40"
               >
                 <Minus className="w-4 h-4" />
               </button>
               <input
                 type="number"
-                min={unitsBased ? 1 : 0.5}
+                min={unitsBased ? 1 : 0.1}
                 max={unitsBased ? maxUnits : fish.available_kg}
-                step={unitsBased ? 1 : 0.5}
+                step={unitsBased ? 1 : 0.1}
                 value={quantity}
                 onChange={(e) => {
                   const val = Number(e.target.value)
                   const max = unitsBased ? (maxUnits || 0) : fish.available_kg
-                  setQuantity(Math.max(unitsBased ? 1 : 0.5, Math.min(val, max)))
+                  setQuantity(Math.max(unitsBased ? 1 : 0.1, Math.min(val, max)))
                 }}
                 className="flex-1 h-11 text-center border-0 focus:ring-0 focus:outline-none text-[#023859] font-medium bg-transparent"
               />
@@ -458,7 +458,7 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
                 type="button"
                 onClick={() => {
                   const max = unitsBased ? (maxUnits || 0) : fish.available_kg
-                  setQuantity(Math.min(max, quantity + (unitsBased ? 1 : 0.5)))
+                  setQuantity(Math.min(max, quantity + (unitsBased ? 1 : 0.1)))
                 }}
                 disabled={isOutOfStock || (unitsBased ? quantity >= (maxUnits || 0) : quantity >= fish.available_kg)}
                 className="w-12 h-11 flex items-center justify-center text-[#023859] hover:bg-[#F5F9FA] transition-colors disabled:opacity-40"
