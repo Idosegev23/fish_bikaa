@@ -32,7 +32,6 @@ const CATEGORIES = [
   { id: 'שמנים', name: 'שמנים' },
   { id: 'פסטה', name: 'פסטה' },
   { id: 'מזרח ומערב', name: 'מזרח ומערב' },
-  { id: 'כללי', name: 'כללי' },
 ]
 
 export default function AdditionalProducts({ onAddToCart }: AdditionalProductsProps) {
