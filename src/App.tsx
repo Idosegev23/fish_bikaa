@@ -10,6 +10,7 @@ import CatalogCategories from './pages/CatalogCategories'
 import AdditionalProducts from './pages/AdditionalProducts'
 import CustomerDetails from './pages/CustomerDetails'
 import OrderSummary from './pages/OrderSummary'
+import CatalogReview from './pages/CatalogReview'
 import NotFound from './pages/NotFound'
 
 // Admin pages - lazy loaded (only loaded when admin navigates to them)
@@ -33,6 +34,7 @@ const AdminHolidays = lazy(() => import('./pages/admin/AdminHolidays'))
 const AdminDailyOrders = lazy(() => import('./pages/admin/AdminDailyOrders'))
 const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'))
 const AdminFishCuts = lazy(() => import('./pages/admin/AdminFishCuts'))
+const AdminCatalogFeedback = lazy(() => import('./pages/admin/AdminCatalogFeedback'))
 
 export interface CartItem {
   fishId: number
@@ -141,6 +143,9 @@ function App() {
               </Layout>
             } />
 
+            {/* דף סקירת קטלוג ע"י בעל העסק - גישה ציבורית, ללא layout */}
+            <Route path="/catalog-review" element={<CatalogReview />} />
+
             {/* נתיבי אדמין */}
             <Route path="/admin" element={<AdminLogin onLogin={setIsAdmin} />} />
 
@@ -206,6 +211,10 @@ function App() {
 
             <Route path="/admin/fish-cuts" element={
               isAdmin ? <AdminFishCuts /> : <AdminLogin onLogin={setIsAdmin} />
+            } />
+
+            <Route path="/admin/catalog-feedback" element={
+              isAdmin ? <AdminCatalogFeedback /> : <AdminLogin onLogin={setIsAdmin} />
             } />
 
             {/* 404 */}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Fish, ShoppingCart, DollarSign, TrendingUp, Package, Scissors, Scale, Monitor, Calendar, FileText, Tag, Settings, Clock, Waves } from 'lucide-react'
+import { Fish, ShoppingCart, DollarSign, TrendingUp, Package, Scissors, Scale, Monitor, Calendar, FileText, Tag, Settings, Clock, Waves, MessageSquare } from 'lucide-react'
 import {
   BarChart,
   Bar,
@@ -475,6 +475,16 @@ export default function AdminDashboard() {
                 </div>
                 <h3 className="font-semibold text-[#026873] mb-1">קופונים</h3>
                 <p className="text-xs text-[#026873]/60">הנחות ומבצעים</p>
+              </div>
+            </Link>
+
+            <Link to="/admin/catalog-feedback" className="bg-white rounded-xl p-5 border border-[#026873]/30 hover:border-[#026873] hover:shadow-medium transition-all group">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#026873]/20 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
+                  <MessageSquare className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-[#026873] mb-1">הערות קטלוג</h3>
+                <p className="text-xs text-[#026873]/60">סקירות מבעלי העסק</p>
               </div>
             </Link>
           </div>
