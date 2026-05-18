@@ -225,7 +225,7 @@ export default function FishCatalog({ onAddToCart }: FishCatalogProps) {
             >
               <option value="all">כל הסוגים</option>
               <option value="saltwater">דגי ים</option>
-              <option value="freshwater">מים מתוקים</option>
+              <option value="freshwater">דגי בריכה</option>
               <option value="other">פרימיום</option>
             </select>
 

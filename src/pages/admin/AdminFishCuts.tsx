@@ -260,7 +260,7 @@ export default function AdminFishCuts() {
                         <h3 className="font-bold text-gray-900">{fishItem.name}</h3>
                         <p className="text-sm text-gray-500">
                           {fishItem.water_type === 'saltwater' ? 'מים מלוחים' : 
-                           fishItem.water_type === 'freshwater' ? 'מים מתוקים' : 'אחר'}
+                           fishItem.water_type === 'freshwater' ? 'דגי בריכה' : 'אחר'}
                           {' • '}₪{fishItem.price_per_kg}/ק"ג
                         </p>
                       </div>

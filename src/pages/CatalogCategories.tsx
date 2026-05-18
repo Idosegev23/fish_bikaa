@@ -88,7 +88,7 @@ export default function CatalogCategories() {
           </div>
         </Link>
 
-        {/* דגי מים מתוקים */}
+        {/* דגי בריכה */}
         <Link 
           to="/catalog?type=freshwater" 
           className="group bg-white rounded-3xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-emerald-100"
@@ -97,9 +97,9 @@ export default function CatalogCategories() {
             <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
               <Droplets className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
-            <h3 className="text-lg sm:text-xl font-bold mb-2 text-gray-800">דגי מים מתוקים</h3>
+            <h3 className="text-lg sm:text-xl font-bold mb-2 text-gray-800">דגי בריכה</h3>
             <p className="text-sm text-gray-600 mb-4">
-              דגים ממקורות מים מתוקים
+              דגים ממקורות מים מתוקים מבריכות
             </p>
             <div className="text-xs text-emerald-600 font-medium">
               בורי, מושט, קרפיון ועוד →

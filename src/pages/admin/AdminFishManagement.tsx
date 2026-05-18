@@ -376,7 +376,7 @@ export default function AdminFishManagement() {
                         className="input-field text-sm"
                       >
                         <option value="saltwater">מים מלוחים</option>
-                        <option value="freshwater">מים מתוקים</option>
+                        <option value="freshwater">דגי בריכה</option>
                         <option value="other">אחר</option>
                       </select>
                     </div>
@@ -454,7 +454,7 @@ export default function AdminFishManagement() {
                     </div>
                     <div className="min-w-0">
                       <div className="font-semibold text-neutral-900 truncate">{fishItem.name}</div>
-                      <div className="text-sm text-neutral-600 truncate">{fishItem.water_type === 'saltwater' ? 'מים מלוחים' : fishItem.water_type === 'freshwater' ? 'מים מתוקים' : 'אחר'}</div>
+                      <div className="text-sm text-neutral-600 truncate">{fishItem.water_type === 'saltwater' ? 'מים מלוחים' : fishItem.water_type === 'freshwater' ? 'דגי בריכה' : 'אחר'}</div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
@@ -602,7 +602,7 @@ export default function AdminFishManagement() {
                             className="input-field text-sm"
                           >
                             <option value="saltwater">מים מלוחים</option>
-                            <option value="freshwater">מים מתוקים</option>
+                            <option value="freshwater">דגי בריכה</option>
                             <option value="other">אחר</option>
                           </select>
                         </td>
@@ -695,7 +695,7 @@ export default function AdminFishManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {fishItem.water_type === 'saltwater' && 'מים מלוחים'}
-                          {fishItem.water_type === 'freshwater' && 'מים מתוקים'}
+                          {fishItem.water_type === 'freshwater' && 'דגי בריכה'}
                           {fishItem.water_type === 'other' && 'אחר'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -798,7 +798,7 @@ export default function AdminFishManagement() {
                       className="input-field"
                     >
                       <option value="saltwater">מים מלוחים</option>
-                      <option value="freshwater">מים מתוקים</option>
+                      <option value="freshwater">דגי בריכה</option>
                       <option value="other">אחר</option>
                     </select>
                   </div>

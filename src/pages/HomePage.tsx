@@ -226,20 +226,20 @@ export default function HomePage() {
               </div>
             </Link>
 
-            {/* מים מתוקים */}
+            {/* דגי בריכה */}
             <Link 
               to="/catalog?type=freshwater"
               className="group relative aspect-[3/4] overflow-hidden rounded-xl shadow-soft hover:shadow-ocean transition-all duration-500"
             >
               <img 
                 src="/freshWater.webp"
-                alt="דגי מים מתוקים" 
+                alt="דגי בריכה" 
                 className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#013440]/90 via-[#013440]/40 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6">
-                <h3 className="font-serif text-xl md:text-2xl text-white mb-1">מים מתוקים</h3>
+                <h3 className="font-serif text-xl md:text-2xl text-white mb-1">דגי בריכה</h3>
                 <p className="text-sm text-white/70 mb-3">קרפיון, אמנון, פורל</p>
                 <span className="text-sm text-[#B4D2D9] flex items-center gap-1 group-hover:gap-2 transition-all font-medium">
                   לצפייה <ArrowLeft className="w-4 h-4" />
