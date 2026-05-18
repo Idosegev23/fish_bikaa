@@ -28,6 +28,11 @@ const CATEGORIES = [
   { id: 'בסיסים למרק', name: 'בסיסים למרק' },
   { id: 'תערובות ציפוי', name: 'תערובות ציפוי' },
   { id: 'קטניות', name: 'קטניות' },
+  { id: 'אנשי זית', name: 'אנשי זית' },
+  { id: 'שמנים', name: 'שמנים' },
+  { id: 'פסטה', name: 'פסטה' },
+  { id: 'מזרח ומערב', name: 'מזרח ומערב' },
+  { id: 'כללי', name: 'כללי' },
 ]
 
 export default function AdditionalProducts({ onAddToCart }: AdditionalProductsProps) {
