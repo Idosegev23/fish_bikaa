@@ -85,19 +85,20 @@ export default function AdminDashboard() {
   }
 
   const fetchDashboardStats = async () => {
-    const [ordersResult, fishResult] = await Promise.all([
-      supabase.from('orders').select('total_price, created_at'),
-      supabase.from('fish_types').select('id').eq('is_active', true)
-    ])
+    try {
+      const [ordersResult, fishResult] = await Promise.all([
+        supabase.from('orders').select('total_price, created_at'),
+        supabase.from('fish_types').select('id').eq('is_active', true)
+      ])
 
-    if (ordersResult.data) {
-      const totalOrders = ordersResult.data.length
-      const totalRevenue = ordersResult.data.reduce((sum, order) => sum + Number(order.total_price), 0)
-      
+      const ordersData = ordersResult.data || []
+      const totalOrders = ordersData.length
+      const totalRevenue = ordersData.reduce((sum, order) => sum + (Number(order.total_price) || 0), 0)
+
       const yesterday = new Date()
       yesterday.setDate(yesterday.getDate() - 1)
-      const pendingOrders = ordersResult.data.filter(
-        order => new Date(order.created_at) > yesterday
+      const pendingOrders = ordersData.filter(
+        order => order.created_at && new Date(order.created_at) > yesterday
       ).length
 
       setStats({
@@ -106,6 +107,8 @@ export default function AdminDashboard() {
         totalFishTypes: fishResult.data?.length || 0,
         pendingOrders
       })
+    } catch (err) {
+      console.error('Error fetching dashboard stats:', err)
     }
   }
 

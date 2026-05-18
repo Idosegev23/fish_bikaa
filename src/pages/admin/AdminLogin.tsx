@@ -21,8 +21,16 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
 
   const onSubmit = async (data: LoginForm) => {
     setLoginError('')
-    
-    if (data.username === 'admin' && data.password === '123456') {
+
+    const validUser = import.meta.env.VITE_ADMIN_USER || 'admin'
+    const validPass = import.meta.env.VITE_ADMIN_PASS
+
+    if (!validPass) {
+      setLoginError('סיסמת מנהל לא הוגדרה במערכת. יש להגדיר VITE_ADMIN_PASS')
+      return
+    }
+
+    if (data.username === validUser && data.password === validPass) {
       onLogin(true)
       navigate('/admin/dashboard')
     } else {
@@ -37,8 +45,8 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
             <img 
-              src="/logo.png" 
-              alt="דגי בקעת אונו" 
+              src="/logo.webp"
+              alt="דגי בקעת אונו"
               className="h-20 w-auto"
             />
           </div>

@@ -50,10 +50,10 @@ export default function AdminOrders() {
       )
     }
 
-    // סינון לפי תאריך
+    // סינון לפי תאריך (delivery_date עלול להגיע כ-ISO timestamp או כ-YYYY-MM-DD)
     if (dateFilter) {
       filtered = filtered.filter(order =>
-        order.delivery_date === dateFilter
+        String(order.delivery_date).slice(0, 10) === dateFilter
       )
     }
 
@@ -97,6 +97,40 @@ export default function AdminOrders() {
   const closeOrderModal = () => {
     setSelectedOrder(null)
     setOrderModalOpen(false)
+  }
+
+  const STATUS_LABELS: Record<string, string> = {
+    pending: 'ממתינה',
+    weighing: 'בשקילה',
+    ready: 'מוכנה',
+    completed: 'הושלמה',
+  }
+
+  const STATUS_COLORS: Record<string, string> = {
+    pending: 'bg-yellow-100 text-yellow-800',
+    weighing: 'bg-blue-100 text-blue-800',
+    ready: 'bg-green-100 text-green-800',
+    completed: 'bg-gray-100 text-gray-800',
+  }
+
+  const updateOrderStatus = async (orderId: number, newStatus: Order['status']) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId)
+
+      if (error) throw error
+
+      // עדכון מקומי
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o))
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : prev)
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error)
+      alert('שגיאה בעדכון סטטוס ההזמנה')
+    }
   }
 
   if (loading) {
@@ -201,9 +235,11 @@ export default function AdminOrders() {
                   <div className="font-semibold text-neutral-900 mt-1">{order.customer_name}</div>
                   <div className="text-sm text-neutral-600">{order.phone} • {order.email}</div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[order.status || 'pending'] || STATUS_COLORS.pending}`}>
+                    {STATUS_LABELS[order.status || 'pending'] || 'ממתינה'}
+                  </span>
                   <div className="text-primary-700 font-bold">₪{Number(order.total_price).toFixed(2)}</div>
-                  <Eye className="w-4 h-4 text-primary-600" />
                 </div>
               </div>
               <div className="mt-3 text-sm text-neutral-600">
@@ -237,6 +273,7 @@ export default function AdminOrders() {
                   <th className="px-6 py-4 text-right text-xs font-semibold text-[#023859] uppercase tracking-wider">איסוף</th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-[#023859] uppercase tracking-wider">פריטים</th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-[#023859] uppercase tracking-wider">סכום</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-[#023859] uppercase tracking-wider">סטטוס</th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-[#023859] uppercase tracking-wider">פעולות</th>
                 </tr>
               </thead>
@@ -272,6 +309,17 @@ export default function AdminOrders() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-700">₪{Number(order.total_price).toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <select
+                        value={order.status || 'pending'}
+                        onChange={(e) => { e.stopPropagation(); updateOrderStatus(order.id, e.target.value as Order['status']) }}
+                        className={`text-xs px-2 py-1 rounded-lg border-0 font-medium cursor-pointer ${STATUS_COLORS[order.status || 'pending'] || STATUS_COLORS.pending}`}
+                      >
+                        {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                      </select>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => openOrderModal(order)}
@@ -432,6 +480,26 @@ export default function AdminOrders() {
                     <span>סה"כ לתשלום:</span>
                     <span className="text-primary-700">₪{Number(selectedOrder.total_price).toFixed(2)}</span>
                   </div>
+                </div>
+              </div>
+
+              {/* Status Update */}
+              <div className="bg-neutral-50 rounded-xl p-4">
+                <h3 className="font-semibold text-neutral-900 mb-3">עדכון סטטוס</h3>
+                <div className="flex gap-2 flex-wrap">
+                  {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                    <button
+                      key={value}
+                      onClick={() => updateOrderStatus(selectedOrder.id, value as Order['status'])}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        selectedOrder.status === value
+                          ? 'bg-primary-600 text-white'
+                          : 'bg-white border border-neutral-300 text-neutral-700 hover:border-primary-400'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

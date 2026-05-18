@@ -1,7 +1,11 @@
 // API endpoint להדפסת מדבקות הזמנה
 // תומך במדפסות קופה שונות דרך ESC/POS או Web Print
+import { validateRequest } from './_middleware.js'
 
 export default async function handler(req, res) {
+  const blocked = validateRequest(req, res)
+  if (blocked) return
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }

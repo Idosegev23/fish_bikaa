@@ -211,9 +211,10 @@ export default function HomePage() {
               className="group relative aspect-[3/4] overflow-hidden rounded-xl shadow-soft hover:shadow-ocean transition-all duration-500"
             >
               <img 
-                src="/seaWater.png" 
+                src="/seaWater.webp"
                 alt="דגי ים" 
                 className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#013440]/90 via-[#013440]/40 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6">
@@ -231,9 +232,10 @@ export default function HomePage() {
               className="group relative aspect-[3/4] overflow-hidden rounded-xl shadow-soft hover:shadow-ocean transition-all duration-500"
             >
               <img 
-                src="/freshWater.png" 
+                src="/freshWater.webp"
                 alt="דגי מים מתוקים" 
                 className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#013440]/90 via-[#013440]/40 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6">
@@ -251,9 +253,10 @@ export default function HomePage() {
               className="group relative aspect-[3/4] overflow-hidden rounded-xl shadow-soft hover:shadow-ocean transition-all duration-500"
             >
               <img 
-                src="/premium.png" 
+                src="/premium.webp"
                 alt="דגים פרימיום" 
                 className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#013440]/90 via-[#013440]/40 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6">
@@ -271,9 +274,10 @@ export default function HomePage() {
               className="group relative aspect-[3/4] overflow-hidden rounded-xl shadow-soft hover:shadow-ocean transition-all duration-500"
             >
               <img 
-                src="/poducts.png" 
+                src="/poducts.webp"
                 alt="מוצרים נלווים" 
                 className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#013440]/90 via-[#013440]/40 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6">

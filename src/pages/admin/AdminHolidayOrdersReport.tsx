@@ -209,7 +209,8 @@ const AdminHolidayOrdersReport: React.FC = () => {
       
       message += `🏪 דגי בקעת אונו`
 
-      const adminPhone = import.meta.env.VITE_ADMIN_PHONE || '972508503310'
+      const adminPhone = import.meta.env.VITE_ADMIN_PHONE
+      if (!adminPhone) { alert('מספר טלפון מנהל לא הוגדר (VITE_ADMIN_PHONE)'); return }
       await sendWhatsAppMessage(adminPhone, message)
       alert('דוח נשלח בוואטסאפ בהצלחה')
 

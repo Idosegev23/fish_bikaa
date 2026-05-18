@@ -89,6 +89,8 @@ export default function AdminCutTypes() {
     }
 
     try {
+      const warnings: string[] = []
+
       // הוספת החיתוך החדש
       const { data: newCutData, error: cutError } = await supabase
         .from('cut_types')
@@ -116,7 +118,8 @@ export default function AdminCutTypes() {
           .insert(fishCutPrices)
 
         if (pricesError) {
-          console.warn('חלק מהקשרים כבר קיימים:', pricesError)
+          warnings.push('חלק מהקשרים לדגים לא נוצרו')
+          console.warn('Fish cut prices error:', pricesError)
         }
       }
 
@@ -132,22 +135,27 @@ export default function AdminCutTypes() {
           .insert(cutMealTags)
 
         if (tagsError) {
-          console.warn('חלק מהמטגים כבר קיימים:', tagsError)
+          warnings.push('חלק ממטגי המנות לא נוצרו')
+          console.warn('Meal tags error:', tagsError)
         }
       }
 
       await fetchCutTypes()
       setShowAddModal(false)
+      const savedName = newCutForm.cut_name
+      const fishCount = newCutForm.applicable_fish_ids.length
       setNewCutForm({
         cut_name: '',
         default_addition: 0,
         applicable_fish_ids: [],
         meal_tags: [],
       })
-      
-      // הודעת הצלחה עם מידע על מה נוצר
-      const fishCount = newCutForm.applicable_fish_ids.length
-      alert(`סוג החיתוך "${newCutForm.cut_name}" נוסף בהצלחה וקושר ל-${fishCount} דגים!`)
+
+      if (warnings.length > 0) {
+        alert(`סוג החיתוך "${savedName}" נוסף, אך:\n${warnings.join('\n')}`)
+      } else {
+        alert(`סוג החיתוך "${savedName}" נוסף בהצלחה וקושר ל-${fishCount} דגים!`)
+      }
     } catch (error) {
       console.error('Error adding cut type:', error)
       alert('שגיאה בהוספת סוג החיתוך')

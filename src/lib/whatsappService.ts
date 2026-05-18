@@ -176,7 +176,11 @@ export async function sendOrderNotifications(orderData: OrderData, orderId: stri
     await sendWhatsAppMessage(orderData.phone, customerMessage)
     
     // הודעה לאדמין (מספר של החנות)
-    const adminPhone = import.meta.env.VITE_ADMIN_PHONE || '0501234567' // ניתן להגדיר ב-.env
+    const adminPhone = import.meta.env.VITE_ADMIN_PHONE
+    if (!adminPhone) {
+      console.warn('VITE_ADMIN_PHONE not configured, skipping admin notification')
+      return
+    }
     const adminMessage = createAdminWhatsAppMessage(orderData, orderId)
     console.log('📱 Admin WhatsApp message:', adminMessage)
     await sendWhatsAppMessage(adminPhone, adminMessage)
@@ -186,7 +190,10 @@ export async function sendOrderNotifications(orderData: OrderData, orderId: stri
   } catch (error) {
     console.error('Error sending order notifications:', error)
     // לא נזרוק שגיאה כדי שלא לעצור את תהליך ההזמנה
-    console.warn('WhatsApp notifications failed, but order was saved successfully')
+    try {
+      const { showToast } = await import('../components/Toast')
+      showToast('warning', 'ההזמנה נשמרה בהצלחה, אך שליחת ההתראות בוואצאפ נכשלה')
+    } catch { /* toast not available */ }
   }
 }
 

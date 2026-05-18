@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminBottomNav from '../../components/admin/AdminBottomNav'
 import { supabase } from '../../lib/supabase'
-import { pdfService, type SupplierReportData } from '../../lib/pdfService'
+import { pdfLibService, type SupplierReportData } from '../../lib/pdfLibService'
 import { sendWhatsAppMessage } from '../../lib/whatsappService'
 import { ArrowLeft, FileText, MessageCircle, Calendar, TrendingUp } from 'lucide-react'
 
@@ -132,10 +132,10 @@ export default function AdminHolidaySupplierReport() {
         totalOrders
       }
       
-      const pdfBlob = await pdfService.generateSupplierReport(reportData)
+      const pdfBlob = await pdfLibService.generateSupplierReport(reportData)
       const filename = `דוח-הזמנות-חג-${selectedHoliday.name}-${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
       
-      pdfService.downloadPDF(pdfBlob, filename)
+      pdfLibService.downloadPDF(pdfBlob, filename)
       alert('דוח הורד בהצלחה')
 
     } catch (error) {

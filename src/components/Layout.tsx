@@ -73,9 +73,10 @@ export default function Layout({ children, cart }: LayoutProps) {
               {/* לוגו */}
               <Link to="/" className="flex-shrink-0">
                 <img 
-                  src="/logo.png" 
-                  alt="דגי בקעת אונו" 
+                  src="/logo.webp"
+                  alt="דגי בקעת אונו"
                   className="h-10 md:h-14 w-auto"
+                  loading="lazy"
                 />
               </Link>
 
@@ -215,9 +216,10 @@ export default function Layout({ children, cart }: LayoutProps) {
             {/* לוגו ותיאור */}
             <div className="md:col-span-1">
               <img 
-                src="/logo.png" 
-                alt="דגי בקעת אונו" 
+                src="/logo.webp"
+                alt="דגי בקעת אונו"
                 className="h-14 w-auto mb-4 brightness-0 invert"
+                loading="lazy"
               />
               <p className="text-sm text-[#B4D2D9]/70 leading-relaxed mb-4">
                 דגים טריים ואיכותיים מהים התיכון, חתוכים בדיוק כמו שאתם אוהבים.

@@ -60,3 +60,4 @@ dist-ssr
 
 # TypeScript
 *.tsbuildinfo
+.env*.local

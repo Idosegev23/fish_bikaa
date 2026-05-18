@@ -279,7 +279,13 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
   }
 
   const submitOrder = async () => {
-    if (!orderData) return
+    if (!orderData || !orderData.cart || orderData.cart.length === 0) {
+      try {
+        const { showToast } = await import('../components/Toast')
+        showToast('error', 'הסל ריק! נא להוסיף פריטים לפני שליחת ההזמנה')
+      } catch { /* toast not available */ }
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -405,8 +411,12 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
       return true
     } catch (err) {
       console.error('Error validating inventory:', err)
-      // במקרה של שגיאה, עדיף לא לחסום הזמנה אך להתריע
-      return true
+      setStockError(null)
+      try {
+        const { showToast } = await import('../components/Toast')
+        showToast('warning', 'לא הצלחנו לבדוק מלאי. נסו שנית')
+      } catch { /* toast not available */ }
+      return false
     }
   }
 
@@ -418,6 +428,10 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
       const dayOfWeek = date.getDay()
       
       // חילוץ שעות מהפורמט "HH:MM-HH:MM"
+      if (!deliveryTime.includes('-')) {
+        // פורמט לא סטנדרטי (למשל "immediate") – דלג על ולידציה
+        return true
+      }
       const [startTime, endTime] = deliveryTime.split('-')
       
       // שליפת הסלוט המתאים

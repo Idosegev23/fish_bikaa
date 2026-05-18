@@ -8,5 +8,9 @@
       "mcp__ide__getDiagnostics"
     ],
     "deny": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ],
+  "enableAllProjectMcpServers": true
 }

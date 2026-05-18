@@ -88,6 +88,7 @@ export default function AdminFishManagement() {
 
       if (uploadError) {
         console.error('Upload error:', uploadError)
+        alert('שגיאה בהעלאת התמונה: ' + uploadError.message)
         return null
       }
 
@@ -98,6 +99,7 @@ export default function AdminFishManagement() {
       return data.publicUrl
     } catch (error) {
       console.error('Error uploading image:', error)
+      alert('שגיאה בהעלאת התמונה. נסו שנית')
       return null
     }
   }
