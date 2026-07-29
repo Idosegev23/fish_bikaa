@@ -302,8 +302,11 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
   const [imageError, setImageError] = useState(false)
 
   const selectedCutType = cutTypes.find(cut => cut.id === selectedCut)
-  const finalPrice = selectedCutType 
-    ? fish.price_per_kg + (selectedCutType.default_addition || 0)
+  // תוספת ספציפית לדג גוברת על תוספת ברירת המחדל של החיתוך
+  const cutAddition = (cut?: CutType) =>
+    cut ? (cut.price_addition ?? cut.default_addition ?? 0) : 0
+  const finalPrice = selectedCutType
+    ? fish.price_per_kg + cutAddition(selectedCutType)
     : fish.price_per_kg
 
   const unitsBased = !isByWeight(fish.name)
@@ -318,7 +321,7 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
     if (unitsBased) {
       if (quantity <= 0 || (maxUnits !== undefined && quantity > maxUnits)) return
       
-      const pricePerUnit = fish.price_per_kg + (selectedCutType.default_addition || 0)
+      const pricePerUnit = fish.price_per_kg + cutAddition(selectedCutType)
       const totalPrice = pricePerUnit * quantity
       onAdd({
         fishId: fish.id,
@@ -337,7 +340,7 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
     } else {
       if (quantity <= 0 || quantity > fish.available_kg) return
       
-      const pricePerKg = fish.price_per_kg + (selectedCutType.default_addition || 0)
+      const pricePerKg = fish.price_per_kg + cutAddition(selectedCutType)
       const totalPrice = pricePerKg * quantity
       onAdd({
         fishId: fish.id,

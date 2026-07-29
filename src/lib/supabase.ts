@@ -34,6 +34,7 @@ export interface CutType {
   default_addition: number
   is_active: boolean
   created_at: string
+  price_addition?: number | null  // תוספת מחיר ספציפית לדג (גוברת על default_addition)
 }
 
 export interface FishCutPrice {
