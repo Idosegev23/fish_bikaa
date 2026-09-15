@@ -1,10 +1,11 @@
+// דרוש: SUPABASE_URL ו-SUPABASE_KEY (או SUPABASE_SERVICE_KEY) במשתני הסביבה. אין לשמור מפתחות בקוד.
 const { createClient } = require('@supabase/supabase-js');
 const https = require('https');
 const http = require('http');
 
 // Supabase credentials
-const supabaseUrl = 'https://opzchmjhwzlpfwjatswb.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wemNobWpod3pscGZ3amF0c3diIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODAxNzQzOCwiZXhwIjoyMDYzNTkzNDM4fQ.UfArDsLUxgkSBqfazOrTwJCaZ0T5MQ-V2MgN79n_EgE';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 

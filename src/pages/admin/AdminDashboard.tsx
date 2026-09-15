@@ -329,6 +329,12 @@ export default function AdminDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
         {/* Mobile quick actions */}
         <div className="md:hidden grid grid-cols-2 gap-3 mb-6">
+          <Link to="/admin/daily-orders" className="bg-[#026873] border border-[#026873] text-white font-medium py-3 px-4 rounded-lg text-sm text-center hover:bg-[#023859] transition-colors">
+            הזמנות היום
+          </Link>
+          <Link to="/admin/kitchen" className="bg-[#026873] border border-[#026873] text-white font-medium py-3 px-4 rounded-lg text-sm text-center hover:bg-[#023859] transition-colors">
+            מטבח - שקילה
+          </Link>
           <Link to="/admin/orders" className="bg-white border border-[#B4D2D9] text-[#023859] font-medium py-3 px-4 rounded-lg text-sm text-center hover:bg-[#B4D2D9]/10 transition-colors">
             הזמנות
           </Link>
@@ -398,7 +404,27 @@ export default function AdminDashboard() {
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-[#023859] mb-4">פעולות מהירות</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <Link to="/admin/fish" className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 hover:border-[#6FA8BF] hover:shadow-medium transition-all group">
+            <Link to="/admin/daily-orders" className="bg-white rounded-xl p-5 border border-[#026873]/30 hover:border-[#026873] hover:shadow-medium transition-all group">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#026873]/20 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
+                  <Monitor className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-[#026873] mb-1">הזמנות היום</h3>
+                <p className="text-xs text-[#026873]/60">הכנה, מוכן לאיסוף, הדפסה</p>
+              </div>
+            </Link>
+
+            <Link to="/admin/kitchen" className="bg-white rounded-xl p-5 border border-[#026873]/30 hover:border-[#026873] hover:shadow-medium transition-all group">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-[#026873]/20 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
+                  <Scale className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="font-semibold text-[#026873] mb-1">מטבח - שקילה</h3>
+                <p className="text-xs text-[#026873]/60">שקילת הזמנות היום</p>
+              </div>
+            </Link>
+
+            <Link to="/admin/fish"className="bg-white rounded-xl p-5 border border-[#B4D2D9]/30 hover:border-[#6FA8BF] hover:shadow-medium transition-all group">
               <div className="text-center">
                 <div className="w-12 h-12 bg-[#B4D2D9]/30 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#026873] transition-colors">
                   <Fish className="w-6 h-6 text-[#026873] group-hover:text-white transition-colors" />

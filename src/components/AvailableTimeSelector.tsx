@@ -30,6 +30,10 @@ export default function AvailableTimeSelector({
   const [availableSlots, setAvailableSlots] = useState<Array<AvailabilitySlot & { current_orders: number }>>([])
   const [loading, setLoading] = useState(false)
 
+  const formatTime = (time: string) => {
+    return time.substring(0, 5) // HH:MM
+  }
+
   useEffect(() => {
     if (selectedDate) {
       fetchAvailableSlots()
@@ -76,7 +80,8 @@ export default function AvailableTimeSelector({
       
       const slotsWithCounts = slots
         .map(slot => {
-          const timeRange = `${slot.start_time}-${slot.end_time}`
+          // הזמנות שמורות בפורמט "HH:MM-HH:MM", בעוד שבסלוט השעות הן "HH:MM:SS"
+          const timeRange = `${formatTime(slot.start_time)}-${formatTime(slot.end_time)}`
           const currentOrders = (orders || []).filter(order => 
             order.delivery_time === timeRange
           ).length
@@ -111,9 +116,8 @@ export default function AvailableTimeSelector({
     }
   }
 
-  const formatTime = (time: string) => {
-    return time.substring(0, 5) // HH:MM
-  }
+  // רישום השדה בטופס; שומרים את ה-onChange של react-hook-form כדי שהערך יירשם
+  const deliveryTimeField = register('deliveryTime', { required: 'שעה מועדפת היא שדה חובה' })
 
   if (!selectedDate) {
     return (
@@ -153,9 +157,12 @@ export default function AvailableTimeSelector({
       ) : (
         <>
           <select 
-            {...register('deliveryTime', { required: 'שעה מועדפת היא שדה חובה' })}
+            {...deliveryTimeField}
             className="input-field text-base"
-            onChange={(e) => onChange?.(e.target.value)}
+            onChange={(e) => {
+              deliveryTimeField.onChange(e)
+              onChange?.(e.target.value)
+            }}
           >
             <option value="">בחרו שעה מועדפת</option>
             {availableSlots

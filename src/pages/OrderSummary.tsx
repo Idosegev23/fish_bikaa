@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import type { CartItem } from '../App'
 import { CheckCircle, Loader, Mail } from 'lucide-react'
 import { sendOrderNotifications } from '../lib/whatsappService'
+import { CUSTOMER_DRAFT_KEY } from './CustomerDetails'
 
 interface OrderSummaryProps {
   cart: CartItem[]
@@ -31,6 +32,16 @@ interface OrderData {
   extrasTotal?: number
 }
 
+// האם הסל השמור בנתוני ההזמנה זהה לסל החי
+const isSameCart = (saved: CartItem[] | undefined, live: CartItem[]) =>
+  !!saved &&
+  saved.length === live.length &&
+  saved.every((item, i) =>
+    item.fishId === live[i].fishId &&
+    item.cutType === live[i].cutType &&
+    item.quantity === live[i].quantity
+  )
+
 export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
   const navigate = useNavigate()
   const [orderData, setOrderData] = useState<OrderData | null>(null)
@@ -53,15 +64,23 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
   const [holidayAlertChecked, setHolidayAlertChecked] = useState(false)
 
   useEffect(() => {
+    // אחרי שליחה מוצלחת הסל מתרוקן - אין לחזור לפרטי הלקוח
+    if (submitted) return
     // טעינת נתוני הזמנה מLocal Storage
-    const savedOrderData = localStorage.getItem('orderData')
-    if (savedOrderData) {
-      setOrderData(JSON.parse(savedOrderData))
-    } else {
-      // אם אין נתונים, חזרה לדף הקודם
-      navigate('/customer-details')
+    let saved: OrderData | null = null
+    try {
+      saved = JSON.parse(localStorage.getItem('orderData') || 'null')
+    } catch {
+      saved = null
     }
-  }, [navigate])
+    if (saved && isSameCart(saved.cart, cart)) {
+      setOrderData(saved)
+    } else {
+      // אין נתונים או שהסל השתנה מאז - חזרה לפרטי הלקוח (replace כדי שכפתור "אחורה" לא ייכנס ללולאה)
+      localStorage.removeItem('orderData')
+      navigate('/customer-details', { replace: true })
+    }
+  }, [navigate, cart, submitted])
 
   // טעינת חג פעיל ובדיקה אם ההזמנה קשורה לחג
   useEffect(() => {
@@ -287,6 +306,13 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
       return
     }
 
+    // הגנה מפני נתוני הזמנה ישנים שאינם תואמים לסל הנוכחי
+    if (!isSameCart(orderData.cart, cart)) {
+      localStorage.removeItem('orderData')
+      navigate('/customer-details', { replace: true })
+      return
+    }
+
     setSubmitting(true)
     try {
       // בדיקת מלאי בזמן אמת לפני יצירת ההזמנה
@@ -357,6 +383,7 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
 
       // ניקוי נתונים מקומיים
       localStorage.removeItem('orderData')
+      localStorage.removeItem(CUSTOMER_DRAFT_KEY)
       onClearCart()
       setSubmitted(true)
 
@@ -816,11 +843,12 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
                   </div>
                 )}
                 <div className="flex justify-between items-center text-base font-semibold border-t pt-2">
-                  <span>סה"כ לתשלום:</span>
+                  <span>סה״כ משוער:</span>
                   <span className="text-primary-700">
                     ₪{(orderData.totalPrice + (orderData.extrasTotal || 0)).toFixed(2)}
                   </span>
                 </div>
+                <p className="text-xs text-neutral-500">המחיר הסופי ייקבע לפי שקילה בחנות</p>
               </div>
             </div>
 
@@ -898,8 +926,8 @@ export default function OrderSummary({ cart, onClearCart }: OrderSummaryProps) {
         <div className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur border-t border-neutral-200 p-3">
           <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
             <div className="text-sm">
-              <div className="text-neutral-500">סה"כ לתשלום</div>
-              <div className="text-xl font-bold text-primary-700">₪{orderData.totalPrice.toFixed(2)}</div>
+              <div className="text-neutral-500">סה״כ משוער</div>
+              <div className="text-xl font-bold text-primary-700">₪{(orderData.totalPrice + (orderData.extrasTotal || 0)).toFixed(2)}</div>
             </div>
             <button onClick={handleCheckoutClick} disabled={submitting} className="btn-primary flex-1 py-3 disabled:opacity-50">
               {submitting ? 'שולח...' : 'אישור ושליחת הזמנה'}

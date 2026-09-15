@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { sendWhatsAppMessage } from '../../lib/whatsappService'
+import { SHOP_INFO } from '../../lib/shopInfo'
 import { Clock, User, MapPin, Phone, Mail, Package, CheckCircle, Printer, RefreshCw } from 'lucide-react'
 
 interface OrderItem {
@@ -31,7 +32,8 @@ interface Order {
 export default function AdminDailyOrders() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  // תאריך היום לפי שעון ישראל (לא UTC)
+  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' }))
   const [processingOrder, setProcessingOrder] = useState<number | null>(null)
 
   useEffect(() => {
@@ -59,6 +61,9 @@ export default function AdminDailyOrders() {
   }
 
   const markOrderReady = async (order: Order) => {
+    // אישור לפני שליחת הודעה ללקוח (אי אפשר לבטל הודעה שנשלחה)
+    if (!window.confirm(`לסמן את הזמנה #${order.id} כמוכנה ולשלוח הודעת WhatsApp ל${order.customer_name}?`)) return
+
     try {
       setProcessingOrder(order.id)
 
@@ -114,15 +119,22 @@ export default function AdminDailyOrders() {
       message += ` (${quantity})\n`
     })
     
-    message += `\n📍 *כתובת החנות:*\n`
-    message += `דגי בקעת אונו\n`
-    message += `רחוב הדג 123, בקעת אונו\n\n`
-    
-    message += `🕒 *שעות פתיחה:*\n`
-    message += `ראשון-חמישי: 08:00-20:00\n`
-    message += `שישי: 08:00-15:00\n\n`
-    
-    message += `📞 לפרטים: 03-1234567\n`
+    // כתובת וטלפון מתוך SHOP_INFO - שדה ריק לא יוצג
+    if (SHOP_INFO.address) {
+      message += `\n📍 *כתובת החנות:*\n`
+      message += `${SHOP_INFO.name}\n`
+      message += `${SHOP_INFO.address}\n\n`
+    } else {
+      message += `\n`
+    }
+
+    if (SHOP_INFO.hours) {
+      message += `🕒 *שעות פתיחה:*\n${SHOP_INFO.hours}\n\n`
+    }
+
+    if (SHOP_INFO.phone) {
+      message += `📞 לפרטים: ${SHOP_INFO.phone}\n`
+    }
     message += `💳 *התשלום יתבצע בקופה לפי משקל בפועל*\n`
     message += `מחכים לכם! 😊`
     
@@ -176,12 +188,17 @@ export default function AdminDailyOrders() {
   const sendToPrinter = async (content: string, orderId: number) => {
     try {
       // אפשרות 1: שליחה ל-API שמתחבר למדפסת
-      await fetch('/api/print-label', {
+      const response = await fetch('/api/print-label', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content, orderId })
       })
-      
+
+      // שגיאת HTTP - מעבר לגיבוי
+      if (!response.ok) {
+        throw new Error(`Print API failed: ${response.status}`)
+      }
+
       // אפשרות 2: שימוש ב-Web Print API (אם הדפדפן תומך)
       // if ('print' in window) {
       //   const printWindow = window.open('', '_blank')

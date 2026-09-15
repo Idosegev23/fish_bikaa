@@ -1,9 +1,10 @@
+// דרוש: SUPABASE_URL ו-SUPABASE_KEY (או SUPABASE_SERVICE_KEY) במשתני הסביבה. אין לשמור מפתחות בקוד.
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-const SUPABASE_URL = 'https://opzchmjhwzlpfwjatswb.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wemNobWpod3pscGZ3amF0c3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNjcyMTAsImV4cCI6MjA2ODg0MzIxMH0.4KbZPcEYUEPVUbHGMw1dApzAYuPHsXdQXg8q3Gqh-e4';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const BUCKET_NAME = 'fish-images';
 
 // Files to upload

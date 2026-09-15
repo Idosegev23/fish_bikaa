@@ -104,8 +104,14 @@ export default function AdminMealRecommendations() {
   }
 
   const removeRec = async (id: number) => {
+    const rec = recs.find(r => r.id === id)
+    if (!window.confirm(`למחוק את ההמלצה${rec?.meal_name ? ` "${rec.meal_name}"` : ''}?`)) return
     const { error } = await supabase.from('meal_recommendations').delete().eq('id', id)
-    if (!error) setRecs(recs.filter(r => r.id !== id))
+    if (error) {
+      alert(`שגיאה במחיקה: ${error.message}`)
+      return
+    }
+    setRecs(recs.filter(r => r.id !== id))
   }
 
   return (

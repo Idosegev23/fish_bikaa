@@ -48,13 +48,45 @@ interface RecommendedProduct {
   category?: string
 }
 
+export const CUSTOMER_DRAFT_KEY = 'customerDetailsDraft'
+
+// נרמול טלפון: הסרת רווחים, מקפים וסוגריים, והמרת קידומת 972+ ל-0
+const normalizePhone = (value: string) => {
+  const digits = (value || '').replace(/[\s\-()]/g, '')
+  return digits.replace(/^\+?972/, '0')
+}
+
+// נייד ישראלי (05XXXXXXXX) או קווי (0X-XXXXXXX)
+const isValidIsraeliPhone = (value: string) => {
+  const phone = normalizePhone(value)
+  return /^05\d{8}$/.test(phone) || /^0[2-9]\d{7}$/.test(phone)
+}
+
+// שחזור טיוטת פרטי הלקוח שנשמרה (למשל אחרי יציאה מהדף או רענון)
+const loadDraft = (): Partial<FormData> => {
+  try {
+    const draft = JSON.parse(localStorage.getItem(CUSTOMER_DRAFT_KEY) || '{}') as Partial<FormData>
+    // תאריך מקומי (ישראל), לא UTC
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' })
+    // תאריך איסוף שכבר עבר אינו רלוונטי, וגם השעה שנבחרה לו
+    if (draft.deliveryDate && draft.deliveryDate < today) {
+      delete draft.deliveryDate
+      delete draft.deliveryTime
+    }
+    return draft
+  } catch {
+    return {}
+  }
+}
+
 export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDetailsProps) {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [cartWithImages, setCartWithImages] = useState<CartItemWithFish[]>([])
   const [loadingImages, setLoadingImages] = useState(true)
   const [activeHoliday, setActiveHoliday] = useState<{ name: string; start_date: string; end_date: string } | null>(null)
-  const [isImmediatePickup, setIsImmediatePickup] = useState(false)
+  const [draft] = useState(loadDraft)
+  const [isImmediatePickup, setIsImmediatePickup] = useState(draft.deliveryTime === 'immediate')
   
   // קופונים
   const [couponCode, setCouponCode] = useState('')
@@ -65,12 +97,17 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
   // מוצרים מומלצים
   const [recommendedProducts, setRecommendedProducts] = useState<RecommendedProduct[]>([])
   
-  const { register, handleSubmit, formState: { errors }, setValue, trigger, watch } = useForm<FormData>()
+  const { register, handleSubmit, formState: { errors }, setValue, trigger, watch } = useForm<FormData>({ defaultValues: draft })
 
-  // ניקוי נתוני הזמנה קודמת בכניסה לדף
+  // שמירת טיוטת הפרטים בכל שינוי, כדי שלא יימחקו ביציאה מהדף
   useEffect(() => {
-    localStorage.removeItem('orderData')
-  }, [])
+    const subscription = watch(values => {
+      try {
+        localStorage.setItem(CUSTOMER_DRAFT_KEY, JSON.stringify(values))
+      } catch { /* localStorage not available */ }
+    })
+    return () => subscription.unsubscribe()
+  }, [watch])
 
   // טעינת תמונות ומידע דגים
   useEffect(() => {
@@ -160,7 +197,8 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
       }
     }
     return {
-      min: new Date().toISOString().split('T')[0],
+      // תאריך מקומי (ישראל), לא UTC
+      min: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' }),
       max: undefined
     }
   }
@@ -168,8 +206,8 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
   const dateConstraints = getDateConstraints()
 
   const handleImmediatePickup = async () => {
-    const now = new Date()
-    const today = now.toISOString().split('T')[0]
+    // תאריך מקומי (ישראל), לא UTC
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' })
     
     setValue('deliveryDate', today, { shouldDirty: true, shouldValidate: true })
     setValue('deliveryTime', 'immediate', { shouldDirty: true, shouldValidate: true })
@@ -300,6 +338,7 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
       
       const orderData = {
         ...data,
+        phone: normalizePhone(data.phone),
         cart,
         subtotalPrice,
         discountAmount,
@@ -498,9 +537,10 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
               )}
               
               <div className="flex items-center justify-between text-lg font-bold pt-2 border-t border-neutral-200">
-                <span>סה"כ לתשלום:</span>
+                <span>סה״כ משוער:</span>
                 <span className="text-primary-700">₪{totalPrice.toFixed(2)}</span>
               </div>
+              <p className="text-xs text-neutral-500">המחיר הסופי ייקבע לפי שקילה בחנות</p>
             </div>
           </div>
 
@@ -606,7 +646,13 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                 </label>
                 <input
                   type="tel"
-                  {...register('phone', { required: 'מספר טלפון הוא שדה חובה' })}
+                  inputMode="tel"
+                  autoComplete="tel"
+                  dir="ltr"
+                  {...register('phone', {
+                    required: 'מספר טלפון הוא שדה חובה',
+                    validate: (value) => isValidIsraeliPhone(value) || 'מספר טלפון לא תקין'
+                  })}
                   className="input-field"
                   placeholder="050-1234567"
                 />
@@ -713,7 +759,7 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
                   disabled={loading}
                   className="w-full btn-primary py-3 font-semibold disabled:opacity-50"
                 >
-                  {loading ? 'שולח...' : `המשך לסיכום • ₪${totalPrice.toFixed(2)}`}
+                  {loading ? 'שולח...' : `המשך לסיכום • סה״כ משוער ₪${totalPrice.toFixed(2)}`}
                 </button>
                 
                 <button
@@ -733,7 +779,7 @@ export default function CustomerDetails({ cart, onRemoveFromCart }: CustomerDeta
       <div className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur border-t border-neutral-200 p-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="text-sm">
-            <div className="text-neutral-500">סה"כ</div>
+            <div className="text-neutral-500">סה״כ משוער</div>
             <div className="text-lg font-bold text-primary-700">₪{totalPrice.toFixed(2)}</div>
             {appliedCoupon && (
               <div className="text-xs text-green-600">כולל הנחה</div>

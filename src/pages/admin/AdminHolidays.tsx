@@ -72,13 +72,31 @@ export default function AdminHolidays() {
 
 
   const removeHoliday = async (id: number) => {
+    const target = holidays.find(h => h.id === id)
+    const holidayName = target?.name || `#${id}`
     try {
       setLoading(true)
-      await supabase.from('holidays').delete().eq('id', id)
+
+      // בדיקה אם יש הזמנות שמשויכות לחג
+      const { count, error: countError } = await supabase
+        .from('orders')
+        .select('id', { count: 'exact', head: true })
+        .eq('holiday_id', id)
+      if (countError) throw countError
+
+      if (count && count > 0) {
+        alert(`לא ניתן למחוק את החג "${holidayName}": יש ${count} הזמנות שמשויכות אליו.\nמחיקה תנתק אותן מהחג ומדוחות החג. אפשר להשבית את החג במקום למחוק.`)
+        return
+      }
+
+      if (!window.confirm(`למחוק את החג "${holidayName}"? אין הזמנות שמשויכות אליו. פעולה זו לא ניתנת לביטול.`)) return
+
+      const { error } = await supabase.from('holidays').delete().eq('id', id)
+      if (error) throw error
       await fetchHolidays()
     } catch (e) {
       console.error('Error deleting holiday:', e)
-      alert('שגיאה במחיקת חג')
+      alert(`שגיאה במחיקת חג: ${(e as { message?: string })?.message || e}`)
     } finally {
       setLoading(false)
     }
@@ -89,10 +107,12 @@ export default function AdminHolidays() {
     if (!target) return
 
     if (target.active) {
-      // השבתה - ישירה ללא פופאפ
+      // השבתה - ללא פופאפ, עם אישור
+      if (!window.confirm('לכבות את הזמנות החג? לקוחות לא יוכלו להזמין לחג')) return
       try {
         setLoading(true)
-        await supabase.from('holidays').update({ active: false }).eq('id', id)
+        const { error } = await supabase.from('holidays').update({ active: false }).eq('id', id)
+        if (error) throw error
         await fetchHolidays()
       } catch (e) {
         console.error('Error deactivating holiday:', e)

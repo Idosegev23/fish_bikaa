@@ -1,10 +1,11 @@
+// דרוש: SUPABASE_URL ו-SUPABASE_KEY (או SUPABASE_SERVICE_KEY) במשתני הסביבה. אין לשמור מפתחות בקוד.
 const fs = require('fs');
 const path = require('path');
 
-const supabaseUrl = 'https://opzchmjhwzlpfwjatswb.supabase.co';
+const supabaseUrl = process.env.SUPABASE_URL;
 // Service role key for storage access
 // Anon key (public)
-const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wemNobWpod3pscGZ3amF0c3diIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMTc0MzgsImV4cCI6MjA2MzU5MzQzOH0.i0sVoJLkRfL0VhpvDqMR7MYmMRlGrL2eXdlNrPRcfcc';
+const anonKey = process.env.SUPABASE_KEY;
 const serviceKey = anonKey;
 
 const fishFiles = [

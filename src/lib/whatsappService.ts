@@ -1,3 +1,5 @@
+import { SHOP_INFO } from './shopInfo'
+
 export interface OrderItem {
   fish_name: string
   cut?: string
@@ -26,6 +28,15 @@ export interface CartItem {
 // Union type שתומך בשני המבנים
 export type OrderCartItem = OrderItem | CartItem
 
+// מוצר נלווה שנוסף בסיכום ההזמנה
+export interface OrderExtra {
+  id?: number
+  name: string
+  price: number
+  quantity: number
+  unit?: string
+}
+
 export interface OrderData {
   customerName: string
   email: string
@@ -34,8 +45,36 @@ export interface OrderData {
   deliveryDate: string
   deliveryTime: string
   cart: OrderCartItem[]
+  // סה"כ דגים אחרי הנחת קופון (כפי שנשמר במסך פרטי הלקוח)
   totalPrice: number
+  discountAmount?: number
+  appliedCoupon?: { code: string } | null
+  extras?: OrderExtra[]
+  extrasTotal?: number
   isHolidayMode?: boolean
+}
+
+// שורות מוצרים נלווים וסה"כ משוער - זהה לחישוב במסך הסיכום
+function buildExtrasAndTotal(orderData: OrderData, formatPrice: (price: number) => string): string {
+  let text = ''
+  const extras = orderData.extras || []
+  if (extras.length > 0) {
+    text += `\n🛒 *מוצרים נלווים:*\n`
+    extras.forEach((extra, index) => {
+      const unitText = extra.unit ? ` ${extra.unit}` : ''
+      text += `${index + 1}. ${extra.name} - ${extra.quantity}${unitText} × ${formatPrice(extra.price)} = ${formatPrice(extra.price * extra.quantity)}\n`
+    })
+  }
+  const extrasTotal = orderData.extrasTotal ?? extras.reduce((sum, extra) => sum + extra.price * extra.quantity, 0)
+  const discount = orderData.discountAmount || 0
+  text += `\n`
+  if (discount > 0) {
+    const couponText = orderData.appliedCoupon?.code ? ` (${orderData.appliedCoupon.code})` : ''
+    text += `🏷️ הנחת קופון${couponText}: -${formatPrice(discount)}\n`
+  }
+  text += `💰 *סה״כ משוער: ${formatPrice((orderData.totalPrice || 0) + extrasTotal)}*\n`
+  text += `המחיר הסופי ייקבע לפי משקל בפועל\n`
+  return text
 }
 
 // פונקציה ליצירת הודעת WhatsApp ללקוח
@@ -63,23 +102,31 @@ export function createCustomerWhatsAppMessage(orderData: OrderData, orderId: str
     message += `\n   כמות: ${quantityText}\n`
   })
   
+  message += buildExtrasAndTotal(orderData, formatPrice)
   message += `\n💳 *התשלום יתבצע בחנות לפי משקל בפועל*\n\n`
   
   // פרטי איסוף
   message += `📅 *פרטי איסוף:*\n`
-  message += `📍 כתובת: ${orderData.deliveryAddress}\n`
   message += `📅 תאריך: ${new Date(orderData.deliveryDate).toLocaleDateString('he-IL')}\n`
-  message += `🕒 שעה: ${orderData.deliveryTime}\n\n`
+  message += `🕒 שעה: ${orderData.deliveryTime}\n`
+  // שדה deliveryAddress משמש בפועל להערות חופשיות
+  if (orderData.deliveryAddress?.trim()) {
+    message += `📝 הערות: ${orderData.deliveryAddress}\n`
+  }
+  message += `\n`
   
   if (orderData.isHolidayMode) {
     message += `🎉 *הזמנה מיוחדת לחג*\n`
     message += `ההזמנה מיועדת לתאריכי החג שנבחרו\n\n`
   }
   
+  // פרטי החנות - רק שדות שמולאו ב-SHOP_INFO
   message += `📞 *פרטי יצירת קשר:*\n`
-  message += `חנות: דגי בקעת אונו\n`
-  message += `טלפון: 03-1234567\n`
-  message += `כתובת: רחוב הדג 123, בקעת אונו\n\n`
+  message += `חנות: ${SHOP_INFO.name}\n`
+  if (SHOP_INFO.phone) message += `טלפון: ${SHOP_INFO.phone}\n`
+  if (SHOP_INFO.address) message += `כתובת: ${SHOP_INFO.address}\n`
+  if (SHOP_INFO.hours) message += `שעות פתיחה: ${SHOP_INFO.hours}\n`
+  message += `\n`
   
   message += `🙏 *תודה שבחרתם בנו!*\n`
   message += `נתראה באיסוף 😊`
@@ -104,7 +151,10 @@ export function createAdminWhatsAppMessage(orderData: OrderData, orderId: string
   message += `📅 *פרטי איסוף:*\n`
   message += `תאריך: ${new Date(orderData.deliveryDate).toLocaleDateString('he-IL')}\n`
   message += `שעה: ${orderData.deliveryTime}\n`
-  message += `כתובת: ${orderData.deliveryAddress}\n\n`
+  if (orderData.deliveryAddress?.trim()) {
+    message += `הערות: ${orderData.deliveryAddress}\n`
+  }
+  message += `\n`
   
   if (orderData.isHolidayMode) {
     message += `🎉 *הזמנה לחג*\n\n`
@@ -125,6 +175,7 @@ export function createAdminWhatsAppMessage(orderData: OrderData, orderId: string
     message += ` - ${quantityText}\n`
   })
   
+  message += buildExtrasAndTotal(orderData, formatPrice)
   message += `\n💳 *התשלום יתבצע בקופה לפי משקל בפועל*\n\n`
   
   message += `📱 *לצפייה באדמין:*\n`

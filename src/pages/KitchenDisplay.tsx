@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { sendWhatsAppMessage } from '../lib/whatsappService'
+import { SHOP_INFO } from '../lib/shopInfo'
 import { Scale, CheckCircle, Clock, Package, RefreshCw, Info, ArrowRight, Send } from 'lucide-react'
 
 interface OrderItem {
@@ -56,7 +57,8 @@ export default function KitchenDisplay() {
   const fetchPendingOrders = async () => {
     try {
       setLoading(true)
-      const today = new Date().toISOString().split('T')[0]
+      // תאריך היום לפי שעון ישראל (לא UTC)
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' })
       
       const { data, error } = await supabase
         .from('orders')
@@ -109,14 +111,22 @@ export default function KitchenDisplay() {
 
     try {
       // עדכון המשקל בפועל בפריט הנבחר
-      const updatedItems = [...selectedOrder.order_items]
-      updatedItems[selectedItemIndex].actual_weight = weight
+      // העתקה של הפריט במקום שינוי המערך הקיים
+      const updatedItems = selectedOrder.order_items.map((item, index) =>
+        index === selectedItemIndex ? { ...item, actual_weight: weight } : item
+      )
 
       // שמירה במסד הנתונים
-      await supabase
+      const { error } = await supabase
         .from('orders')
         .update({ order_items: updatedItems })
         .eq('id', selectedOrder.id)
+
+      if (error) {
+        console.error('Error saving weight:', error)
+        alert(`שגיאה בשמירת המשקל: ${error.message}`)
+        return
+      }
 
       // עדכון המצב המקומי
       setSelectedOrder({ ...selectedOrder, order_items: updatedItems })
@@ -257,7 +267,7 @@ export default function KitchenDisplay() {
     
     content += `------------------------\n`
     content += `** תשלום בקופה לפי משקל בפועל **\n`
-    content += `דגי בקעת אונו - 03-1234567\n`
+    content += SHOP_INFO.phone ? `${SHOP_INFO.name} - ${SHOP_INFO.phone}\n` : `${SHOP_INFO.name}\n`
     
     return content
   }
@@ -305,15 +315,22 @@ export default function KitchenDisplay() {
       message += `\n`
     })
     
-    message += `\n📍 *כתובת החנות:*\n`
-    message += `דגי בקעת אונו\n`
-    message += `רחוב הדג 123, בקעת אונו\n\n`
-    
-    message += `🕒 *שעות פתיחה:*\n`
-    message += `ראשון-חמישי: 08:00-20:00\n`
-    message += `שישי: 08:00-15:00\n\n`
-    
-    message += `📞 לפרטים: 03-1234567\n`
+    // כתובת וטלפון מתוך SHOP_INFO - שדה ריק לא יוצג
+    if (SHOP_INFO.address) {
+      message += `\n📍 *כתובת החנות:*\n`
+      message += `${SHOP_INFO.name}\n`
+      message += `${SHOP_INFO.address}\n\n`
+    } else {
+      message += `\n`
+    }
+
+    if (SHOP_INFO.hours) {
+      message += `🕒 *שעות פתיחה:*\n${SHOP_INFO.hours}\n\n`
+    }
+
+    if (SHOP_INFO.phone) {
+      message += `📞 לפרטים: ${SHOP_INFO.phone}\n`
+    }
     message += `💳 *התשלום יתבצע בקופה לפי משקל בפועל*\n`
     message += `מחכים לכם! 😊`
     
@@ -481,7 +498,6 @@ export default function KitchenDisplay() {
 
                   <button
                     onClick={() => startWeighing(order)}
-                    disabled={order.status === 'weighing'}
                     className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-bold py-6 px-8 rounded-2xl transition-colors flex items-center justify-center gap-4 text-2xl"
                   >
                     <Scale className="w-8 h-8" />

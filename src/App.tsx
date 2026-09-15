@@ -35,6 +35,7 @@ const AdminDailyOrders = lazy(() => import('./pages/admin/AdminDailyOrders'))
 const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'))
 const AdminFishCuts = lazy(() => import('./pages/admin/AdminFishCuts'))
 const AdminCatalogFeedback = lazy(() => import('./pages/admin/AdminCatalogFeedback'))
+const KitchenDisplay = lazy(() => import('./pages/KitchenDisplay'))
 
 export interface CartItem {
   fishId: number
@@ -43,7 +44,7 @@ export interface CartItem {
   cutType: string
   cutTypeId?: number
   quantity: number // יחידות לדגים לפי יחידה, ק"ג לדגים לפי משקל
-  pricePerKg: number // לדגים לפי יחידה נשתמש במחיר ליחידה ב-field זה לצורך תאימות
+  pricePerKg: number // מחיר לק"ג כולל תוספת חיתוך (לדגים לפי יחידה, מחיר היחידה המשוער נמצא ב-unitPrice)
   totalPrice: number
   // שדות אופציונליים לתמיכה ביחידות ומידות
   unitsBased?: boolean
@@ -51,6 +52,8 @@ export interface CartItem {
   size?: 'S' | 'M' | 'L'
   unitPrice?: number
 }
+
+const CART_TTL_MS = 24 * 60 * 60 * 1000
 
 function AdminLoadingFallback() {
   return (
@@ -64,7 +67,26 @@ function AdminLoadingFallback() {
 }
 
 function App() {
-  const [cart, setCart] = useState<CartItem[]>([])
+  // הסל נשמר ב-localStorage כדי שלא יימחק ברענון או ביציאה מהדף (תוקף 24 שעות, בגלל שינויי מחירים)
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('cart') || 'null')
+      if (saved && Array.isArray(saved.items) && Date.now() - saved.savedAt < CART_TTL_MS) {
+        return saved.items
+      }
+    } catch { /* localStorage not available */ }
+    return []
+  })
+
+  useEffect(() => {
+    try {
+      if (cart.length > 0) {
+        localStorage.setItem('cart', JSON.stringify({ items: cart, savedAt: Date.now() }))
+      } else {
+        localStorage.removeItem('cart')
+      }
+    } catch { /* localStorage not available */ }
+  }, [cart])
   const [isAdmin, setIsAdmin] = useState(() => {
     try {
       return localStorage.getItem('isAdmin') === 'true'
@@ -203,6 +225,11 @@ function App() {
 
             <Route path="/admin/daily-orders" element={
               isAdmin ? <AdminDailyOrders /> : <AdminLogin onLogin={setIsAdmin} />
+            } />
+
+            {/* מסך מטבח - שקילה, הודעת "מוכן" ללקוח והדפסת מדבקה */}
+            <Route path="/admin/kitchen" element={
+              isAdmin ? <KitchenDisplay /> : <AdminLogin onLogin={setIsAdmin} />
             } />
 
             <Route path="/admin/coupons" element={

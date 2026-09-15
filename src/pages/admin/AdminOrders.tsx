@@ -422,10 +422,22 @@ export default function AdminOrders() {
                         <div className="text-sm text-neutral-600">{item.cut}</div>
                         <div className="text-sm text-neutral-500">{item.quantity_kg} ק"ג</div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-neutral-900">₪{Number(item.price_total).toFixed(2)}</div>
-                        <div className="text-sm text-neutral-500">₪{Number(item.price_per_kg).toFixed(2)}/ק"ג</div>
-                      </div>
+                      {(() => {
+                        // order_items נשמרים עם price (סה"כ לשורה); price_total לתאימות לשורות ישנות
+                        const lineTotal = Number(item.price ?? item.price_total)
+                        const qty = Number(item.quantity_kg)
+                        const perKg = lineTotal > 0 && qty > 0 ? lineTotal / qty : null
+                        return (
+                          <div className="text-right">
+                            {Number.isFinite(lineTotal) && (
+                              <div className="font-semibold text-neutral-900">₪{lineTotal.toFixed(2)}</div>
+                            )}
+                            {perKg !== null && (
+                              <div className="text-sm text-neutral-500">₪{perKg.toFixed(2)}/ק"ג</div>
+                            )}
+                          </div>
+                        )
+                      })()}
                     </div>
                   ))}
                 </div>

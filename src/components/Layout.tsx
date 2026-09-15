@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Phone, Mail, MapPin, ShoppingBag, MessageCircle, X, Menu, Award, ShieldCheck, Truck, Users, Clock, Fish } from 'lucide-react'
 import type { CartItem } from '../App'
+import { SHOP_INFO, shopTelHref, shopWhatsappHref } from '../lib/shopInfo'
 
 interface LayoutProps {
   children: ReactNode
@@ -31,6 +32,8 @@ export default function Layout({ children, cart }: LayoutProps) {
   }, [location.pathname])
 
   const isActive = (path: string) => location.pathname === path
+  // בעמודי הקופה יש סרגל תחתון קבוע - לא להסתיר אותו בכפתור הוואטסאפ
+  const isCheckoutPage = ['/customer-details', '/order-summary'].includes(location.pathname)
 
   return (
     <div className="min-h-screen bg-white">
@@ -113,7 +116,7 @@ export default function Layout({ children, cart }: LayoutProps) {
 
               {/* עגלת קניות */}
               <Link 
-                to="/order-summary" 
+                to="/customer-details" 
                 className="relative flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#023859] transition-all hover:bg-[#B4D2D9]/20 rounded-lg border border-[#B4D2D9]"
               >
                 <ShoppingBag className="w-4 h-4" />
@@ -166,16 +169,18 @@ export default function Layout({ children, cart }: LayoutProps) {
         {children}
       </main>
 
-      {/* WhatsApp Floating Button */}
-      <a
-        href="https://wa.me/972501234567?text=שלום, אשמח לקבל פרטים"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 left-6 z-50 bg-[#026873] hover:bg-[#013440] text-white p-4 rounded-full shadow-ocean transition-all hover:scale-110"
-        aria-label="צור קשר בוואטסאפ"
-      >
-        <MessageCircle className="w-6 h-6" />
-      </a>
+      {/* WhatsApp Floating Button - מוצג רק כשיש מספר ולא בעמודי הקופה */}
+      {SHOP_INFO.whatsapp && !isCheckoutPage && (
+        <a
+          href={shopWhatsappHref('שלום, אשמח לקבל פרטים')}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 left-6 z-50 bg-[#026873] hover:bg-[#013440] text-white p-4 rounded-full shadow-ocean transition-all hover:scale-110"
+          aria-label="צור קשר בוואטסאפ"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </a>
+      )}
 
       {/* Footer */}
       <footer className="bg-[#013440] text-white mt-20">
@@ -246,18 +251,31 @@ export default function Layout({ children, cart }: LayoutProps) {
             <div>
               <h4 className="text-sm font-semibold mb-4 tracking-wide text-[#6FA8BF]">יצירת קשר</h4>
               <div className="space-y-3">
-                <a href="tel:03-1234567" className="flex items-center gap-3 text-sm text-[#B4D2D9]/70 hover:text-white transition-colors">
-                  <Phone className="w-4 h-4 text-[#6FA8BF]" />
-                  <span>03-1234567</span>
-                </a>
-                <a href="mailto:info@fishbakat.co.il" className="flex items-center gap-3 text-sm text-[#B4D2D9]/70 hover:text-white transition-colors">
-                  <Mail className="w-4 h-4 text-[#6FA8BF]" />
-                  <span>info@fishbakat.co.il</span>
-                </a>
-                <div className="flex items-start gap-3 text-sm text-[#B4D2D9]/70">
-                  <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#6FA8BF]" />
-                  <span>רחוב הדייגים 15, בקעת אונו</span>
-                </div>
+                {/* כל שורה מוצגת רק אם הערך מולא ב-SHOP_INFO */}
+                {SHOP_INFO.phone && (
+                  <a href={shopTelHref()} className="flex items-center gap-3 text-sm text-[#B4D2D9]/70 hover:text-white transition-colors">
+                    <Phone className="w-4 h-4 text-[#6FA8BF]" />
+                    <span dir="ltr">{SHOP_INFO.phone}</span>
+                  </a>
+                )}
+                {SHOP_INFO.email && (
+                  <a href={`mailto:${SHOP_INFO.email}`} className="flex items-center gap-3 text-sm text-[#B4D2D9]/70 hover:text-white transition-colors">
+                    <Mail className="w-4 h-4 text-[#6FA8BF]" />
+                    <span>{SHOP_INFO.email}</span>
+                  </a>
+                )}
+                {SHOP_INFO.address && (
+                  <div className="flex items-start gap-3 text-sm text-[#B4D2D9]/70">
+                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#6FA8BF]" />
+                    <span>{SHOP_INFO.address}</span>
+                  </div>
+                )}
+                {SHOP_INFO.hours && (
+                  <div className="flex items-start gap-3 text-sm text-[#B4D2D9]/70">
+                    <Clock className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#6FA8BF]" />
+                    <span>{SHOP_INFO.hours}</span>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -313,6 +313,10 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
   const averageWeight = getAverageWeightKg(fish.name, size)
   const maxUnits = unitsBased ? computeMaxUnits(fish.available_kg, fish.name, size) : undefined
   const isOutOfStock = unitsBased ? (maxUnits || 0) <= 0 : fish.available_kg <= 0
+  // מחיר משוער ליחידה: מחיר לק"ג כפול משקל ממוצע.
+  // אם אין משקל ממוצע ידוע (0) לא נחייב 0 - נשתמש במחיר לק"ג כמחיר ליחידה
+  const pricePerUnit = averageWeight > 0 ? finalPrice * averageWeight : finalPrice
+  const estimatedTotal = unitsBased ? pricePerUnit * quantity : finalPrice * quantity
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -321,7 +325,6 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
     if (unitsBased) {
       if (quantity <= 0 || (maxUnits !== undefined && quantity > maxUnits)) return
       
-      const pricePerUnit = fish.price_per_kg + cutAddition(selectedCutType)
       const totalPrice = pricePerUnit * quantity
       onAdd({
         fishId: fish.id,
@@ -330,7 +333,7 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
         cutType: selectedCutType.cut_name,
         cutTypeId: selectedCutType.id,
         quantity,
-        pricePerKg: pricePerUnit,
+        pricePerKg: finalPrice,
         totalPrice,
         unitsBased: true,
         averageWeightKg: averageWeight,
@@ -488,7 +491,7 @@ function FishCard({ fish, cutTypes, onAdd }: FishCardProps) {
             <div className="flex justify-between items-center mb-4">
               <span className="text-sm text-[#6FA8BF]">סה״כ</span>
               <span className="font-serif text-2xl text-[#023859] font-semibold">
-                ₪{(finalPrice * quantity).toFixed(0)}
+                ₪{estimatedTotal.toFixed(0)}
               </span>
             </div>
 

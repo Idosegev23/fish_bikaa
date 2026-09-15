@@ -1,4 +1,5 @@
 import type { CartItem } from '../App'
+import { SHOP_INFO } from './shopInfo'
 
 // Types for email service
 export interface OrderEmailData {
@@ -189,8 +190,8 @@ export class EmailService {
 
         <div class="contact-info">
           <h3>פרטי התקשרות:</h3>
-          <p><strong>כתובת החנות:</strong> בקעת אונו, ישראל</p>
-          <p><strong>טלפון:</strong> 03-1234567</p>
+          ${SHOP_INFO.address ? `<p><strong>כתובת החנות:</strong> ${SHOP_INFO.address}</p>` : ''}
+          ${SHOP_INFO.phone ? `<p><strong>טלפון:</strong> ${SHOP_INFO.phone}</p>` : ''}
           <p><strong>דוא"ל:</strong> triroars@gmail.com</p>
         </div>
 

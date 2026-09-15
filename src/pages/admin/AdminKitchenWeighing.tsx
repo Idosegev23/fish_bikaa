@@ -50,7 +50,8 @@ export default function AdminKitchenWeighing() {
   const fetchPendingOrders = async () => {
     try {
       setLoading(true)
-      const today = new Date().toISOString().split('T')[0]
+      // תאריך היום לפי שעון ישראל (לא UTC)
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' })
       
       const { data, error } = await supabase
         .from('orders')
@@ -97,14 +98,22 @@ export default function AdminKitchenWeighing() {
 
     try {
       // עדכון המשקל בפועל בפריט הנבחר
-      const updatedItems = [...selectedOrder.order_items]
-      updatedItems[selectedItemIndex].actual_weight = weight
+      // העתקה של הפריט במקום שינוי המערך הקיים
+      const updatedItems = selectedOrder.order_items.map((item, index) =>
+        index === selectedItemIndex ? { ...item, actual_weight: weight } : item
+      )
 
       // שמירה במסד הנתונים
-      await supabase
+      const { error } = await supabase
         .from('orders')
         .update({ order_items: updatedItems })
         .eq('id', selectedOrder.id)
+
+      if (error) {
+        console.error('Error saving weight:', error)
+        alert(`שגיאה בשמירת המשקל: ${error.message}`)
+        return
+      }
 
       // עדכון המצב המקומי
       setSelectedOrder({ ...selectedOrder, order_items: updatedItems })
@@ -310,7 +319,6 @@ export default function AdminKitchenWeighing() {
 
                   <button
                     onClick={() => startWeighing(order)}
-                    disabled={order.status === 'weighing'}
                     className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-bold py-6 px-8 rounded-2xl transition-colors flex items-center justify-center gap-4 text-2xl"
                   >
                     <Scale className="w-8 h-8" />
